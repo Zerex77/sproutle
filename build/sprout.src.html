@@ -272,6 +272,13 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 .actions{display:flex;justify-content:center;gap:10px}
 .actions .btn{flex:1 1 0;max-width:180px;padding:10px 12px;font-size:.9rem}
 @media (max-height:760px){.scene{min-height:200px}.plant{padding-top:52px}.wrap{gap:8px}.k{height:48px}.typed .slot{max-width:38px}.word .t{max-width:40px}.hint{font-size:.78rem}}
+
+.pill.lives{gap:3px}
+.pill.lives i,.falling{display:inline-block;width:15px;height:15px;background:var(--leaf);border-radius:0 100% 0 100%;box-shadow:inset -2px -2px 0 var(--leaf-deep)}
+.pill.lives i.gone{background:var(--line);box-shadow:none;opacity:.6}
+.falling{position:fixed;z-index:36;pointer-events:none}
+.typed.warn .slot{border-color:#e8c23a!important;background:#fff6cf!important;color:#8a6a00}
+.typed.bad .slot{border-color:var(--bad)!important;background:color-mix(in srgb,var(--bad) 14%,var(--card))!important;color:var(--bad)}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -288,14 +295,14 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
     <div class="hud" aria-live="polite">
       <span class="pill">No. <b id="num"></b></span>
       <span class="pill life"><b id="len"></b>/<b id="par"></b><span class="vine" aria-hidden="true"><i></i></span></span>
-      <span class="pill">Cuts <b id="snips">0</b></span><span class="pill">Misses + hints <b id="misses">0</b></span>
+      <span class="pill lives" id="lives" aria-label="Leaves left"></span><span class="pill">💡 <b id="hints">0</b></span>
     </div>
     <div class="plant" id="plant"></div>
     <div class="ground"></div><div class="meadow" id="meadow"></div><div class="critter b1" id="bf1"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter b2" id="bf2"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter bee" id="bee"><span class="wing"></span><span class="bb"></span></div><div class="dead" id="dead" hidden>Dead end. Prune back to try another branch.</div>
   </section>
   <div class="word" id="word" aria-label="Current word"></div>
   <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
-  <div class="actions"><button class="btn prune" id="pruneBtn" type="button">✂️ Prune back</button><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button></div>
+  <div class="actions"><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button></div>
   <p class="hint" id="hint"></p>
   <div class="kb" id="kb"></div>
   <div class="foot"><button class="link" id="stopBtn" type="button">Give up</button></div>
