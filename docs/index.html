@@ -534,7 +534,7 @@ function grow(){
     return;
   }
   // like Wordle: a word that isn't real just shakes, costs nothing, and stays so you can fix it
-  buzz(20);shakeRow("bad");toast("Not in word list",1400);
+  buzz(20);shakeRow("warn");toast("Not in word list",1400);
 }
 function shakeRow(kind){const box=$("typed");box.classList.remove("shake","warn","bad");void box.offsetWidth;box.classList.add("shake");if(kind)box.classList.add(kind);}
 function dropLeaf(){
