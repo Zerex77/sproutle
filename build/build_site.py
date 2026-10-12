@@ -2,7 +2,7 @@ import json, os, re, shutil, datetime
 D = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(D, '..', 'docs')
 DOMAIN = 'https://playsproutle.com'
-LAUNCH = (2026, 10, 12)          # puzzle No. 1
+LAUNCH = (2026, 9, 12)           # puzzle No. 1 (30 bonus archive days before the Oct 12 launch)
 PLUS_ENABLED = False             # flip to True once payments are live
 VERSION = datetime.datetime.now().strftime('%Y%m%d%H%M')
 

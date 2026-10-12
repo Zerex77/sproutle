@@ -350,6 +350,12 @@ $("stopBtn").onclick=()=>{if(S.done)return;const b=$("stopBtn");
   else{b.dataset.arm=1;b.textContent="Tap again to give up";setTimeout(()=>{delete b.dataset.arm;b.textContent="Give up";},3000);}};
 $("archiveBtn").onclick=archive;$("helpBtn").onclick=help;$("statsBtn").onclick=showResults;$("plusHdr").onclick=paywall;if(!PLUS_ENABLED)$("plusHdr").hidden=true;
 
+/* one-time move: launch-day results saved as No. 1 now belong to No. 31 */
+(function(){if(store.get("sproutle-mig30"))return;
+  const old=store.get("sproutle-day-1");
+  if(old&&old.hist&&old.hist[0].w==="star"){store.set("sproutle-day-31",old);try{localStorage.removeItem("sproutle-day-1");}catch(e){}}
+  const st=store.get(STATS);if(st){if(st.rec===1)st.rec=31;if(st.last===1)st.last=31;store.set(STATS,st);}
+  store.set("sproutle-mig30",1);})();
 buildKB();load({kind:"daily",num:TODAY});
 if(!store.get("sproutle-seen")){store.set("sproutle-seen",1);help();}
 else if(S.done)setTimeout(showResults,300);
