@@ -98,13 +98,14 @@ about = page('About Sproutle', 'How to play Sproutle, the daily word game where 
 <div class="chain"><span>ORE</span><i>→</i><span><b>C</b>ORE</span><i>→</i><span><b>S</b>CORE</span><i>→</i><span>SCORE<b>D</b></span><i>→</i><span>SCO<b>U</b>RED</span></div>
 <h2>How to play</h2>
 <ol>
-<li>Tap where the new letter should go, type it, and press Grow.</li>
-<li>You can put the letter anywhere, but you can't rearrange the letters you already have.</li>
+<li>Type your next word: today's word plus one new letter, added anywhere. Then press Grow.</li>
+<li>You can't rearrange the letters you already have, and every word must be real.</li>
 <li>Keep growing until you reach the target length. Every puzzle is at least 8 letters.</li>
-<li>Some words lead to dead ends. Prune back to any earlier word and try a different branch.</li>
+<li>Some words lead to dead ends. A yellow, wilting leaf warns you a branch can't reach the target. Prune back to any earlier word and try another way.</li>
+<li>Stuck? A hint shows where a letter fits, and a second hint shows the letter.</li>
 </ol>
 <h2>Scoring</h2>
-<p>Every prune and every made-up word adds 1 to your score. A perfect bloom is zero: no cuts, no misses. Share your result with friends without spoiling the answer.</p>
+<p>Every prune, hint and made-up word adds 1 to your score. A perfect bloom is zero: no cuts, no misses, no hints. Share your result with friends without spoiling the answer.</p>
 <h2>A new seed every day</h2>
 <p>A new puzzle sprouts at midnight in your time zone. Missed a day? Open the Archive from the game to catch up. Your streak counts only the puzzle of the day.</p>
 <h2>Questions or ideas</h2>
