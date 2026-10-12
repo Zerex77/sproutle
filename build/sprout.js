@@ -18,9 +18,9 @@ const isPlus=()=>PLUS_ENABLED&&!!store.get("sproutle-plus");
 const ABC="abcdefghijklmnopqrstuvwxyz";
 
 let MODE, SEED, PAR, PERFECT, PATH, KEY, S;
-let caret=0, pend="", fresh=false, armed=-1;
+let typed="", fresh=false, armed=-1, hintFor="", hintStage=0, hintMove=null, warned={};
 function cur(){return S.hist[S.hist.length-1].w;}
-const fresh0=()=>({hist:[{w:SEED,at:-1}],log:[],misses:0,snips:0,tried:[],done:false,end:null});
+const fresh0=()=>({hist:[{w:SEED,at:-1}],log:[],misses:0,snips:0,hints:0,tried:[],done:false,end:null});
 const save=()=>{if(MODE.kind==="practice")store.set("sproutle-practice",{idx:MODE.idx,S});else store.set(KEY,S);};
 
 function load(mode){
@@ -29,15 +29,21 @@ function load(mode){
   [SEED,PAR,PERFECT,PATH]=pz;
   if(mode.kind==="practice"){const sp=store.get("sproutle-practice");S=sp&&sp.idx===mode.idx?sp.S:fresh0();}
   else{KEY="sproutle-day-"+mode.num;S=store.get(KEY)||fresh0();}
-  caret=cur().length;pend="";armed=-1;fresh=false;meadowCount=-1;parts=[];
+  S.hints=S.hints||0;typed="";armed=-1;fresh=false;hintFor="";hintStage=0;hintMove=null;warned={};reachMemo=new Map();meadowCount=-1;parts=[];
   save();renderMode();render();
 }
 const isToday=()=>MODE.kind==="daily"&&MODE.num===TODAY;
 
 function canGrow(w){for(let i=0;i<=w.length;i++)for(const c of ABC)if(DICT.has(w.slice(0,i)+c+w.slice(i)))return true;return false;}
 function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
-const score=()=>S.snips+S.misses;
+const score=()=>S.snips+S.misses+(S.hints||0);
+/* can this word still grow to the target? */
+let reachMemo=new Map();
+function kids(w){const out=[];for(let i=0;i<=w.length;i++)for(const c of ABC){const n=w.slice(0,i)+c+w.slice(i);if(DICT.has(n)&&!out.includes(n))out.push(n);}return out;}
+function canReach(w){if(w.length>=PAR)return true;if(reachMemo.has(w))return reachMemo.get(w);reachMemo.set(w,false);const ok=kids(w).some(canReach);reachMemo.set(w,ok);return ok;}
+function insertAt(a,b){if(b.length!==a.length+1)return -1;for(let i=0;i<=a.length;i++)if(b.slice(0,i)+b.slice(i+1)===a)return i;return -1;}
 const dead=()=>!S.done&&!canGrow(cur());
+const sick=w=>!canReach(w);
 const mark=h=>h.at<0?h.w.toUpperCase():[...h.w].map((c,i)=>i===h.at?`<b>${c.toUpperCase()}</b>`:c.toUpperCase()).join("");
 const fmt=d=>d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
 
@@ -59,7 +65,7 @@ function renderPlant(){
   const nh=Math.max(20,Math.min(32,Math.floor(200/total)));
   let html=`<div class="pot"><div class="rim"></div><div class="body"><span>${SEED}</span></div></div>`;
   S.hist.slice(1).forEach((h,i)=>{const side=i%2?"l":"r";const top=i===grown-1;
-    html+=`<div class="node ${side}${top?" top":""}${top&&fresh?" grow":""}" data-h="${i+1}" style="--nh:${nh}px;--k:${i}"><span class="leaf"></span><span class="chip${armed===i+1?" arm":""}">${armed===i+1?"✂️ Cut here?":mark(h)}</span></div>`;});
+    html+=`<div class="node ${side}${top?" top":""}${top&&fresh?" grow":""}${S.end!=="bloom"&&sick(h.w)?" sick":""}" data-h="${i+1}" style="--nh:${nh}px;--k:${i}"><span class="leaf"></span><span class="chip${armed===i+1?" arm":""}">${armed===i+1?"✂️ Cut here?":mark(h)}</span></div>`;});
   for(let b=0;b<buds;b++)html+=`<div class="node bud${b===0&&!dead()?" next":""}" style="--nh:${nh}px"><span class="budball"></span></div>`;
   if(S.end==="bloom")html+=`<div class="flower${score()===0?" over":""}">${Array.from({length:6},(_,k)=>`<i style="rotate:${k*60}deg;animation-delay:${k*60}ms"></i>`).join("")}<b></b></div>`;
   plant.innerHTML=html;
@@ -75,26 +81,31 @@ function renderPlant(){
 function render(){
   const w=cur();
   $("num").textContent=MODE.kind==="practice"?"Practice":"No. "+MODE.num;$("par").textContent=PAR;$("len").textContent=w.length;
-  $("snips").textContent=S.snips;$("misses").textContent=S.misses;
+  $("snips").textContent=S.snips;$("misses").textContent=S.misses+(S.hints||0);
   renderPlant();
-  const box=$("word");box.innerHTML="";box.classList.toggle("bloom",S.end==="bloom");
   const last=S.hist[S.hist.length-1];const locked=S.done||dead();
+  const showGap=hintFor===w&&hintStage>=1&&hintMove;
+  // today's word, with a glowing marker where a hint says a letter fits
+  let html="";
   for(let i=0;i<=w.length;i++){
-    const g=document.createElement("button");g.type="button";g.className="gap"+(!locked&&i===caret?(pend?" pend":" on"):"");
-    g.setAttribute("aria-label",`Put the letter at position ${i+1}`);
-    if(!locked&&i===caret&&pend)g.innerHTML=`<span class="t">${pend}</span>`;
-    g.onclick=()=>{if(locked)return;caret=i;render();};
-    box.appendChild(g);
-    if(i<w.length){const t=document.createElement("div");t.className="t"+(fresh&&i===last.at?" new":"");t.textContent=w[i];t.style.setProperty("--i",i);
-      t.onclick=e=>{if(locked)return;const r=t.getBoundingClientRect();caret=(e.clientX-r.left<r.width/2)?i:i+1;render();};
-      box.appendChild(t);}
+    if(showGap&&hintMove.at===i)html+=`<span class="hintmark" aria-label="A letter fits here">${hintStage>=2?hintMove.c:"+"}</span>`;
+    if(i<w.length)html+=`<span class="t${fresh&&i===last.at?" new":""}" style="--i:${i}">${w[i]}</span>`;
   }
+  const box=$("word");box.innerHTML=html;box.classList.toggle("bloom",S.end==="bloom");
+  // the row the player types into
+  const n=w.length+1, row=$("typed");
+  row.hidden=locked;
+  row.innerHTML=Array.from({length:n},(_,i)=>`<span class="slot${i<typed.length?" on":""}${i===typed.length?" cursor":""}">${typed[i]||""}</span>`).join("");
   fresh=false;
-  $("hint").textContent=S.done?"":dead()?"Nothing grows from here. Prune back, or tap an earlier leaf to cut to it.":(pend?"Press Grow to plant it.":"Tap where the new letter goes, then type it.");
-  const pb=$("pruneBtn");pb.disabled=S.done||S.hist.length<2;pb.classList.toggle("urge",dead());
+  const isSick=!S.done&&!dead()&&sick(w)&&S.hist.length>1;
+  $("hint").textContent=S.done?"":dead()?"Nothing grows from here. Prune back, or tap an earlier leaf to cut to it."
+    :isSick?`This branch can't reach ${PAR} letters. Prune back and try another way.`
+    :typed?"Press Grow when your word is ready.":`Type a ${n}-letter word: ${w.toUpperCase()} plus one letter.`;
+  const pb=$("pruneBtn");pb.disabled=S.done||S.hist.length<2;pb.classList.toggle("urge",dead()||isSick);
+  const hb=$("hintBtn");hb.disabled=locked||isSick;hb.textContent=hintFor===w&&hintStage===1?"💡 Show letter":"💡 Hint";
   $("stopBtn").disabled=S.done;
   document.querySelectorAll(".k").forEach(k=>k.disabled=locked);
-  const go=document.querySelector(".k.go");if(go)go.classList.toggle("ready",!!pend&&!locked);
+  const go=document.querySelector(".k.go");if(go)go.classList.toggle("ready",typed.length===n&&!locked);
 }
 
 /* ---------- scene life ---------- */
@@ -144,33 +155,56 @@ function buildKB(){
 function press(k){
   if(S.done||dead())return;
   if(armed>=0){armed=-1;}
+  const n=cur().length+1;
   if(k==="enter")return grow();
-  if(k==="back"){pend="";render();return;}
-  if(k==="left"){caret=Math.max(0,caret-1);render();return;}
-  if(k==="right"){caret=Math.min(cur().length,caret+1);render();return;}
-  if(/^[a-z]$/.test(k)){pend=k;buzz(5);render();}
+  if(k==="back"){typed=typed.slice(0,-1);render();return;}
+  if(/^[a-z]$/.test(k)){if(typed.length>=n){toast(`Your next word has ${n} letters.`,1400);return;}typed+=k;buzz(5);render();}
 }
 let tt;function toast(m,ms=2100,kind=""){const t=$("toast");t.textContent=m;t.className="toast show "+kind;clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),ms);}
 
 const CHEERS=["It's growing!","A fresh leaf!","Reaching for the sun!","Look at it go!","Thriving!","The bees noticed!","Blooming soon!"];
 function grow(){
-  if(!pend){toast("Type a letter first.");return;}
-  const w=cur(), nw=w.slice(0,caret)+pend+w.slice(caret);
+  const w=cur(), n=w.length+1;
+  if(typed.length<n){toast(`Type all ${n} letters of your next word.`);return;}
+  const nw=typed, at=insertAt(w,nw);
+  if(at<0){toast(`Keep ${w.toUpperCase()} in order and add just one letter.`,2400);shakeRow();return;}
   if(DICT.has(nw)){
-    const at=caret;S.hist.push({w:nw,at});S.log.push("g");pend="";fresh=true;caret=nw.length;buzz(15);
+    S.hist.push({w:nw,at});S.log.push("g");typed="";fresh=true;hintFor="";hintStage=0;hintMove=null;buzz(15);
     if(nw.length>=PAR){S.done=true;S.end="bloom";record();}
     save();render();water();
     const tile=$("word").querySelectorAll(".t")[at];
     if(tile){const r=tile.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,18,[css("--leaf"),css("--leaf-deep"),css("--hill-a")]);}
     if(S.end==="bloom"){bloom();return;}
     if(dead()){buzz([20,60,20]);toast("Dead end. Nothing grows from "+nw.toUpperCase()+".",2400);return;}
+    if(sick(nw)&&!warned[nw]){warned[nw]=1;buzz([20,60,20]);toast(`Uh oh, the leaf is wilting. ${nw.toUpperCase()} can't reach ${PAR} letters.`,2800);return;}
     toast(PAR-nw.length===1?"One more letter to bloom!":CHEERS[S.hist.length%CHEERS.length],1400,"good");
     return;
   }
   if(S.tried.includes(nw)){toast(nw.toUpperCase()+" isn't a word. You already tried it.");return;}
-  S.tried.push(nw);S.misses++;S.log.push("x");buzz([30,40,30]);
-  const box=$("word");box.classList.remove("shake");void box.offsetWidth;box.classList.add("shake");
+  S.tried.push(nw);S.misses++;S.log.push("x");buzz([30,40,30]);typed="";
+  shakeRow();
   toast(nw.toUpperCase()+" isn't in the word list. +1 miss.");save();render();
+}
+function shakeRow(){const box=$("typed");box.classList.remove("shake");void box.offsetWidth;box.classList.add("shake");}
+function findHint(){
+  const w=cur();
+  const onPath=PATH.indexOf(w);
+  if(onPath>=0&&onPath<PATH.length-1){const nx=PATH[onPath+1];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};}
+  const good=kids(w).filter(canReach);
+  if(!good.length)return null;
+  const nx=good[0];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};
+}
+function hint(){
+  if(S.done||dead())return;
+  const w=cur();
+  if(sick(w)){toast("No hint can save this branch. Prune back first.",2200);return;}
+  if(hintFor!==w){hintFor=w;hintStage=0;hintMove=findHint();}
+  if(!hintMove)return;
+  if(hintStage>=2){toast(`Type ${hintMove.w.toUpperCase()} and press Grow.`,2000);return;}
+  hintStage++;S.hints=(S.hints||0)+1;S.log.push("h");buzz(10);
+  if(hintStage===2)typed="";
+  save();render();
+  toast(hintStage===1?"A letter fits where the glow is. +1":`The letter is ${hintMove.c.toUpperCase()}. +1`,2000,"good");
 }
 function pruneTo(h){
   if(S.done||h<0||h>=S.hist.length-1)return;
@@ -178,7 +212,7 @@ function pruneTo(h){
   buzz(25);
   setTimeout(()=>{
     const removed=S.hist.length-1-h;
-    S.hist=S.hist.slice(0,h+1);S.snips++;S.log.push("s");pend="";armed=-1;caret=cur().length;save();render();
+    S.hist=S.hist.slice(0,h+1);S.snips++;S.log.push("s");typed="";armed=-1;hintFor="";hintStage=0;hintMove=null;save();render();
     toast(`Pruned back to ${cur().toUpperCase()}${removed>1?` (${removed} leaves)`:""}. +1 cut.`,1800);
   },REDUCED?0:380);
 }
@@ -202,9 +236,9 @@ function record(){
   else{st.dist[5]++;st.streak=0;}
   st.rec=TODAY;store.set(STATS,st);
 }
-function giveUp(){S.done=true;S.end="gave";pend="";record();save();render();toast("Here's how it could grow.",1600);setTimeout(showResults,900);}
+function giveUp(){S.done=true;S.end="gave";typed="";record();save();render();toast("Here's how it could grow.",1600);setTimeout(showResults,900);}
 const label=()=>S.end!=="bloom"?"Wilted":score()===0?"Perfect bloom":"Full bloom";
-function trail(){return "🌱"+S.log.map(c=>c==="g"?"🟩":c==="x"?"🟥":"✂️").join("")+(S.end==="bloom"?"🌸":"🥀");}
+function trail(){return "🌱"+S.log.map(c=>c==="g"?"🟩":c==="x"?"🟥":c==="h"?"💡":"✂️").join("")+(S.end==="bloom"?"🌸":"🥀");}
 function shareText(){
   const res=S.end!=="bloom"?"🥀 wilted":score()===0?"🌸 Perfect!":`🌸 +${score()}`;
   return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}`;
@@ -219,10 +253,10 @@ function help(){
   openModal(`<h2>How to play Sproutle</h2>
   <div class="demo"><span>ORE</span><span class="arrow">→</span><span><b>C</b>ORE</span><span class="arrow">→</span><span><b>S</b>CORE</span><span class="arrow">→</span><span>SCORE<b>D</b></span><span class="arrow">→</span><span>SCO<b>U</b>RED</span></div>
   <ol class="steps">
-   <li><b class="n">1</b><span>Add one letter anywhere in today's word. You can't rearrange the letters. Every new version must be a real word.</span></li>
+   <li><b class="n">1</b><span>Type a new word that's today's word plus one letter, added anywhere. You can't rearrange the letters, and every word must be real.</span></li>
    <li><b class="n">2</b><span>Grow it to the target length, at least 8 letters. Each bud on the stem is one letter to go.</span></li>
-   <li><b class="n">3</b><span>Stuck on a branch that won't grow? Prune back to any earlier word and try another way.</span></li>
-   <li><b class="n">4</b><span>Every cut and every made-up word adds 1 to your score. A perfect bloom is zero.</span></li>
+   <li><b class="n">3</b><span>A yellow, wilting leaf means that branch can't reach the target. Prune back to any earlier word and try another way.</span></li>
+   <li><b class="n">4</b><span>Stuck? Tap Hint to see where a letter fits, then tap again to see the letter. Every hint, cut and made-up word adds 1 to your score. A perfect bloom is zero.</span></li>
   </ol>
   <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
   <button class="btn primary" type="button" id="goBtn">Start growing</button>`);
@@ -281,7 +315,7 @@ function showResults(){
   const mine=S.end==="bloom"?Math.min(4,score()):5;
   const rows=names.map((nm,k)=>`<div class="drow${S.done&&isToday()&&mine===k?" cur":""}"><span>${nm}</span><div style="width:${Math.max(8,st.dist[k]/maxD*100)}%">${st.dist[k]}</div></div>`).join("");
   const yours=S.hist.map(h=>h.w.toUpperCase()).join(" → ");
-  const sub=S.end==="bloom"?(score()===0?"No cuts, no misses":`${S.snips} cut${S.snips===1?"":"s"} · ${S.misses} miss${S.misses===1?"":"es"} · score +${score()}`):`Stopped at ${cur().length} of ${PAR} letters`;
+  const sub=S.end==="bloom"?(score()===0?"No cuts, no misses, no hints":[S.snips?`${S.snips} cut${S.snips===1?"":"s"}`:"",S.misses?`${S.misses} miss${S.misses===1?"":"es"}`:"",S.hints?`${S.hints} hint${S.hints===1?"":"s"}`:""].filter(Boolean).join(" · ")+` · score +${score()}`):`Stopped at ${cur().length} of ${PAR} letters`;
   const where=MODE.kind==="practice"?"Practice garden":isToday()?"":`Archive · No. ${MODE.num}`;
   const actions=MODE.kind==="practice"
     ?`<button class="btn" type="button" id="todayBtn">Today's puzzle</button><button class="btn primary" type="button" id="moreBtn">New seed</button>`
@@ -307,10 +341,10 @@ function showResults(){
 document.addEventListener("keydown",e=>{
   if(!$("scrim").hidden){if(e.key==="Escape")closeModal();return;}
   if(e.metaKey||e.ctrlKey||e.altKey)return;
-  const k=e.key==="Enter"?"enter":e.key==="Backspace"?"back":e.key==="ArrowLeft"?"left":e.key==="ArrowRight"?"right":e.key.length===1?e.key.toLowerCase():null;
+  const k=e.key==="Enter"?"enter":e.key==="Backspace"?"back":e.key.length===1?e.key.toLowerCase():null;
   if(k&&(k.length>1||/[a-z]/.test(k))){e.preventDefault();press(k);}
 });
-$("pruneBtn").onclick=()=>pruneTo(S.hist.length-2);
+$("pruneBtn").onclick=()=>pruneTo(S.hist.length-2);$("hintBtn").onclick=hint;
 $("stopBtn").onclick=()=>{if(S.done)return;const b=$("stopBtn");
   if(b.dataset.arm){delete b.dataset.arm;giveUp();}
   else{b.dataset.arm=1;b.textContent="Tap again to give up";setTimeout(()=>{delete b.dataset.arm;b.textContent="Give up";},3000);}};

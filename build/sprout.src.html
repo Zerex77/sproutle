@@ -253,6 +253,21 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 .plan .pp{font:700 1.5rem var(--f-display)}
 .plan .ps{font-size:.74rem;color:var(--leaf-deep);font-weight:700}
 .testing{display:flex;flex-direction:column;align-items:center;gap:2px;border-top:2px dashed var(--line);padding-top:10px;font-size:.76rem;color:var(--muted);text-align:center}
+
+.word{gap:5px;padding-block:2px}
+.word .t{cursor:default;max-width:46px}
+.hintmark{flex:0 0 auto;min-width:22px;height:46px;padding:0 6px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--petal-y);color:#3a2a00;font:700 1.3rem var(--f-display);text-transform:uppercase;box-shadow:0 0 0 4px color-mix(in srgb,var(--petal-y) 40%,transparent);animation:glow 1.1s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--petal-y) 15%,transparent)}}
+.typed{display:flex;justify-content:center;gap:5px;width:100%}
+.typed .slot{flex:1 1 0;max-width:44px;min-width:0;aspect-ratio:5/6;border-radius:12px;border:2px dashed var(--tile-edge);background:color-mix(in srgb,var(--card) 60%,transparent);display:flex;align-items:center;justify-content:center;font:700 clamp(1rem,5vw,1.6rem) var(--f-display);text-transform:uppercase;color:var(--leaf-deep)}
+.typed .slot.on{border-style:solid;border-color:var(--leaf);background:var(--leaf-soft);animation:pop .18s ease-out}
+.typed .slot.cursor{border-color:var(--leaf);border-style:solid}
+.typed.shake{animation:shake .45s}
+.node.sick .leaf{background:linear-gradient(135deg,#ffe58a,#e8c23a 55%,#b9952a);rotate:28deg;animation:none}
+.node.r.sick .leaf{rotate:28deg}.node.l.sick .leaf{rotate:-28deg}
+.node.sick .chip{background:#fff6cf;color:#8a6a00}
+.node.sick::before{background:linear-gradient(90deg,#b9952a,#e8c23a)}
+.btn.hintb{background:#fff6cf;color:#7a5a00;box-shadow:0 4px 0 #e8c23a}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -269,15 +284,16 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
     <div class="hud" aria-live="polite">
       <span class="pill">No. <b id="num"></b></span>
       <span class="pill life"><b id="len"></b>/<b id="par"></b><span class="vine" aria-hidden="true"><i></i></span></span>
-      <span class="pill">Cuts <b id="snips">0</b></span><span class="pill">Misses <b id="misses">0</b></span>
+      <span class="pill">Cuts <b id="snips">0</b></span><span class="pill">Misses + hints <b id="misses">0</b></span>
     </div>
     <div class="plant" id="plant"></div>
     <div class="ground"></div><div class="meadow" id="meadow"></div><div class="critter b1" id="bf1"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter b2" id="bf2"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter bee" id="bee"><span class="wing"></span><span class="bb"></span></div><div class="dead" id="dead" hidden>Dead end. Prune back to try another branch.</div>
   </section>
-  <div class="word" id="word"></div>
+  <div class="word" id="word" aria-label="Current word"></div>
+  <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
   <p class="hint" id="hint"></p>
   <div class="kb" id="kb"></div>
-  <div class="foot"><button class="btn prune" id="pruneBtn" type="button">✂️ Prune back</button><button class="link" id="stopBtn" type="button">Give up</button></div>
+  <div class="foot"><button class="btn prune" id="pruneBtn" type="button">✂️ Prune back</button><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button><button class="link" id="stopBtn" type="button">Give up</button></div>
   <!--SITEFOOT-->
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
