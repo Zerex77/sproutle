@@ -188,11 +188,8 @@ function grow(){
     toast(PAR-nw.length===1?"One more letter to bloom!":CHEERS[S.hist.length%CHEERS.length],1400,"good");
     return;
   }
-  if(S.tried.includes(nw)){toast(nw.toUpperCase()+" isn't a word. You already tried it.");return;}
-  S.tried.push(nw);S.misses++;S.log.push("x");buzz([30,40,30]);typed="";
-  shakeRow("bad");dropLeaf();
-  if(bounces()>=MAX_BOUNCES){save();render();setTimeout(()=>finish("wilted"),500);return;}
-  toast(nw.toUpperCase()+" isn't in the word list. +1");save();render();
+  // like Wordle: a word that isn't real just shakes, costs nothing, and stays so you can fix it
+  buzz(20);shakeRow("bad");toast("Not in word list",1400);
 }
 function shakeRow(kind){const box=$("typed");box.classList.remove("shake","warn","bad");void box.offsetWidth;box.classList.add("shake");if(kind)box.classList.add(kind);}
 function dropLeaf(){
@@ -271,7 +268,7 @@ function help(){
   <ol class="steps">
    <li><b class="n">1</b><span>Type a new word that's today's word plus one letter, added anywhere. You can't rearrange the letters, and every word must be real.</span></li>
    <li><b class="n">2</b><span>Grow it to the target length, at least 8 letters. Each bud on the stem is one letter to go.</span></li>
-   <li><b class="n">3</b><span>Every word must still be able to grow to the target. A real word that can't bounces back 🟨. A made-up word bounces back 🟥. You have 5 leaves, and each bounce costs one.</span></li>
+   <li><b class="n">3</b><span>Every word must still be able to grow to the target. A real word that can't bounces back 🟨 and costs one of your 5 leaves. A made-up word just shakes, with no penalty.</span></li>
    <li><b class="n">4</b><span>Stuck? Tap Hint to see where a letter fits, then tap again to see the letter. Every hint and bounce adds 1 to your score. A perfect bloom is zero.</span></li>
   </ol>
   <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
