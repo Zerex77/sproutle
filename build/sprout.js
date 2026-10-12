@@ -70,11 +70,12 @@ function renderPlant(){
   const w=cur(), plant=$("plant");
   const grown=S.hist.length-1, buds=S.end==="bloom"?0:Math.max(0,PAR-w.length);
   const total=Math.max(1,grown+buds);
-  const nh=Math.max(20,Math.min(32,Math.floor(200/total)));
+  const room=Math.max(60,$("scene").clientHeight-42-52-(S.end==="bloom"?60:14));
+  const nh=Math.max(12,Math.min(30,Math.floor(room/total)));
   let html=`<div class="pot"><div class="rim"></div><div class="body"><span>${SEED}</span></div></div>`;
   S.hist.slice(1).forEach((h,i)=>{const side=i%2?"l":"r";const top=i===grown-1;
     html+=`<div class="node ${side}${top?" top":""}${top&&fresh?" grow":""}" data-h="${i+1}" style="--nh:${nh}px;--k:${i}"><span class="leaf"></span><span class="chip${armed===i+1?" arm":""}">${armed===i+1?"✂️ Cut here?":mark(h)}</span></div>`;});
-  for(let b=0;b<buds;b++)html+=`<div class="node bud${b===0&&!dead()?" next":""}" style="--nh:${nh}px"><span class="budball"></span></div>`;
+  for(let b=0;b<buds;b++)html+=`<div class="node bud${b===0&&!dead()?" nextbud":""}" style="--nh:${nh}px"><span class="budball"></span></div>`;
   if(S.end==="bloom")html+=`<div class="flower${score()===0?" over":""}">${Array.from({length:6},(_,k)=>`<i style="rotate:${k*60}deg;animation-delay:${k*60}ms"></i>`).join("")}<b></b></div>`;
   plant.innerHTML=html;
   const life=Math.max(0,Math.min(1,(w.length-SEED.length)/(PAR-SEED.length)));
@@ -275,7 +276,8 @@ function help(){
    <li><b class="n">4</b><span>Stuck? Tap Hint to see where a letter fits, then tap again to see the letter. Every hint and bounce adds 1 to your score. A perfect bloom is zero.</span></li>
   </ol>
   <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
-  <button class="btn primary" type="button" id="goBtn">Start growing</button>`);
+  <button class="btn primary" type="button" id="goBtn">Start growing</button>
+  <p class="note" style="text-align:center"><a href="/about">About Sproutle</a> · <a href="/privacy">Privacy</a></p>`);
   $("goBtn").onclick=closeModal;
 }
 
@@ -372,6 +374,7 @@ $("archiveBtn").onclick=archive;$("helpBtn").onclick=help;$("statsBtn").onclick=
   if(old&&old.hist&&old.hist[0].w==="star"){store.set("sproutle-day-31",old);try{localStorage.removeItem("sproutle-day-1");}catch(e){}}
   const st=store.get(STATS);if(st){if(st.rec===1)st.rec=31;if(st.last===1)st.last=31;store.set(STATS,st);}
   store.set("sproutle-mig30",1);})();
+addEventListener("resize",()=>{if(S)renderPlant();});
 buildKB();load({kind:"daily",num:TODAY});
 if(!store.get("sproutle-seen")){store.set("sproutle-seen",1);help();}
 else if(S.done)setTimeout(showResults,300);

@@ -90,7 +90,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 @keyframes chipin{0%{opacity:0;transform:translateY(-20%)}100%{opacity:1}}
 @keyframes stemup{0%{transform:scaleY(0)}100%{transform:none}}
 .budball{position:absolute;left:50%;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--bud)}
-.node.bud.next .budball{animation:wiggle 1.6s ease-in-out infinite;background:var(--leaf);box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 25%,transparent)}
+.node.bud.nextbud .budball{animation:wiggle 1.6s ease-in-out infinite;background:var(--leaf);box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 25%,transparent)}
 @keyframes wiggle{0%,100%{transform:rotate(-45deg) scale(1)}50%{transform:rotate(-35deg) scale(1.3)}}
 .flower{position:relative;width:76px;height:76px;margin-bottom:-16px;z-index:4;animation:sway 3s ease-in-out infinite alternate;transform-origin:50% 100%}
 .flower i{position:absolute;left:50%;top:50%;width:26px;height:36px;margin:-36px 0 0 -13px;background:linear-gradient(180deg,var(--bloom),var(--bloom-deep));border-radius:50% 50% 50% 50%/60% 60% 40% 40%;transform-origin:50% 100%;animation:petal .6s cubic-bezier(.3,1.6,.5,1) both}
@@ -281,6 +281,35 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 .typed.bad .slot{border-color:var(--bad)!important;background:color-mix(in srgb,var(--bad) 14%,var(--card))!important;color:var(--bad)}
 .ways{margin:0 auto;font:600 .84rem var(--f-body);color:var(--leaf-deep);background:var(--leaf-soft);border-radius:999px;padding:4px 12px;text-align:center}
 .ways b{font:700 1rem var(--f-display)}
+
+/* ---- phone-fit layout: the whole game fits one screen, the garden flexes to fill what's left ---- */
+html,body{height:100%}
+.wrap{height:100vh;height:100dvh;min-height:0;padding-block:8px 10px;gap:8px;overflow:hidden}
+header h1{font-size:1.7rem}
+.mark svg{width:30px;height:30px}
+.icon{padding:7px 12px;font-size:.78rem}
+.icon.round,.icon.plusb{width:32px;padding:7px 0}
+.scene{flex:1 1 0;min-height:130px;max-height:440px}
+.hud{top:10px;left:10px;right:10px;gap:5px;flex-wrap:nowrap;overflow:hidden}
+.pill{padding:4px 9px;font-size:.7rem;gap:5px;flex:0 0 auto}
+.pill b{font-size:.88rem}
+.vine{width:44px;height:7px}
+.pill.lives i{width:11px;height:11px}
+.plant{padding-top:42px}
+.pot{transform:scale(.86);transform-origin:50% 100%;margin-bottom:-4px}
+.word{gap:4px;padding-block:0;flex:0 0 auto}
+.word .t{max-width:40px;border-radius:11px;font-size:clamp(1rem,5vw,1.5rem)}
+.ways{flex:0 0 auto;font-size:.78rem;padding:3px 10px}
+.typed{flex:0 0 auto;gap:4px}
+.typed .slot{max-width:40px;border-radius:11px}
+.actions{flex:0 0 auto;align-items:center;gap:14px}
+.actions .btn{flex:0 0 auto;max-width:none;padding:8px 22px}
+.actions .link{font-size:.8rem}
+.hint{flex:0 0 auto;margin:0;font-size:.76rem;min-height:0}
+.kb{flex:0 0 auto;gap:6px}
+.k{height:clamp(40px,6vh,52px)}
+@media (max-height:740px){.hint{display:none}.word .t,.typed .slot{max-width:34px}.scene{min-height:110px}.plant{padding-top:38px}}
+@media (max-height:640px){header h1{font-size:1.4rem}.ways{display:none}.k{height:40px}}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -295,7 +324,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
   <section class="scene" id="scene" aria-label="Your plant">
     <div class="stars"></div><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div>
     <div class="hud" aria-live="polite">
-      <span class="pill">No. <b id="num"></b></span>
+      <span class="pill"><b id="num"></b></span>
       <span class="pill life"><b id="len"></b>/<b id="par"></b><span class="vine" aria-hidden="true"><i></i></span></span>
       <span class="pill lives" id="lives" aria-label="Leaves left"></span><span class="pill">💡 <b id="hints">0</b></span>
     </div>
@@ -305,11 +334,10 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
   <div class="word" id="word" aria-label="Current word"></div>
   <p class="ways" id="ways" aria-live="polite"></p>
   <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
-  <div class="actions"><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button></div>
+  <div class="actions"><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button><button class="link" id="stopBtn" type="button">Give up</button></div>
   <p class="hint" id="hint"></p>
   <div class="kb" id="kb"></div>
-  <div class="foot"><button class="link" id="stopBtn" type="button">Give up</button></div>
-  <!--SITEFOOT-->
+  
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status"></div>
