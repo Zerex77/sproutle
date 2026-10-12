@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://playsproutle.com/sitemap.xml

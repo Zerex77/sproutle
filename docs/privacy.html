@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2fc25f">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta property="og:site_name" content="Sproutle">
+<meta property="og:image" content="https://playsproutle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://playsproutle.com/og-image.png">
+<!-- Visitor stats: paste your Plausible or GoatCounter snippet on the next line -->
+<title>Privacy | Sproutle</title>
+<meta name="description" content="Sproutle privacy policy. No accounts, no ads, and your game progress stays on your device.">
+<link rel="canonical" href="https://playsproutle.com/privacy">
+<meta property="og:title" content="Privacy | Sproutle">
+<meta property="og:description" content="Sproutle privacy policy. No accounts, no ads, and your game progress stays on your device.">
+<meta property="og:url" content="https://playsproutle.com/privacy">
+<meta property="og:type" content="website">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<style>:root{
+  --bg:#d9f7c4; --card:#ffffff; --ink:#173b23; --muted:#4d6e57; --line:#c3eaa8;
+  --sky-a:#aee2ff; --sky-b:#e3f6ff; --sky-c:#fffbe3; --sun:#ffcd3c; --sun-glow:#ffe58a;
+  --hill-a:#86dc5c; --hill-b:#5fc444; --hill-c:#4aae37; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#e86a3c; --pot-ink:#fffaf2; --pot-dot:#ffb08f;
+  --tile:#ffffff; --tile-edge:#cfe8bf; --leaf:#2fc25f; --leaf-hi:#7fe08a; --leaf-deep:#1a9a47; --leaf-soft:#dcf7d6;
+  --bloom:#ff5fa2; --bloom-deep:#ec3d86; --bloom-soft:#ffe0ee; --bud:#a9d39a; --bad:#f04e5e;
+  --water:#4fb8ff; --wing-a:#ff9f43; --wing-b:#b98cff; --petal-y:#ffd23f; --petal-w:#ffffff;
+  --key:#b9f08f; --key-ink:#143a1f; --chip:#ffffffe6;
+  --shadow:0 12px 30px rgba(60,140,40,.14);
+  --f-display:"Fredoka", "Baloo 2", system-ui, sans-serif;
+  --f-body:"Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#123d1f; --card:#1a4428; --ink:#effaf0; --muted:#b2d4ba; --line:#2d6040;
+  --sky-a:#9ad6ff; --sky-b:#d4efff; --sky-c:#fff6d4; --sun:#ffd24a; --sun-glow:#ffe9a0;
+  --hill-a:#7ed556; --hill-b:#5cbf42; --hill-c:#46a834; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#d8622f; --pot-ink:#fffaf2; --pot-dot:#ffae8a;
+  --tile:#1f3527; --tile-edge:#2f5039; --leaf:#45d673; --leaf-hi:#8ff0a0; --leaf-deep:#25b052; --leaf-soft:#1c4029;
+  --bloom:#ff79b3; --bloom-deep:#ff4f98; --bloom-soft:#41213a; --bud:#3d6a47; --bad:#ff6f7c;
+  --water:#7cc9ff; --wing-a:#ffb066; --wing-b:#c8a6ff; --petal-y:#ffd94f; --petal-w:#f4f1ff;
+  --key:#33803f; --key-ink:#ffffff; --chip:#16261be6;
+  --shadow:0 12px 30px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#123d1f; --card:#1a4428; --ink:#effaf0; --muted:#b2d4ba; --line:#2d6040;
+  --sky-a:#9ad6ff; --sky-b:#d4efff; --sky-c:#fff6d4; --sun:#ffd24a; --sun-glow:#ffe9a0;
+  --hill-a:#7ed556; --hill-b:#5cbf42; --hill-c:#46a834; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#d8622f; --pot-ink:#fffaf2; --pot-dot:#ffae8a;
+  --tile:#1f3527; --tile-edge:#2f5039; --leaf:#45d673; --leaf-hi:#8ff0a0; --leaf-deep:#25b052; --leaf-soft:#1c4029;
+  --bloom:#ff79b3; --bloom-deep:#ff4f98; --bloom-soft:#41213a; --bud:#3d6a47; --bad:#ff6f7c;
+  --water:#7cc9ff; --wing-a:#ffb066; --wing-b:#c8a6ff; --petal-y:#ffd94f; --petal-w:#f4f1ff;
+  --key:#33803f; --key-ink:#ffffff; --chip:#16261be6;
+  --shadow:0 12px 30px rgba(0,0,0,.4); color-scheme:dark}
+
+html,body{min-height:100%}
+body{background:var(--bg);background-image:radial-gradient(120% 50% at 50% 0%,color-mix(in srgb,var(--sun-glow) 45%,transparent),transparent 70%);color:var(--ink);font:16px/1.6 var(--f-body);padding-inline:16px}
+.page{max-width:680px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--leaf-deep);font:700 1.7rem/1 var(--f-display)}
+.brand img{width:40px;height:40px;border-radius:10px}
+.play{background:var(--leaf);color:#fff;text-decoration:none;font:700 .95rem var(--f-body);padding:10px 18px;border-radius:16px;box-shadow:0 4px 0 var(--leaf-deep)}
+.card{background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:24px 22px;display:flex;flex-direction:column;gap:14px}
+h1{font:700 2.1rem/1.15 var(--f-display);margin:0;text-wrap:balance}
+h2{font:700 1.3rem/1.2 var(--f-display);margin:8px 0 0;color:var(--leaf-deep)}
+p,ul,ol{margin:0}
+ul,ol{padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:700 1rem var(--f-display);letter-spacing:.08em}
+.chain span{background:var(--leaf-soft);border-radius:999px;padding:4px 12px}
+.chain b{color:var(--leaf-deep)}
+.chain i{font-style:normal;color:var(--muted)}
+.muted{color:var(--muted);font-size:.9rem}
+a{color:var(--leaf-deep)}
+.sitefoot{display:flex;justify-content:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.sitefoot a{color:var(--muted)}
+.big404{font:700 5rem/1 var(--f-display);color:var(--leaf)}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top"><a class="brand" href="/"><img src="/icon-192.png" alt="">Sproutle</a><a class="play" href="/">Play today</a></header>
+
+<main class="card">
+<h1>Privacy</h1>
+<p class="muted">Last updated October 12, 2026</p>
+<p>Sproutle is built to need as little of your information as possible.</p>
+<h2>What stays on your device</h2>
+<p>Your puzzles, scores, streaks and settings are saved in your browser's local storage. They never leave your device, and we can't see them. Clearing your browser data erases them.</p>
+<h2>What we don't collect</h2>
+<ul><li>No accounts, names or email addresses.</li><li>No advertising and no ad trackers.</li><li>We don't sell or share personal data.</li></ul>
+<h2>Visitor counts</h2>
+<p>We may use a privacy-friendly analytics service to count visits and see which pages are popular. It doesn't use cookies and doesn't identify you personally.</p>
+<h2>Fonts</h2>
+<p>The site loads its fonts from Google Fonts, which receives your IP address when the fonts download.</p>
+<h2>Changes</h2>
+<p>If this policy changes, for example when optional paid features are added, we'll update this page and the date above.</p>
+</main>
+<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/privacy">Privacy</a></nav>
+</div>
+</body>
+</html>
