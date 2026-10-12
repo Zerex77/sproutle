@@ -11,10 +11,12 @@ js = open(os.path.join(D, 'sprout.js')).read()
 P = json.load(open(os.path.join(D, 'puzzles8.json')))
 PR = json.load(open(os.path.join(D, 'practice.json')))
 DICT = json.load(open(os.path.join(D, 'reach_all.json')))
+COMMON = json.load(open(os.path.join(D, 'common.json')))
 
 js = (js.replace('/*PUZ*/', json.dumps(P, separators=(',', ':')))
         .replace('/*PRAC*/', json.dumps(PR, separators=(',', ':')))
         .replace('/*DICT*/', ' '.join(DICT))
+        .replace('/*COMMON*/', ' '.join(COMMON))
         .replace('/*LAUNCH*/', f'new Date({LAUNCH[0]},{LAUNCH[1]-1},{LAUNCH[2]})')
         .replace('/*PLUS*/', 'true' if PLUS_ENABLED else 'false'))
 js += '''

@@ -279,6 +279,8 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 .falling{position:fixed;z-index:36;pointer-events:none}
 .typed.warn .slot{border-color:#e8c23a!important;background:#fff6cf!important;color:#8a6a00}
 .typed.bad .slot{border-color:var(--bad)!important;background:color-mix(in srgb,var(--bad) 14%,var(--card))!important;color:var(--bad)}
+.ways{margin:0 auto;font:600 .84rem var(--f-body);color:var(--leaf-deep);background:var(--leaf-soft);border-radius:999px;padding:4px 12px;text-align:center}
+.ways b{font:700 1rem var(--f-display)}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -301,6 +303,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
     <div class="ground"></div><div class="meadow" id="meadow"></div><div class="critter b1" id="bf1"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter b2" id="bf2"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter bee" id="bee"><span class="wing"></span><span class="bb"></span></div><div class="dead" id="dead" hidden>Dead end. Prune back to try another branch.</div>
   </section>
   <div class="word" id="word" aria-label="Current word"></div>
+  <p class="ways" id="ways" aria-live="polite"></p>
   <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
   <div class="actions"><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button></div>
   <p class="hint" id="hint"></p>

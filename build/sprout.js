@@ -1,6 +1,7 @@
 const PUZZLES=/*PUZ*/;
 const PRACTICE=/*PRAC*/;
 const DICT=new Set("/*DICT*/".split(" "));
+const COMMON=new Set("/*COMMON*/".split(" "));   // everyday words: the ones that count as growing tall
 /* ---- settings ---- */
 const LAUNCH=/*LAUNCH*/;      // the date of puzzle No. 1
 const PLUS_ENABLED=/*PLUS*/;   // turn on once payments are connected
@@ -30,6 +31,7 @@ function load(mode){
   [SEED,PAR,PERFECT,PATH]=pz;
   if(mode.kind==="practice"){const sp=store.get("sproutle-practice");S=sp&&sp.idx===mode.idx?sp.S:fresh0();}
   else{KEY="sproutle-day-"+mode.num;S=store.get(KEY)||fresh0();}
+  if(!S.hist||!S.hist.length||S.hist[0].w!==SEED)S=fresh0();
   S.hints=S.hints||0;typed="";armed=-1;fresh=false;hintFor="";hintStage=0;hintMove=null;warned={};reachMemo=new Map();meadowCount=-1;parts=[];
   save();renderMode();render();
 }
@@ -42,7 +44,9 @@ const score=()=>(S.snips||0)+bounces()+(S.hints||0);
 /* can this word still grow to the target? */
 let reachMemo=new Map();
 function kids(w){const out=[];for(let i=0;i<=w.length;i++)for(const c of ABC){const n=w.slice(0,i)+c+w.slice(i);if(DICT.has(n)&&!out.includes(n))out.push(n);}return out;}
-function canReach(w){if(w.length>=PAR)return true;if(reachMemo.has(w))return reachMemo.get(w);reachMemo.set(w,false);const ok=kids(w).some(canReach);reachMemo.set(w,ok);return ok;}
+function kidsC(w){return kids(w).filter(k=>COMMON.has(k));}
+function goodWays(w){return kidsC(w).filter(canReach);}
+function canReach(w){if(w.length>=PAR)return true;if(reachMemo.has(w))return reachMemo.get(w);reachMemo.set(w,false);const ok=kidsC(w).some(canReach);reachMemo.set(w,ok);return ok;}
 function insertAt(a,b){if(b.length!==a.length+1)return -1;for(let i=0;i<=a.length;i++)if(b.slice(0,i)+b.slice(i+1)===a)return i;return -1;}
 const dead=()=>!S.done&&!canGrow(cur());
 const sick=w=>!canReach(w);
@@ -99,6 +103,8 @@ function render(){
   row.innerHTML=Array.from({length:n},(_,i)=>`<span class="slot${i<typed.length?" on":""}${i===typed.length?" cursor":""}">${typed[i]||""}</span>`).join("");
   fresh=false;
   $("hint").textContent=S.done?"":typed?"Press Grow when your word is ready.":`Type a ${n}-letter word: ${w.toUpperCase()} plus one letter.`;
+  const ways=$("ways");
+  if(S.done||locked){ways.hidden=true;}else{const g=goodWays(w).length;ways.hidden=false;ways.innerHTML=`🌱 <b>${g}</b> good way${g===1?"":"s"} to grow`;}
   const hb=$("hintBtn");hb.disabled=locked;hb.textContent=hintFor===w&&hintStage===1?"💡 Show letter":"💡 Hint";
   $("stopBtn").disabled=S.done;
   document.querySelectorAll(".k").forEach(k=>k.disabled=locked);
@@ -201,7 +207,7 @@ function findHint(){
   const w=cur();
   const onPath=PATH.indexOf(w);
   if(onPath>=0&&onPath<PATH.length-1){const nx=PATH[onPath+1];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};}
-  const good=kids(w).filter(canReach);
+  const good=goodWays(w);
   if(!good.length)return null;
   const nx=good[0];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};
 }
