@@ -291,6 +291,10 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 .node.sick .chip{background:#fff6cf;color:#8a6a00}
 .node.sick::before{background:linear-gradient(90deg,#b9952a,#e8c23a)}
 .btn.hintb{background:#fff6cf;color:#7a5a00;box-shadow:0 4px 0 #e8c23a}
+
+.actions{display:flex;justify-content:center;gap:10px}
+.actions .btn{flex:1 1 0;max-width:180px;padding:10px 12px;font-size:.9rem}
+@media (max-height:760px){.scene{min-height:200px}.plant{padding-top:52px}.wrap{gap:8px}.k{height:48px}.typed .slot{max-width:38px}.word .t{max-width:40px}.hint{font-size:.78rem}}
 .sitefoot{display:flex;justify-content:center;gap:8px;font-size:.8rem;color:var(--muted);padding-top:4px}.sitefoot a{color:var(--muted)}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
@@ -318,9 +322,10 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
   </section>
   <div class="word" id="word" aria-label="Current word"></div>
   <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
+  <div class="actions"><button class="btn prune" id="pruneBtn" type="button">✂️ Prune back</button><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button></div>
   <p class="hint" id="hint"></p>
   <div class="kb" id="kb"></div>
-  <div class="foot"><button class="btn prune" id="pruneBtn" type="button">✂️ Prune back</button><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button><button class="link" id="stopBtn" type="button">Give up</button></div>
+  <div class="foot"><button class="link" id="stopBtn" type="button">Give up</button></div>
   <nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/privacy">Privacy</a></nav>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
