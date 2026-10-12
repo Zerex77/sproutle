@@ -18,7 +18,9 @@ const STATS="sproutle-stats";
 const isPlus=()=>PLUS_ENABLED&&!!store.get("sproutle-plus");
 const ABC="abcdefghijklmnopqrstuvwxyz";
 
-let MODE, SEED, PAR, PERFECT, PATH, KEY, S;
+let MODE, SEED, PAR, PERFECT, PATH, KEY, S, RULE=false;
+const BLOCKED="sdry";   // with the rule on, these letters can't be added to the end
+const blockedMove=(w,i,c)=>RULE&&i===w.length&&BLOCKED.includes(c);
 let typed="", fresh=false, armed=-1, hintFor="", hintStage=0, hintMove=null, warned={};
 function cur(){return S.hist[S.hist.length-1].w;}
 const MAX_BOUNCES=5;
@@ -28,7 +30,7 @@ const save=()=>{if(MODE.kind==="practice")store.set("sproutle-practice",{idx:MOD
 function load(mode){
   MODE=mode;
   const pz=mode.kind==="practice"?PRACTICE[mode.idx%PRACTICE.length]:PUZZLES[(mode.num-1)%PUZZLES.length];
-  [SEED,PAR,PERFECT,PATH]=pz;
+  [SEED,PAR,PERFECT,PATH]=pz;RULE=pz[4]===1;
   if(mode.kind==="practice"){const sp=store.get("sproutle-practice");S=sp&&sp.idx===mode.idx?sp.S:fresh0();}
   else{KEY="sproutle-day-"+mode.num;S=store.get(KEY)||fresh0();}
   if(!S.hist||!S.hist.length||S.hist[0].w!==SEED)S=fresh0();
@@ -37,13 +39,13 @@ function load(mode){
 }
 const isToday=()=>MODE.kind==="daily"&&MODE.num===TODAY;
 
-function canGrow(w){for(let i=0;i<=w.length;i++)for(const c of ABC)if(DICT.has(w.slice(0,i)+c+w.slice(i)))return true;return false;}
+function canGrow(w){for(let i=0;i<=w.length;i++)for(const c of ABC)if(!blockedMove(w,i,c)&&DICT.has(w.slice(0,i)+c+w.slice(i)))return true;return false;}
 function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
 const bounces=()=>S.misses+(S.wilts||0);
 const score=()=>(S.snips||0)+bounces()+(S.hints||0);
 /* can this word still grow to the target? */
 let reachMemo=new Map();
-function kids(w){const out=[];for(let i=0;i<=w.length;i++)for(const c of ABC){const n=w.slice(0,i)+c+w.slice(i);if(DICT.has(n)&&!out.includes(n))out.push(n);}return out;}
+function kids(w){const out=[];for(let i=0;i<=w.length;i++)for(const c of ABC){if(blockedMove(w,i,c))continue;const n=w.slice(0,i)+c+w.slice(i);if(DICT.has(n)&&!out.includes(n))out.push(n);}return out;}
 function kidsC(w){return kids(w).filter(k=>COMMON.has(k));}
 function goodWays(w){return kidsC(w).filter(canReach);}
 function canReach(w){if(w.length>=PAR)return true;if(reachMemo.has(w))return reachMemo.get(w);reachMemo.set(w,false);const ok=kidsC(w).some(canReach);reachMemo.set(w,ok);return ok;}
@@ -171,6 +173,7 @@ function grow(){
   if(typed.length<n){toast(`Type all ${n} letters of your next word.`);return;}
   const nw=typed, at=insertAt(w,nw);
   if(at<0){toast(`Keep ${w.toUpperCase()} in order and add just one letter.`,2400);shakeRow();return;}
+  if(blockedMove(w,at,nw[at])){buzz(20);shakeRow("warn");toast(`No adding ${nw[at].toUpperCase()} to the end. Try somewhere else.`,2400);return;}
   if(DICT.has(nw)&&!canReach(nw)){
     if(S.tried.includes(nw)){toast(nw.toUpperCase()+" won't grow tall enough. You already tried it.");return;}
     S.tried.push(nw);S.wilts=(S.wilts||0)+1;S.log.push("y");buzz([30,40,30]);typed="";
@@ -267,7 +270,7 @@ function help(){
   <div class="demo"><span>ORE</span><span class="arrow">→</span><span><b>C</b>ORE</span><span class="arrow">→</span><span><b>S</b>CORE</span><span class="arrow">→</span><span>SCORE<b>D</b></span><span class="arrow">→</span><span>SCO<b>U</b>RED</span></div>
   <ol class="steps">
    <li><b class="n">1</b><span>Type a new word that's today's word plus one letter, added anywhere. You can't rearrange the letters, and every word must be real.</span></li>
-   <li><b class="n">2</b><span>Grow it to the target length, at least 8 letters. Each bud on the stem is one letter to go.</span></li>
+   <li><b class="n">2</b><span>Grow it to the target length. Each bud on the stem is one letter to go. No easy endings: you can't add S, D, R or Y to the end of a word.</span></li>
    <li><b class="n">3</b><span>Every word must still be able to grow to the target. A real word that can't bounces back 🟨 and costs one of your 5 leaves. A made-up word just shakes, with no penalty.</span></li>
    <li><b class="n">4</b><span>Stuck? Tap Hint to see where a letter fits, then tap again to see the letter. Every hint and bounce adds 1 to your score. A perfect bloom is zero.</span></li>
   </ol>
