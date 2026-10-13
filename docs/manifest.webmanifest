@@ -2,7 +2,7 @@
   "name": "Sproutle",
   "short_name": "Sproutle",
   "description": "Grow a word, one letter at a time. A new puzzle every day.",
-  "start_url": "/",
+  "start_url": "/sproutle/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#d9f7c4",

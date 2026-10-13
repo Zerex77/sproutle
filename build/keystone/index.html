@@ -144,7 +144,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
   <header>
     <div class="mark">Key<span>stone</span></div>
     <div class="hbtns">
-      <a class="ibtn" href="/games" aria-label="More games" title="More games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
       <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
       <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
     </div>
@@ -423,7 +423,7 @@ function renderResult(){
   r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
     <button class="share" id="btnShare">Share result</button>
     <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>
-    <a class="more" href="/games">Play more games →</a>`;
+    <a class="more" href="/">Play more games →</a>`;
   $("btnShare").onclick = ()=>{
     const txt=shareText();
     const ok=()=>toast("Copied. Paste it anywhere.");

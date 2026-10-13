@@ -48,7 +48,7 @@ def meta(title, desc, path):
             f'<meta property="og:description" content="{desc}">\n<meta property="og:url" content="{DOMAIN}{path}">\n'
             '<meta property="og:type" content="website">\n')
 
-FOOT = '<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/games">More games</a><span>·</span><a href="/privacy">Privacy</a></nav>'
+FOOT = '<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/">All games</a><span>·</span><a href="/privacy">Privacy</a></nav>'
 
 # ---------- game page ----------
 game = src.replace('<!--SITEFOOT-->', FOOT).replace('/*JS*/', '\n' + js)
@@ -58,7 +58,7 @@ k = game.index('</style>', i) + len('</style>')
 style = game[i:k].replace('@media (max-width:420px){',
     '.sitefoot{display:flex;justify-content:center;gap:8px;font-size:.8rem;color:var(--muted);padding-top:4px}.sitefoot a{color:var(--muted)}\n@media (max-width:420px){', 1)
 index = (HEAD + meta('Sproutle: grow a word, one letter at a time',
-                     'A free daily word game. Grow today\'s seed into a long word one letter at a time, without rearranging. New puzzle every day.', '/')
+                     'A free daily word game. Grow today\'s seed into a long word one letter at a time, without rearranging. New puzzle every day.', '/sproutle/')
          + RESET + fonts + style + '\n</head>\n<body>\n' + game[k:] + '\n</body>\n</html>\n')
 
 # ---------- shared look for content pages ----------
@@ -96,10 +96,10 @@ a{color:var(--leaf-deep)}
 '''
 FONTS = fonts
 
-def page(title, desc, path, body):
+def page(title, desc, path, body, button='<a class="play" href="/sproutle/">Play Sproutle</a>'):
     return (HEAD + meta(title, desc, path) + RESET + FONTS + '<style>' + PAGE_CSS + '</style>\n</head>\n<body>\n'
             '<div class="page">\n<header class="top"><a class="brand" href="/"><img src="/icon-192.png" alt="">Sproutle</a>'
-            '<a class="play" href="/">Play today</a></header>\n' + body + '\n' + FOOT + '\n</div>\n</body>\n</html>\n')
+            + button +'</header>\n' + body + '\n' + FOOT + '\n</div>\n</body>\n</html>\n')
 
 about = page('About Sproutle', 'How to play Sproutle, the daily word game where you grow a short word into a long one, one letter at a time.', '/about', '''
 <main class="card">
@@ -145,47 +145,107 @@ notfound = page('Page not found | Sproutle', 'This page does not exist.', '/404'
 <main class="card" style="align-items:center;text-align:center">
 <div class="big404">404</div>
 <h1>This seed didn't sprout</h1>
-<p>The page you were looking for isn't here. Today's puzzle is waiting, though.</p>
-<p><a class="play" href="/">Play today's Sproutle</a></p>
+<p>The page you were looking for isn't here. Today's puzzles are waiting, though.</p>
+<p><a class="play" href="/">See all games</a></p>
 </main>''')
 
-games = page('More games | Sproutle', 'Free games from the maker of Sproutle: the daily word game, Ranked, a daily ordering puzzle, Trailhead, a daily word climb, Keystone, a daily missing-word puzzle, and Critter Collector, an endless zoo merge game.', '/games', '''
-<main style="display:flex;flex-direction:column;gap:16px">
-<h1>More games</h1>
-<p>Free games from the maker of Sproutle. No accounts, no ads, and your progress stays on your device.</p>
+# ---------- homepage: showcase of every game ----------
+GAMES = [
+    # slug, name, tag, blurb, button, icon, daily?
+    ('sproutle', 'Sproutle', 'Daily word puzzle · 2 min', "Grow today's seed into a long word one letter at a time, without rearranging.", 'Play Sproutle', '/icon-192.png', True),
+    ('ranked', 'Ranked', 'Daily ordering puzzle · 3 min', 'Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries.', 'Play Ranked', '/ranked/icon-192.png', True),
+    ('trailhead', 'Trailhead', 'Daily word climb · 3 min', 'Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.', 'Play Trailhead', '/trailhead/icon-192.png', True),
+    ('keystone', 'Keystone', 'Daily missing-word puzzle · 3 min', 'Find the word that joins both sides of six bridges. Their first letters spell the keystone.', 'Play Keystone', '/keystone/icon-192.png', True),
+    ('critter-collector', 'Critter Collector', 'Zoo merge game · play anytime', "Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.", 'Play Critter Collector', '/critter-collector/icon-192.png', False),
+]
+
+def card(g):
+    slug, name, tag, blurb, btn, icon, daily = g
+    status = f'<span class="badge" data-status="{slug}">New today</span>' if daily else '<span class="badge any">Play anytime</span>'
+    return (f'<a class="game" href="/{slug}/"><div class="game-head"><img src="{icon}" alt="" width="64" height="64">'
+            f'<div><h2>{name}</h2><div class="tag">{tag}</div></div></div><p>{blurb}</p>'
+            f'<div class="game-foot">{status}<span class="play">{btn}</span></div></a>')
+
+HOME_CSS = """<style>
+.hero{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.hero .date{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero p{color:var(--muted);max-width:52ch}
+.sect{font:700 1.1rem var(--f-display);color:var(--leaf-deep);margin:4px 0 -6px}
+a.game{color:var(--ink);text-decoration:none;transition:transform .15s ease}
+a.game:hover{transform:translateY(-3px)}
+a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
+.game-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.badge{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--leaf-soft);color:var(--leaf-deep)}
+.badge.done{background:var(--leaf);color:#fff}
+.badge.prog{background:var(--bloom-soft);color:var(--bloom-deep)}
+.badge.any{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.hero .progress{font-weight:700;color:var(--leaf-deep)}
+.hero .progress:empty{display:none}
+@media (prefers-reduced-motion:reduce){a.game{transition:none}a.game:hover{transform:none}}
+</style>
+"""
+
+HOME_JS = """<script>
+(function(){
+  const day=d=>Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  const now=new Date(), td=day(now);
+  const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+  const iso=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const spNo=Math.max(1,td-day(new Date(LAUNCH_Y,LAUNCH_M,LAUNCH_D))+1);
+  const dailyNo=Math.max(1,td-day(new Date(2026,9,13))+1);
+  // 0 = not started, 1 = in progress, 2 = finished today
+  const status={
+    sproutle(){const s=get("sproutle-day-"+spNo);return !s?0:s.done?2:(s.hist&&s.hist.length>1)?1:0},
+    ranked(){const s=get("ranked-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
+    keystone(){const s=get("keystone-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.cracks||d.solved.some(Boolean)||d.rev.some(Boolean))?1:0},
+    trailhead(){const s=get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0}
+  };
+  let done=0,total=0;
+  document.querySelectorAll("[data-status]").forEach(b=>{
+    total++; let v=0; try{v=status[b.dataset.status]()}catch(e){}
+    if(v===2){b.textContent="✓ Done today";b.classList.add("done");done++}
+    else if(v===1){b.textContent="In progress";b.classList.add("prog")}
+  });
+  document.getElementById("today").textContent=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+  document.getElementById("progress").textContent = done===total ? "You've finished every daily puzzle today. See you tomorrow!" : done ? done+" of "+total+" daily puzzles done today." : "";
+})();
+if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}
+</script>
+""".replace('LAUNCH_Y', str(LAUNCH[0])).replace('LAUNCH_M', str(LAUNCH[1]-1)).replace('LAUNCH_D', str(LAUNCH[2]))
+
+HOME_BODY = ('''
+<main style="display:flex;flex-direction:column;gap:18px">
+<section class="hero">
+<div class="date" id="today">Today's puzzles</div>
+<h1>Quick, free games with a new puzzle every day</h1>
+<p>No accounts and no ads. Your progress and streaks stay on your device.</p>
+<p class="progress" id="progress"></p>
+</section>
+<h2 class="sect">Daily puzzles</h2>
 <div class="games">
-<article class="game">
-<div class="game-head"><img src="/icon-192.png" alt=""><div><h2>Sproutle</h2><div class="tag">Daily word puzzle · 2 minutes</div></div></div>
-<p>Grow today's seed into a long word one letter at a time, without rearranging. A new puzzle every day.</p>
-<a class="play" href="/">Play today's puzzle</a>
-</article>
-<article class="game">
-<div class="game-head"><img src="/ranked/icon-192.png" alt=""><div><h2>Ranked</h2><div class="tag">Daily ordering puzzle · 3 minutes</div></div></div>
-<p>Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries. A new puzzle every day.</p>
-<a class="play" href="/ranked/">Play today's Ranked</a>
-</article>
-<article class="game">
-<div class="game-head"><img src="/trailhead/icon-192.png" alt=""><div><h2>Trailhead</h2><div class="tag">Daily word climb · 3 minutes</div></div></div>
-<p>Climb a spring mountain one word at a time. Pick your trail by category, solve a hidden five-letter word at each stop, and reach the summit in as few guesses as you can.</p>
-<a class="play" href="/trailhead/">Play today's Trailhead</a>
-</article>
-<article class="game">
-<div class="game-head"><img src="/keystone/icon-192.png" alt=""><div><h2>Keystone</h2><div class="tag">Daily missing-word puzzle · 3 minutes</div></div></div>
-<p>Find the word that joins both sides of six bridges, like SEA _ _ _ _ _ HOPPER. Their first letters spell the keystone. Call it early to earn the key.</p>
-<a class="play" href="/keystone/">Play today's Keystone</a>
-</article>
-<article class="game">
-<div class="game-head"><img src="/critter-collector/icon-192.png" alt=""><div><h2>Critter Collector</h2><div class="tag">Zoo merge game · play anytime</div></div></div>
-<p>Merge chicks into bunnies and lions into elephants. Build attractions, open wilder exhibits from the Petting Farm to the Galactic Zoo, and watch your zoo earn while you're away.</p>
-<a class="play" href="/critter-collector/">Play Critter Collector</a>
-</article>
+''' + '\n'.join(card(g) for g in GAMES if g[6]) + '''
+</div>
+<h2 class="sect">Play anytime</h2>
+<div class="games">
+''' + '\n'.join(card(g) for g in GAMES if not g[6]) + '''
 </div>
 </main>''')
+
+home = page('Sproutle: free daily puzzle games',
+            'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, and merge animals in Critter Collector.',
+            '/', HOME_BODY, button='')
+home = home.replace('</head>', HOME_CSS + '</head>', 1).replace('</body>', HOME_JS + '</body>', 1)
+
+# The old More games page forwards to the homepage so existing links keep working
+games = ('<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><title>Sproutle games</title>\n'
+         f'<link rel="canonical" href="{DOMAIN}/">\n<meta http-equiv="refresh" content="0; url=/">\n'
+         '<meta name="robots" content="noindex">\n<script>location.replace("/")</script>\n'
+         '</head><body><p><a href="/">See all games</a></p></body></html>\n')
 
 manifest = {
     "name": "Sproutle", "short_name": "Sproutle",
     "description": "Grow a word, one letter at a time. A new puzzle every day.",
-    "start_url": "/", "scope": "/", "display": "standalone",
+    "start_url": "/sproutle/", "scope": "/", "display": "standalone",
     "background_color": "#d9f7c4", "theme_color": "#2fc25f",
     "icons": [
         {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
@@ -194,7 +254,7 @@ manifest = {
 
 sw = f'''// Sproutle offline support. The version changes on every build so players get updates.
 const CACHE="sproutle-{VERSION}";
-const SHELL=["/","/about","/games","/privacy","/manifest.webmanifest","/icon-192.png","/icon-512.png","/favicon.png"];
+const SHELL=["/","/sproutle/","/about","/privacy","/manifest.webmanifest","/icon-192.png","/icon-512.png","/favicon.png"];
 self.addEventListener("install",e=>{{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));}});
 self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));}});
 self.addEventListener("fetch",e=>{{
@@ -209,7 +269,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/about', '/games', '/privacy', '/ranked/', '/trailhead/', '/keystone/', '/critter-collector/'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/critter-collector/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -220,8 +280,8 @@ headers = '''/*
   Cache-Control: no-cache
 '''
 
-os.makedirs(OUT, exist_ok=True)
-files = {'index.html': index, 'about.html': about, 'games.html': games, 'privacy.html': privacy, '404.html': notfound,
+os.makedirs(os.path.join(OUT, 'sproutle'), exist_ok=True)
+files = {'index.html': home, 'sproutle/index.html': index, 'about.html': about, 'games.html': games, 'privacy.html': privacy, '404.html': notfound,
          'manifest.webmanifest': json.dumps(manifest, indent=2), 'sw.js': sw, 'robots.txt': robots,
          'sitemap.xml': sitemap, '_headers': headers}
 for name, text in files.items():

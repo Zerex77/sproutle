@@ -3,7 +3,7 @@
 A daily word game: grow today's seed word into a long word, one letter at a time.
 Live at https://playsproutle.com
 
-- `docs/` is the published website (served by GitHub Pages).
+- `docs/` is the published website (served by GitHub Pages). The homepage is a showcase of every game; Sproutle itself lives at `/sproutle/`. Edit the `GAMES` list in `build_site.py` to add a game to the homepage.
 - `build/` holds the game source, puzzle lists and word list.
   Run `python3 build/build_site.py` to rebuild `docs/`.
   Settings such as the launch date and Sproutle+ live at the top of `build_site.py`.

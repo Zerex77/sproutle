@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2fc25f">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta property="og:site_name" content="Sproutle">
+<meta property="og:image" content="https://playsproutle.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://playsproutle.com/og-image.png">
+<!-- Visitor stats: paste your Plausible or GoatCounter snippet on the next line -->
+<title>Sproutle: grow a word, one letter at a time</title>
+<meta name="description" content="A free daily word game. Grow today's seed into a long word one letter at a time, without rearranging. New puzzle every day.">
+<link rel="canonical" href="https://playsproutle.com/sproutle/">
+<meta property="og:title" content="Sproutle: grow a word, one letter at a time">
+<meta property="og:description" content="A free daily word game. Grow today's seed into a long word one letter at a time, without rearranging. New puzzle every day.">
+<meta property="og:url" content="https://playsproutle.com/sproutle/">
+<meta property="og:type" content="website">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: a potted plant scene that literally grows one leaf per word; today's word and the keyboard sit below it */
+:root{
+  --bg:#d9f7c4; --card:#ffffff; --ink:#173b23; --muted:#4d6e57; --line:#c3eaa8;
+  --sky-a:#aee2ff; --sky-b:#e3f6ff; --sky-c:#fffbe3; --sun:#ffcd3c; --sun-glow:#ffe58a;
+  --hill-a:#86dc5c; --hill-b:#5fc444; --hill-c:#4aae37; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#e86a3c; --pot-ink:#fffaf2; --pot-dot:#ffb08f;
+  --tile:#ffffff; --tile-edge:#cfe8bf; --leaf:#2fc25f; --leaf-hi:#7fe08a; --leaf-deep:#1a9a47; --leaf-soft:#dcf7d6;
+  --bloom:#ff5fa2; --bloom-deep:#ec3d86; --bloom-soft:#ffe0ee; --bud:#a9d39a; --bad:#f04e5e;
+  --water:#4fb8ff; --wing-a:#ff9f43; --wing-b:#b98cff; --petal-y:#ffd23f; --petal-w:#ffffff;
+  --key:#b9f08f; --key-ink:#143a1f; --chip:#ffffffe6;
+  --shadow:0 12px 30px rgba(60,140,40,.14);
+  --f-display:"Fredoka", "Baloo 2", system-ui, sans-serif;
+  --f-body:"Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#123d1f; --card:#1a4428; --ink:#effaf0; --muted:#b2d4ba; --line:#2d6040;
+  --sky-a:#9ad6ff; --sky-b:#d4efff; --sky-c:#fff6d4; --sun:#ffd24a; --sun-glow:#ffe9a0;
+  --hill-a:#7ed556; --hill-b:#5cbf42; --hill-c:#46a834; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#d8622f; --pot-ink:#fffaf2; --pot-dot:#ffae8a;
+  --tile:#1f3527; --tile-edge:#2f5039; --leaf:#45d673; --leaf-hi:#8ff0a0; --leaf-deep:#25b052; --leaf-soft:#1c4029;
+  --bloom:#ff79b3; --bloom-deep:#ff4f98; --bloom-soft:#41213a; --bud:#3d6a47; --bad:#ff6f7c;
+  --water:#7cc9ff; --wing-a:#ffb066; --wing-b:#c8a6ff; --petal-y:#ffd94f; --petal-w:#f4f1ff;
+  --key:#33803f; --key-ink:#ffffff; --chip:#16261be6;
+  --shadow:0 12px 30px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#123d1f; --card:#1a4428; --ink:#effaf0; --muted:#b2d4ba; --line:#2d6040;
+  --sky-a:#9ad6ff; --sky-b:#d4efff; --sky-c:#fff6d4; --sun:#ffd24a; --sun-glow:#ffe9a0;
+  --hill-a:#7ed556; --hill-b:#5cbf42; --hill-c:#46a834; --cloud:#ffffff;
+  --pot:#ff8a5b; --pot-deep:#d8622f; --pot-ink:#fffaf2; --pot-dot:#ffae8a;
+  --tile:#1f3527; --tile-edge:#2f5039; --leaf:#45d673; --leaf-hi:#8ff0a0; --leaf-deep:#25b052; --leaf-soft:#1c4029;
+  --bloom:#ff79b3; --bloom-deep:#ff4f98; --bloom-soft:#41213a; --bud:#3d6a47; --bad:#ff6f7c;
+  --water:#7cc9ff; --wing-a:#ffb066; --wing-b:#c8a6ff; --petal-y:#ffd94f; --petal-w:#f4f1ff;
+  --key:#33803f; --key-ink:#ffffff; --chip:#16261be6;
+  --shadow:0 12px 30px rgba(0,0,0,.4); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);background-image:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--sun-glow) 45%,transparent),transparent 70%);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;padding-inline:12px;padding-block:0}
+.wrap{max-width:500px;margin:0 auto;min-height:100%;padding-block:10px 14px;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-inline:4px}
+.mark{display:flex;align-items:center;gap:8px}
+.mark svg{width:36px;height:36px;flex:none;animation:sway 3.2s ease-in-out infinite alternate;transform-origin:50% 100%}
+h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-height:1;letter-spacing:-.01em;color:var(--leaf-deep)}
+.hbtns{display:flex;gap:8px}
+.icon{font:700 .82rem var(--f-body);background:var(--card);border:none;color:var(--ink);border-radius:999px;padding:9px 14px;cursor:pointer;box-shadow:var(--shadow)}
+.icon:hover{color:var(--leaf-deep)}
+
+/* scene: brightens as the plant comes to life (--life goes 0 → 1) */
+.scene{--life:0;position:relative;border-radius:30px;overflow:hidden;box-shadow:var(--shadow);min-height:270px;display:flex;flex-direction:column;justify-content:flex-end;
+  background:linear-gradient(180deg,var(--sky-a) 0%,var(--sky-b) 58%,var(--sky-c) 100%);
+  filter:saturate(calc(.9 + var(--life)*.3)) brightness(calc(1 + var(--life)*.03));transition:filter 1s}
+.sun{position:absolute;right:26px;bottom:calc(30% + var(--life)*48%);width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 40% 38%,#fff6c8,var(--sun) 60%);box-shadow:0 0 30px 10px color-mix(in srgb,var(--sun-glow) 70%,transparent);transition:bottom 1.2s cubic-bezier(.3,1.2,.5,1)}
+.sun::before{content:"";position:absolute;inset:-18px;border-radius:50%;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--sun) 55%,transparent) 0 8deg,transparent 8deg 30deg);-webkit-mask:radial-gradient(circle,transparent 30px,#000 31px);mask:radial-gradient(circle,transparent 30px,#000 31px);animation:spin 24s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cloud{position:absolute;height:18px;border-radius:999px;background:var(--cloud);opacity:.9;animation:drift linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cloud::before{width:26px;height:26px;left:12px;top:-12px}.cloud::after{width:18px;height:18px;left:34px;top:-7px}
+.cloud.c1{width:70px;top:58px;animation-duration:46s;animation-delay:-12s}
+.cloud.c2{width:54px;top:96px;animation-duration:62s;animation-delay:-40s;opacity:.7}
+@keyframes drift{from{left:-90px}to{left:110%}}
+.stars{position:absolute;inset:0;opacity:0;pointer-events:none;background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1.5px 1.5px at 30% 40%,#fff,transparent),radial-gradient(1px 1px at 55% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 46%,#fff,transparent),radial-gradient(1px 1px at 88% 70%,#fff,transparent),radial-gradient(1px 1px at 20% 64%,#fff,transparent)}
+.hud{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:5}
+.pill{background:var(--chip);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:999px;padding:5px 11px;font:700 .76rem var(--f-body);color:var(--muted);display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pill b{color:var(--ink);font:700 .98rem var(--f-display);font-variant-numeric:tabular-nums}
+.pill.life{gap:5px}
+.vine{width:64px;height:8px;border-radius:999px;background:var(--leaf-soft);overflow:hidden}
+.vine i{display:block;height:100%;width:calc(var(--life)*100%);background:linear-gradient(90deg,var(--leaf),var(--leaf-hi));border-radius:inherit;transition:width .8s cubic-bezier(.3,1.4,.5,1)}
+.plant{position:relative;z-index:3;display:flex;flex-direction:column-reverse;align-items:center;padding-top:62px;transform-origin:50% 100%;transition:transform .8s cubic-bezier(.3,1.4,.5,1)}
+.node{position:relative;width:100%;height:var(--nh,30px);display:flex;justify-content:center}
+.node::before{content:"";position:absolute;left:50%;top:-1px;bottom:-1px;width:5px;margin-left:-2.5px;background:linear-gradient(90deg,var(--leaf-deep),var(--leaf));border-radius:3px}
+.node.bud::before{background:none;border-left:3px dashed var(--bud);width:0;margin-left:-1.5px}
+.leaf{position:absolute;top:50%;width:32px;height:18px;margin-top:-13px;background:linear-gradient(135deg,var(--leaf-hi),var(--leaf) 55%,var(--leaf-deep));animation:sway 2.8s ease-in-out infinite alternate;animation-delay:calc(var(--k,0)*-.7s)}
+.leaf::after{content:"";position:absolute;top:50%;height:1.5px;width:70%;background:color-mix(in srgb,var(--leaf-deep) 70%,transparent);border-radius:2px}
+.node.r .leaf{left:calc(50% + 2px);border-radius:0 100% 0 100%;transform-origin:0 100%}
+.node.r .leaf::after{left:10%;transform:rotate(-14deg)}
+.node.l .leaf{right:calc(50% + 2px);border-radius:100% 0 100% 0;transform-origin:100% 100%}
+.node.l .leaf::after{right:10%;transform:rotate(14deg)}
+@keyframes sway{from{rotate:-5deg}to{rotate:6deg}}
+.chip{position:absolute;top:50%;transform:translateY(-60%);background:var(--chip);border-radius:999px;padding:1px 9px;font:600 .82rem var(--f-display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.node.r .chip{left:calc(50% + 38px)}
+.node.l .chip{right:calc(50% + 38px)}
+.chip b{color:var(--leaf-deep);font-weight:700}
+.node.top .chip{color:var(--ink);background:var(--card);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.node.grow .leaf{animation:unfurl .6s cubic-bezier(.3,1.7,.5,1) both .15s,sway 2.8s ease-in-out .75s infinite alternate}
+.node.grow .chip{animation:chipin .45s ease-out both .25s}
+.node.grow::before{animation:stemup .35s ease-out both;transform-origin:50% 100%}
+@keyframes unfurl{0%{transform:scale(0) rotate(-50deg)}100%{transform:none}}
+@keyframes chipin{0%{opacity:0;transform:translateY(-20%)}100%{opacity:1}}
+@keyframes stemup{0%{transform:scaleY(0)}100%{transform:none}}
+.budball{position:absolute;left:50%;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--bud)}
+.node.bud.nextbud .budball{animation:wiggle 1.6s ease-in-out infinite;background:var(--leaf);box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 25%,transparent)}
+@keyframes wiggle{0%,100%{transform:rotate(-45deg) scale(1)}50%{transform:rotate(-35deg) scale(1.3)}}
+.flower{position:relative;width:76px;height:76px;margin-bottom:-16px;z-index:4;animation:sway 3s ease-in-out infinite alternate;transform-origin:50% 100%}
+.flower i{position:absolute;left:50%;top:50%;width:26px;height:36px;margin:-36px 0 0 -13px;background:linear-gradient(180deg,var(--bloom),var(--bloom-deep));border-radius:50% 50% 50% 50%/60% 60% 40% 40%;transform-origin:50% 100%;animation:petal .6s cubic-bezier(.3,1.6,.5,1) both}
+.flower b{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3b0,var(--petal-y));box-shadow:inset 0 -3px 0 rgba(0,0,0,.12);animation:petal .4s ease-out both .5s}
+@keyframes petal{0%{scale:0}100%{scale:1}}
+.flower.over i{background:linear-gradient(180deg,var(--petal-y),var(--bloom))}
+.pot{position:relative;z-index:3;width:156px;height:58px;margin-top:-1px}
+.pot .rim{height:17px;background:var(--pot-deep);border-radius:9px;position:relative;z-index:1}
+.pot .body{height:44px;margin:-2px 12px 0;background:radial-gradient(circle,var(--pot-dot) 3px,transparent 3.5px) 0 0/18px 18px,var(--pot);clip-path:polygon(0 0,100% 0,88% 100%,12% 100%);display:flex;align-items:center;justify-content:center}
+.pot .body span{font:700 .98rem var(--f-display);letter-spacing:.16em;color:var(--pot-ink);text-transform:uppercase;background:var(--pot);padding:0 8px;border-radius:999px}
+.ground{position:relative;z-index:2;height:46px;margin-top:-34px}
+.ground::before,.ground::after{content:"";position:absolute;bottom:0;border-radius:50% 50% 0 0/100% 100% 0 0}
+.ground::before{left:-12%;width:70%;height:42px;background:var(--hill-a)}
+.ground::after{right:-14%;width:72%;height:34px;background:var(--hill-b)}
+.meadow{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:2;pointer-events:none}
+.meadow .fl{position:absolute;bottom:var(--y);left:var(--x);width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent);animation:popin .5s cubic-bezier(.3,1.7,.5,1) both}
+.meadow .fl::after{content:"";position:absolute;left:3px;top:3px;width:6px;height:6px;border-radius:50%;background:var(--petal-y)}
+.meadow .tuft{position:absolute;bottom:var(--y);left:var(--x);width:14px;height:10px;background:var(--hill-c);clip-path:polygon(0 100%,20% 0,35% 70%,50% 10%,65% 70%,80% 0,100% 100%)}
+@keyframes popin{0%{scale:0}100%{scale:1}}
+.critter{position:absolute;z-index:4;pointer-events:none;width:26px;height:20px;animation:flit 9s ease-in-out infinite;opacity:0;transition:opacity 1s}
+.critter.on{opacity:1}
+.critter.b1{left:18%;top:42%}
+.critter.b2{left:70%;top:30%;animation-duration:12s;animation-delay:-4s}
+.critter.bee{left:30%;top:24%;width:22px;animation:buzzabout 7s ease-in-out infinite}
+.wing{position:absolute;top:0;width:12px;height:14px;border-radius:60% 60% 40% 40%;animation:flap .25s ease-in-out infinite alternate;transform-origin:100% 80%}
+.wing.l{left:0;background:var(--wing-a)}
+.wing.r{right:0;background:var(--wing-b);transform-origin:0 80%}
+.critter.b2 .wing.l{background:var(--wing-b)}.critter.b2 .wing.r{background:var(--wing-a)}
+.critter .body{position:absolute;left:11px;top:2px;width:4px;height:16px;border-radius:3px;background:var(--ink)}
+@keyframes flap{to{transform:scaleX(.35)}}
+@keyframes flit{0%,100%{translate:0 0}25%{translate:40px -16px}50%{translate:10px -34px}75%{translate:-30px -10px}}
+.bee .bb{position:absolute;left:3px;top:5px;width:16px;height:11px;border-radius:50%;background:repeating-linear-gradient(90deg,var(--petal-y) 0 4px,#2b2b2b 4px 7px)}
+.bee .wing{width:9px;height:9px;top:-2px;background:#ffffffcc;left:6px;animation-duration:.08s}
+@keyframes buzzabout{0%,100%{translate:0 0}20%{translate:60px 8px}45%{translate:120px -20px}70%{translate:50px -36px}85%{translate:-10px -12px}}
+.scene.wilt .plant{transform:rotate(-7deg)}
+.scene.wilt{filter:saturate(.35) brightness(.92)}
+.scene.done .sun{transform:scale(1.2)}
+.scene.splash{animation:splash .5s ease-out}
+@keyframes splash{30%{filter:saturate(1.6) brightness(1.08)}}
+
+/* word input */
+.word{display:flex;align-items:center;justify-content:center;width:100%;max-width:100%;padding-block:4px}
+.gap{flex:0 0 auto;width:12px;height:58px;border:none;background:none;padding:0;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center}
+.gap::after{content:"";width:4px;height:58%;border-radius:3px;background:transparent;transition:background .15s}
+.gap:hover::after{background:var(--tile-edge)}
+.gap.on::after{background:var(--leaf);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.gap.pend{width:auto}
+.gap.pend::after{display:none}
+.t{flex:1 1 0;max-width:52px;min-width:0;aspect-ratio:5/6;background:var(--tile);border:2px solid var(--tile-edge);border-radius:13px;display:flex;align-items:center;justify-content:center;font:700 clamp(1.05rem,5.4vw,1.8rem) var(--f-display);text-transform:uppercase;box-shadow:0 4px 0 var(--tile-edge);cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .15s}
+.t:hover{transform:translateY(-2px)}
+.t.new{background:var(--leaf);border-color:var(--leaf-deep);color:#fff;box-shadow:0 4px 0 var(--leaf-deep);animation:sprout .5s cubic-bezier(.3,1.7,.5,1)}
+@keyframes sprout{0%{transform:scale(.2) translateY(16px) rotate(-12deg)}100%{transform:none}}
+.word.wave .t{animation:wave .5s ease-in-out both;animation-delay:calc(var(--i)*55ms)}
+@keyframes wave{40%{transform:translateY(-10px)}100%{transform:none}}
+.gap.pend .t{width:clamp(30px,9vw,52px);flex:none;background:var(--leaf-soft);border:2px dashed var(--leaf);color:var(--leaf-deep);box-shadow:none;animation:pop .25s ease-out}
+.word.shake{animation:shake .45s}
+@keyframes shake{15%,55%{transform:translateX(-8px)}35%,75%{transform:translateX(8px)}}
+.word.bloom .t{background:var(--bloom-soft);border-color:var(--bloom);box-shadow:0 4px 0 var(--bloom);color:var(--ink)}
+.hint{font-size:.82rem;color:var(--muted);text-align:center;min-height:1.2em;margin:-4px 0 0}
+.kb{display:flex;flex-direction:column;gap:7px;user-select:none;-webkit-user-select:none}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1 1 0;max-width:44px;height:54px;border:none;border-radius:11px;background:var(--key);color:var(--key-ink);font:700 1.05rem var(--f-display);text-transform:uppercase;cursor:pointer;padding:0;touch-action:manipulation;box-shadow:0 3px 0 color-mix(in srgb,var(--key) 70%,#000 12%);transition:transform .06s,box-shadow .06s}
+.k:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--key) 70%,#000 12%)}
+.k.wide{flex:1.6 1 0;max-width:72px;font:800 .78rem var(--f-body);letter-spacing:.03em}
+.k.go{background:var(--leaf);color:#fff;box-shadow:0 3px 0 var(--leaf-deep)}
+.k.go.ready{animation:ready 1.2s ease-in-out infinite}
+@keyframes ready{50%{box-shadow:0 3px 0 var(--leaf-deep),0 0 0 6px color-mix(in srgb,var(--leaf) 25%,transparent)}}
+.k:disabled{opacity:.45}
+.k:focus-visible,.btn:focus-visible,.icon:focus-visible,.gap:focus-visible{outline:3px solid var(--bloom);outline-offset:2px}
+.foot{display:flex;justify-content:center;align-items:center;gap:14px}
+.btn.prune{padding:9px 16px;font-size:.88rem}
+.btn.prune:disabled{opacity:.4;cursor:default;box-shadow:0 4px 0 var(--line)}
+.btn.prune.urge{background:var(--bloom);color:#fff;box-shadow:0 4px 0 var(--bloom-deep);animation:urge 1.2s ease-in-out infinite}
+@keyframes urge{50%{transform:translateY(-2px) scale(1.04)}}
+.node:not(.top) .chip{cursor:pointer;pointer-events:auto}
+.chip.arm{background:var(--bloom-soft);color:var(--bloom-deep)}
+.dead{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:4;background:var(--ink);color:var(--bg);font:700 .82rem var(--f-body);padding:7px 14px;border-radius:999px;white-space:nowrap;animation:pop .3s ease-out}
+.node.cut{animation:cut .5s ease-in forwards}
+@keyframes cut{to{opacity:0;transform:translateY(20px) rotate(12deg)}}
+.link{background:none;border:none;color:var(--muted);font:700 .84rem var(--f-body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 8px}
+.link:disabled{opacity:.4;cursor:default}
+.btn{font:700 .95rem var(--f-body);border-radius:16px;padding:12px 18px;border:none;background:var(--bg);color:var(--ink);cursor:pointer;white-space:nowrap;box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn.primary{background:var(--leaf);color:#fff;box-shadow:0 4px 0 var(--leaf-deep)}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%) translateY(-8px) scale(.95);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:.22s cubic-bezier(.3,1.4,.5,1);max-width:calc(100% - 32px);text-align:center;z-index:40}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+.toast.good{background:var(--leaf-deep);color:#fff}
+.toast.pink{background:var(--bloom-deep);color:#fff}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:35}
+.falling{position:fixed;z-index:36;pointer-events:none;width:22px;height:22px}
+.scrim{position:fixed;inset:0;background:rgba(10,24,16,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 30px) 16px 24px;z-index:30;overflow:auto}
+.modal{background:var(--card);color:var(--ink);border-radius:28px;max-width:420px;width:100%;padding:26px 22px;position:relative;display:flex;flex-direction:column;gap:14px;animation:pop .35s cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:none;opacity:1}}
+.modal h2{font-family:var(--f-display);font-weight:700;font-size:1.7rem;margin:0;text-wrap:balance}
+.modal h3{font:700 .74rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:2px 0 0}
+.modal p{margin:0}
+.close{position:absolute;top:14px;right:14px;background:var(--bg);border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1;width:34px;height:34px;border-radius:50%}
+.steps{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center}
+.steps li b.n{width:34px;height:34px;border-radius:12px;background:var(--leaf-soft);display:flex;align-items:center;justify-content:center;font:700 1rem var(--f-display);color:var(--leaf-deep)}
+.demo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:var(--bg);border-radius:18px;padding:12px;font:700 1rem var(--f-display);letter-spacing:.1em}
+.demo b{color:var(--leaf-deep)}
+.demo span.arrow{color:var(--muted);font-family:var(--f-body);letter-spacing:0}
+.big{font:700 3rem/1 var(--f-display);text-align:center;color:var(--leaf-deep)}
+.big.over{color:var(--bloom-deep)}
+.big small{display:block;font:600 .95rem var(--f-body);color:var(--muted);margin-top:6px}
+.trail{text-align:center;font-size:1.2rem;letter-spacing:1px;line-height:1.4;word-break:break-all}
+.path{background:var(--bg);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.path p{font:600 .98rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;line-height:1.5}
+.path small{color:var(--muted);font-size:.8rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats div{background:var(--bg);border-radius:16px;padding:10px 4px}
+.stats b{display:block;font:700 1.45rem/1.1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--leaf-deep)}
+.stats span{font-size:.72rem;color:var(--muted)}
+.dist{display:flex;flex-direction:column;gap:5px}
+.drow{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;font-size:.84rem;font-variant-numeric:tabular-nums}
+.drow div{background:var(--bg);border-radius:8px;padding:3px 8px;text-align:right;font-weight:700;min-width:26px}
+.drow.cur div{background:var(--leaf);color:#fff}
+.next{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:2px dashed var(--line);padding-top:14px}
+.next b{font:700 1.35rem var(--f-display);font-variant-numeric:tabular-nums}
+.sharebox{white-space:pre-wrap;font-size:.95rem;background:var(--bg);border-radius:12px;padding:10px}
+
+.icon.round{width:36px;padding:9px 0;text-align:center}
+.icon.plusb{width:36px;padding:7px 0;text-align:center;background:linear-gradient(135deg,var(--bloom),var(--petal-y));color:#fff;font:700 1.15rem/1 var(--f-display)}
+a.icon{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.icon.gamesb{font-size:1rem;line-height:1}
+.promo{display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;background:linear-gradient(135deg,#1d4a2a,#0f2a18);color:#f8f2e2;text-decoration:none;box-shadow:var(--shadow)}
+.promo img{width:52px;height:52px;border-radius:14px;flex:none}
+.promo span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.promo small{font:700 .68rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:#a4e05f}
+.promo b{font:700 1.05rem/1.15 var(--f-display)}
+.promo em{font-style:normal;font-size:.8rem;color:#c9d8c4;line-height:1.3}
+.promo i{font-style:normal;flex:none;background:#ff8a3d;color:#fff;font:700 .85rem var(--f-body);padding:8px 14px;border-radius:14px;box-shadow:0 3px 0 #cf611b}
+.morelink{text-align:center;font-size:.85rem}
+.morelink a{color:var(--muted)}
+.modebar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--card);border-radius:16px;padding:8px 10px 8px 14px;box-shadow:var(--shadow);font-size:.84rem;color:var(--muted)}
+.modebar b{color:var(--ink)}
+.mb-btns{display:flex;gap:6px}
+.chipbtn{border:none;border-radius:999px;background:var(--leaf-soft);color:var(--leaf-deep);font:700 .8rem var(--f-body);padding:7px 12px;cursor:pointer}
+.chipbtn:hover{background:var(--leaf);color:#fff}
+.note{font-size:.82rem;color:var(--muted)}
+.where{font:700 .74rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn.wide{width:100%}
+.days{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.day{border:none;border-radius:14px;background:var(--bg);color:var(--ink);padding:9px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;font-family:var(--f-body);min-width:0}
+.day .dn{font:700 .95rem var(--f-display)}
+.day .dd{font-size:.7rem;color:var(--muted)}
+.day .ds{font:700 .72rem var(--f-body);color:var(--leaf-deep);margin-top:2px}
+.day.won{background:var(--leaf-soft)}
+.day.lost .ds{color:var(--muted)}
+.day.prog .ds{color:var(--bloom-deep)}
+.day.locked{opacity:.6}
+.day.locked .ds{color:var(--muted)}
+.day.here{outline:2px solid var(--leaf);outline-offset:-2px}
+.pluscard{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-radius:18px;padding:12px 14px;background:linear-gradient(135deg,var(--bloom-soft),color-mix(in srgb,var(--petal-y) 30%,var(--card)))}
+.pluscard div{display:flex;flex-direction:column;min-width:0;flex:1 1 160px}
+.pluscard b{font:700 1.05rem var(--f-display)}
+.pluscard span{font-size:.82rem;color:var(--muted)}
+.pluscard.on{background:var(--leaf-soft)}
+.plushead{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--bloom),var(--petal-y));color:#fff;font:700 .8rem var(--f-display);letter-spacing:.06em;padding:4px 12px;border-radius:999px}
+.perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.perks li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;font-size:.92rem}
+.perks li b{font-size:1.2rem;line-height:1.2}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan{border:2px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:var(--f-body)}
+.plan.sel{border-color:var(--leaf);background:var(--leaf-soft)}
+.plan .pt{font:700 .8rem var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.plan .pp{font:700 1.5rem var(--f-display)}
+.plan .ps{font-size:.74rem;color:var(--leaf-deep);font-weight:700}
+.testing{display:flex;flex-direction:column;align-items:center;gap:2px;border-top:2px dashed var(--line);padding-top:10px;font-size:.76rem;color:var(--muted);text-align:center}
+
+.word{gap:5px;padding-block:2px}
+.word .t{cursor:default;max-width:46px}
+.hintmark{flex:0 0 auto;min-width:22px;height:46px;padding:0 6px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--petal-y);color:#3a2a00;font:700 1.3rem var(--f-display);text-transform:uppercase;box-shadow:0 0 0 4px color-mix(in srgb,var(--petal-y) 40%,transparent);animation:glow 1.1s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 9px color-mix(in srgb,var(--petal-y) 15%,transparent)}}
+.typed{display:flex;justify-content:center;gap:5px;width:100%}
+.typed .slot{flex:1 1 0;max-width:44px;min-width:0;aspect-ratio:5/6;border-radius:12px;border:2px dashed var(--tile-edge);background:color-mix(in srgb,var(--card) 60%,transparent);display:flex;align-items:center;justify-content:center;font:700 clamp(1rem,5vw,1.6rem) var(--f-display);text-transform:uppercase;color:var(--leaf-deep)}
+.typed .slot.on{border-style:solid;border-color:var(--leaf);background:var(--leaf-soft);animation:pop .18s ease-out}
+.typed .slot.cursor{border-color:var(--leaf);border-style:solid}
+.typed.shake{animation:shake .45s}
+.node.sick .leaf{background:linear-gradient(135deg,#ffe58a,#e8c23a 55%,#b9952a);rotate:28deg;animation:none}
+.node.r.sick .leaf{rotate:28deg}.node.l.sick .leaf{rotate:-28deg}
+.node.sick .chip{background:#fff6cf;color:#8a6a00}
+.node.sick::before{background:linear-gradient(90deg,#b9952a,#e8c23a)}
+.btn.hintb{background:#fff6cf;color:#7a5a00;box-shadow:0 4px 0 #e8c23a}
+
+.actions{display:flex;justify-content:center;gap:10px}
+.actions .btn{flex:1 1 0;max-width:180px;padding:10px 12px;font-size:.9rem}
+@media (max-height:760px){.scene{min-height:200px}.plant{padding-top:52px}.wrap{gap:8px}.k{height:48px}.typed .slot{max-width:38px}.word .t{max-width:40px}.hint{font-size:.78rem}}
+
+.pill.lives{gap:3px}
+.pill.lives i,.falling{display:inline-block;width:15px;height:15px;background:var(--leaf);border-radius:0 100% 0 100%;box-shadow:inset -2px -2px 0 var(--leaf-deep)}
+.pill.lives i.gone{background:var(--line);box-shadow:none;opacity:.6}
+.falling{position:fixed;z-index:36;pointer-events:none}
+.typed.warn .slot{border-color:#e8c23a!important;background:#fff6cf!important;color:#8a6a00}
+.typed.bad .slot{border-color:var(--bad)!important;background:color-mix(in srgb,var(--bad) 14%,var(--card))!important;color:var(--bad)}
+.ways{margin:0 auto;font:600 .84rem var(--f-body);color:var(--leaf-deep);background:var(--leaf-soft);border-radius:999px;padding:4px 12px;text-align:center}
+.ways b{font:700 1rem var(--f-display)}
+
+/* ---- phone-fit layout: the whole game fits one screen, the garden flexes to fill what's left ---- */
+html,body{height:100%}
+.wrap{height:100vh;height:100dvh;min-height:0;padding-block:8px 10px;gap:8px;overflow:hidden}
+header h1{font-size:1.7rem}
+.mark svg{width:30px;height:30px}
+.icon{padding:7px 12px;font-size:.78rem}
+.icon.round,.icon.plusb{width:32px;padding:7px 0}
+.scene{flex:1 1 0;min-height:130px;max-height:440px}
+.hud{top:10px;left:10px;right:10px;gap:5px;flex-wrap:nowrap;overflow:hidden}
+.pill{padding:4px 9px;font-size:.7rem;gap:5px;flex:0 0 auto}
+.pill b{font-size:.88rem}
+.vine{width:44px;height:7px}
+.pill.lives i{width:11px;height:11px}
+.plant{padding-top:42px}
+.pot{transform:scale(.86);transform-origin:50% 100%;margin-bottom:-4px}
+.word{gap:4px;padding-block:0;flex:0 0 auto}
+.word .t{max-width:40px;border-radius:11px;font-size:clamp(1rem,5vw,1.5rem)}
+.ways{flex:0 0 auto;font-size:.78rem;padding:3px 10px}
+.typed{flex:0 0 auto;gap:4px}
+.typed .slot{max-width:40px;border-radius:11px}
+.actions{flex:0 0 auto;align-items:center;gap:14px}
+.actions .btn{flex:0 0 auto;max-width:none;padding:8px 22px}
+.actions .link{font-size:.8rem}
+.hint{flex:0 0 auto;margin:0;font-size:.76rem;min-height:0}
+.kb{flex:0 0 auto;gap:6px}
+.k{height:clamp(40px,6vh,52px)}
+@media (max-height:740px){.hint{display:none}.word .t,.typed .slot{max-width:34px}.scene{min-height:110px}.plant{padding-top:38px}}
+@media (max-height:640px){header h1{font-size:1.4rem}.ways{display:none}.k{height:40px}}
+.sitefoot{display:flex;justify-content:center;gap:8px;font-size:.8rem;color:var(--muted);padding-top:4px}.sitefoot a{color:var(--muted)}
+@media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
+@media (max-width:400px){header{gap:6px;padding-inline:0}header h1{font-size:1.32rem}.mark{gap:4px}.mark svg{width:24px;height:24px}.hbtns{gap:4px}.icon{padding:7px 9px;font-size:.72rem}.icon.round,.icon.plusb{width:30px;padding:6px 0}.icon.gamesb{font-size:.9rem}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="mark"><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 31 V15" stroke="var(--leaf-deep)" stroke-width="3" stroke-linecap="round"/><path d="M17 17 C 9 17 5 12 5 6 C 12 6 17 10 17 17Z" fill="var(--leaf)"/><path d="M17 14 C 23 14 28 10 29 3 C 22 3 17 7 17 14Z" fill="var(--leaf)"/><circle cx="17" cy="31" r="2.5" fill="var(--bloom)"/></svg><h1>Sproutle</h1></div>
+    <div class="hbtns"><button class="icon plusb" id="plusHdr" type="button" aria-label="Sproutle+">+</button><button class="icon" id="archiveBtn" type="button">Archive</button><a class="icon round gamesb" href="/" aria-label="All games" title="All games">🎮</a><button class="icon round" id="helpBtn" type="button" aria-label="How to play">?</button><button class="icon" id="statsBtn" type="button">Stats</button></div>
+  </header>
+  <div class="modebar" id="modebar" hidden></div>
+  <section class="scene" id="scene" aria-label="Your plant">
+    <div class="stars"></div><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div>
+    <div class="hud" aria-live="polite">
+      <span class="pill"><b id="num"></b></span>
+      <span class="pill life"><b id="len"></b>/<b id="par"></b><span class="vine" aria-hidden="true"><i></i></span></span>
+      <span class="pill lives" id="lives" aria-label="Leaves left"></span><span class="pill">💡 <b id="hints">0</b></span>
+    </div>
+    <div class="plant" id="plant"></div>
+    <div class="ground"></div><div class="meadow" id="meadow"></div><div class="critter b1" id="bf1"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter b2" id="bf2"><span class="wing l"></span><span class="wing r"></span><span class="body"></span></div><div class="critter bee" id="bee"><span class="wing"></span><span class="bb"></span></div><div class="dead" id="dead" hidden>Dead end. Prune back to try another branch.</div>
+  </section>
+  <div class="word" id="word" aria-label="Current word"></div>
+  <p class="ways" id="ways" aria-live="polite"></p>
+  <div class="typed" id="typed" aria-live="polite" aria-label="Your next word"></div>
+  <div class="actions"><button class="btn prune hintb" id="hintBtn" type="button">💡 Hint</button><button class="link" id="stopBtn" type="button">Give up</button></div>
+  <p class="hint" id="hint"></p>
+  <div class="kb" id="kb"></div>
+  
+</div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status"></div>
+<div class="scrim" id="scrim" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+const PUZZLES=[["lid",7,4,["lid","lied","liked","linked","blinked"],1],["red",7,3,["red","cred","cared","scared","scarred"],1],["east",7,1,["east","beast","breast","abreast"],1],["sad",7,1,["sad","shad","shard","shared","sheared"],1],["do",7,2,["do","don","dong","doing","dosing","dowsing"],1],["sins",7,2,["sins","sings","stings","strings"],1],["sigh",7,1,["sigh","sight","slight","sleight"],1],["cove",7,1,["cove","covet","covert","convert"],1],["dog",7,1,["dog","dong","doing","dosing","dowsing"],1],["card",7,2,["card","cared","scared","scarred"],1],["over",7,2,["over","cover","covert","convert"],1],["ate",7,3,["ate","rate","crate","create","cremate"],1],["rule",7,2,["rule","ruble","rumble","crumble"],1],["bond",7,1,["bond","boned","bonded","bounded"],1],["rub",7,2,["rub","rube","ruble","rumble","crumble"],1],["cop",7,2,["cop","cope","coupe","couple","couplet"],1],["at",7,14,["at","eat","beat","beast","breast","abreast"],1],["rest",7,2,["rest","reset","resent","present"],1],["vet",7,1,["vet","vert","overt","covert","convert"],1],["uses",7,5,["uses","buses","bushes","brushes"],1],["aged",7,2,["aged","raged","ragged","dragged"],1],["wits",7,1,["wits","writs","writes","writers"],1],["lies",7,2,["lies","lives","livers","slivers"],1],["gong",7,1,["gong","going","goring","gorging"],1],["shed",7,1,["shed","shred","shared","sheared"],1],["tat",7,2,["tat","stat","state","statue","statute"],1],["dig",7,1,["dig","ding","doing","dosing","dowsing"],1],["lose",7,1,["lose","close","closet","closest"],1],["eats",7,1,["eats","teats","treats","threats"],1],["cats",7,1,["cats","casts","castes","castles"],1],["star",8,1,["star","stare","stared","started","startled"],0],["ties",7,3,["ties","times","timers","timbers"],1],["wed",7,5,["wed","owed","owned","downed","drowned"],1],["sat",7,4,["sat","stat","state","statue","statute"],1],["rests",8,1,["rests","resets","resents","presents"],1],["ashes",8,1,["ashes","lashes","slashes","splashes"],1],["pig",9,1,["pig","prig","sprig","spring","sparing","sparking","sparkling"],1],["lens",7,1,["lens","leans","cleans","cleanse"],1],["pits",7,2,["pits","spits","splits","splints"],1],["be",7,2,["be","bet","best","beast","breast","abreast"],1],["meal",7,1,["meal","medal","medial","medical"],1],["grin",8,2,["grin","grain","gratin","grating","granting"],1],["aces",8,5,["aces","races","traces","tracers","trackers"],1],["tin",9,2,["tin","ting","sting","string","staring","starting","startling"],1],["had",7,2,["had","hard","shard","shared","sheared"],1],["rags",7,2,["rags","rages","ranges","rangers"],1],["cod",7,8,["cod","coed","coped","cooped","scooped"],1],["pas",7,5,["pas","pans","plans","plants","planets"],1],["win",8,4,["win","wing","owing","owning","downing","drowning"],1],["stats",8,2,["stats","states","statues","statutes"],1],["rig",9,1,["rig","prig","sprig","spring","sparing","sparking","sparkling"],1],["is",7,33,["is","its","bits","bites","biters","bitters"],1],["lots",7,1,["lots","clots","cloths","clothes"],1],["big",7,6,["big","brig","bring","baring","barking"],1],["acts",7,1,["acts","facts","facets","faucets"],1],["bog",8,3,["bog","bong","boing","booing","booming","blooming"],1],["ally",8,1,["ally","rally","orally","morally","mortally"],1],["retain",9,1,["retain","retrain","restrain","restraint"],1],["bats",7,2,["bats","bates","bathes","batches"],1],["say",7,1,["say","stay","stray","astray","ashtray"],1],["bat",7,2,["bat","beat","beast","breast","abreast"],1],["reds",7,1,["reds","reads","treads","threads"],1],["later",8,1,["later","latter","platter","splatter"],1],["taped",8,1,["taped","tapped","trapped","strapped"],1],["in",9,4,["in","sin","sing","sting","string","staring","starting","startling"],1],["ray",7,1,["ray","tray","stray","astray","ashtray"],1],["sees",7,1,["sees","seers","sewers","skewers"],1],["loss",7,2,["loss","loses","closes","closest"],1],["cars",7,4,["cars","cares","scares","scarves"],1],["wig",8,4,["wig","wing","owing","owning","downing","drowning"],1],["tough",8,2,["tough","though","through","thorough"],1],["gin",8,4,["gin","gain","grain","gratin","grating","granting"],1],["try",7,1,["try","tray","stray","astray","ashtray"],1],["ted",7,1,["ted","tied","tiled","tailed","trailed"],1],["led",7,4,["led","lied","liked","linked","blinked"],1],["cos",7,1,["cos","cots","clots","cloths","clothes"],1],["an",8,4,["an","ran","rain","grain","gratin","grating","granting"],1],["gran",8,2,["gran","grain","gratin","grating","granting"],1],["other",8,1,["other","mother","smother","smoother"],1],["ones",7,2,["ones","bones","boners","bonkers"],1],["tons",7,1,["tons","tones","stones","stoners"],1],["toes",7,1,["toes","tones","stones","stoners"],1],["dies",7,7,["dies","dries","drives","drivers"],1],["rules",8,2,["rules","rubles","rumbles","grumbles"],1],["as",8,3,["as","has","hats","hates","haters","heaters","theaters"],1],["aches",8,3,["aches","arches","marches","marchers"],1],["set",7,1,["set","sent","scent","ascent","nascent"],1],["pins",7,1,["pins","pints","prints","sprints"],1],["cent",7,1,["cent","scent","ascent","nascent"],1],["ants",7,1,["ants","pants","plants","planets"],1],["rough",8,1,["rough","trough","through","thorough"],1],["gas",8,1,["gas","gals","gales","gables","gambles","gamblers"],1],["rises",8,1,["rises","crises","cruises","cruisers"],1],["cans",7,1,["cans","clans","cleans","cleanse"],1],["us",7,1,["us","use","ruse","reuse","recuse","recluse"],1],["tips",7,1,["tips","trips","strips","stripes"],1],["pies",7,1,["pies","spies","spires","aspires"],1],["cries",8,1,["cries","crises","cruises","cruisers"],1],["rat",7,1,["rat","rate","crate","create","cremate"],1],["ads",7,1,["ads","rads","reads","treads","threads"],1],["sits",7,2,["sits","spits","splits","splints"],1],["die",7,1,["die","dive","drive","derive","deprive"],1],["up",7,1,["up","cup","coup","coupe","couple","couplet"],1],["rips",7,1,["rips","trips","strips","stripes"],1],["rats",7,2,["rats","rates","crates","creates"],1],["ever",7,1,["ever","lever","clever","cleaver"],1],["ages",7,2,["ages","rages","ranges","rangers"],1],["on",7,1,["on","don","dong","doing","dosing","dowsing"],1],["din",7,1,["din","ding","doing","dosing","dowsing"],1],["apes",7,1,["apes","capes","capers","campers"],1],["ten",7,1,["ten","tern","stern","astern","eastern"],1]];
+const PRACTICE=[["hay",6,1,["hay","shay","shady","shandy"],1],["sun",6,2,["sun","sung","stung","strung"],1],["one",6,3,["one","once","ounce","bounce"],1],["by",6,1,["by","buy","busy","busby","busboy"],1],["foe",6,2,["foe","fore","forge","forget"],1],["cam",6,5,["cam","camp","scamp","scampi"],1],["sol",6,1,["sol","sole","stole","stolen"],1],["pad",6,1,["pad","paid","plaid","placid"],1],["aim",6,1,["aim","maim","maxim","maxima"],1],["pot",6,2,["pot","spot","spout","sprout"],1],["woe",6,3,["woe","woke","woken","awoken"],1],["ear",6,1,["ear","hear","heart","hearth"],1],["car",6,2,["car","care","scare","scarce"],1],["wit",6,4,["wit","with","witch","switch"],1],["for",6,3,["for","fort","forth","fourth"],1],["bad",6,7,["bad","brad","broad","abroad"],1],["are",6,4,["are","care","scare","scarce"],1],["put",6,1,["put","pout","spout","sprout"],1],["bus",6,2,["bus","bush","blush","bluish"],1],["pin",6,1,["pin","pint","print","sprint"],1],["to",6,4,["to","ton","tong","thong","throng"],1],["old",6,1,["old","hold","holed","howled"],1],["mam",6,2,["mam","mama","mamma","mammal"],1],["buy",6,1,["buy","busy","busby","busboy"],1],["my",6,1,["my","may","many","manly","mainly"],1],["did",6,1,["did","died","dined","dinged"],1],["rag",6,4,["rag","rage","range","orange"],1],["til",6,1,["til","till","trill","thrill"],1],["low",6,1,["low","blow","below","bellow"],1],["max",6,1,["max","maxi","maxim","maxima"],1],["bow",6,1,["bow","blow","below","bellow"],1],["get",6,1,["get","gent","agent","argent"],1],["ice",6,4,["ice","rice","price","prince"],1],["rah",6,1,["rah","rash","trash","thrash"],1],["rid",6,4,["rid","ride","bride","bridge"],1],["no",6,3,["no","non","anon","canon","cannon"],1],["hit",6,1,["hit","whit","whist","whilst"],1],["etc",6,2,["etc","etch","ketch","sketch"],1],["tip",6,3,["tip","trip","strip","stripe"],1],["cat",6,3,["cat","cast","caste","castle"],1],["it",6,15,["it","sit","site","spite","sprite"],1],["eel",6,2,["eel","reel","repel","repeal"],1],["rot",6,3,["rot","trot","trout","tryout"],1],["par",6,2,["par","spar","spare","sparse"],1],["out",6,5,["out","tout","trout","tryout"],1],["dos",6,4,["dos","does","doves","droves"],1],["fed",6,5,["fed","fled","filed","failed"],1],["lie",6,5,["lie","line","linen","linden"],1],["bid",6,2,["bid","bide","bride","bridge"],1],["ale",6,14,["ale","able","table","stable"],1],["end",6,1,["end","fend","fiend","friend"],1],["lit",6,2,["lit","slit","split","splint"],1],["cot",6,1,["cot","clot","cloth","clothe"],1],["per",6,2,["per","peer","peter","pester"],1],["sea",6,1,["sea","seam","steam","stream"],1],["ant",6,2,["ant","cant","canto","canton"],1],["and",6,4,["and","sand","stand","strand"],1],["he",6,9,["he","she","shoe","shore","ashore"],1],["or",6,8,["or","for","fort","forth","fourth"],1],["fry",6,1,["fry","fury","furry","flurry"],1],["age",6,4,["age","rage","range","orange"],1],["rut",6,5,["rut","rust","trust","thrust"],1],["tea",6,3,["tea","team","steam","stream"],1],["wad",6,3,["wad","wand","waned","wanted"],1],["tut",6,1,["tut","tout","trout","tryout"],1],["raw",6,1,["raw","craw","crawl","scrawl"],1],["so",6,4,["so","sol","sole","stole","stolen"],1],["pit",6,3,["pit","spit","split","splint"],1],["pan",6,4,["pan","plan","plane","planet"],1],["hat",6,13,["hat","hate","haste","chaste"],1],["amp",6,1,["amp","camp","scamp","scampi"],1],["rip",6,5,["rip","trip","strip","stripe"],1],["lot",6,1,["lot","clot","cloth","clothe"],1],["non",6,3,["non","anon","canon","cannon"],1],["toe",6,1,["toe","toke","stoke","stroke"],1],["any",6,1,["any","many","manly","mainly"],1],["ere",6,1,["ere","mere","merge","emerge"],1],["bed",6,6,["bed","bred","breed","brewed"],1],["lad",6,1,["lad","laid","plaid","placid"],1],["shy",6,1,["shy","shay","shady","shandy"],1],["rad",6,3,["rad","read","tread","thread"],1],["mag",6,2,["mag","mage","mange","manage"],1],["cue",6,1,["cue","cure","curse","course"],1],["ton",6,1,["ton","tong","thong","throng"],1],["we",6,3,["we","woe","woke","woken","awoken"],1],["sit",6,5,["sit","site","spite","sprite"],1],["fat",6,2,["fat","fact","facet","faucet"],1],["man",6,6,["man","mana","mania","maniac"],1],["tie",6,3,["tie","tine","twine","twinge"],1],["act",6,1,["act","fact","facet","faucet"],1],["pat",6,4,["pat","past","paste","pastel"],1],["ash",6,3,["ash","rash","trash","thrash"],1],["art",6,2,["art","hart","heart","hearth"],1],["ssh",6,1,["ssh","sash","slash","splash"],1],["can",6,1,["can","cant","canto","canton"],1],["mid",6,3,["mid","mind","mined","minded"],1],["bee",6,1,["bee","beet","beret","bereft"],1],["ram",6,3,["ram","cram","cream","scream"],1],["aid",6,2,["aid","paid","plaid","placid"],1],["lam",6,1,["lam","lame","flame","aflame"],1],["ace",6,7,["ace","face","facet","faucet"],1],["ill",6,4,["ill","till","trill","thrill"],1],["cap",6,1,["cap","camp","scamp","scampi"],1],["was",6,5,["was","wars","wears","swears"],1],["am",6,14,["am","aim","maim","maxim","maxima"],1],["gen",6,1,["gen","gent","agent","argent"],1],["ole",6,1,["ole","sole","stole","stolen"],1],["rod",6,1,["rod","road","broad","abroad"],1],["see",6,1,["see","seep","sleep","asleep"],1],["may",6,1,["may","many","manly","mainly"],1],["mil",6,1,["mil","mile","smile","simile"],1],["pet",6,1,["pet","pest","pesto","presto"],1],["bar",6,2,["bar","bare","barre","barrel"],1]];
+const DICT=new Set("abash abashes abate abated abates abed abet abets abide abides ablate ablated ablates able abler aboard abound abounded abounding abounds about abreast abridge abridged abridges abroad abs abused abusers abuses abusing abuts ace aced aces ache ached aches acid acids acme acmes acne acorn acorns acre acres acrid act acted acts acute acutely acuter acutes acutest adds ado ads advert adverts adware aflame afloat aft again agate agates age aged agent agents ages agleam aglitter aglow agreed ague ahead ahem ahold aid aide aided aides aids aim aims akin albs ale ales alien aliens alike alive allay allays alley alleys alloy alloys ally aloe aloes aloft alone am amass amble ambled ambler amblers ambles amend amends amid amide amides amnion amnions amorally amp amps amuse amused amuses amusing an and anion anions anode anodes anon ant ante anted antes anti antic antics antis ants antsy any apace apart apes aping apses apt arced arched archers arches are area areal areas arena arenas ares argent argue argued arguer arguers argues arid arises arm arms army arouse aroused arouses art arts artsy arty arum arums as ascent ascents ash ashamed ashes ashore ashtray ashtrays ashy aside asides ask asks aslant asleep asp aspics aspires asps astern astray at ate atheist atheists atilt atom atoms atone atoned atones atop aunt aunts avast avaunt avert averts avid avoid avoids avowed avowing await awaits award awarded awards aware awash awe awed awes awing awn awning awnings awns awoke awoken axis axle axles baby bad baht bahts bailed bairn bairns bait baited baits bald balded balder baldly balds baldy bale baled baler balers bales balked balled baller ballers ballsed ballsy bally ban band bands bandy bane banes bang bangs bani bank banks banns bans bar barb barbed barber barbers barbing barbs bard bards bare bared barer bares barest barf barfed barfing barfs barge barged barges barging baring bark barked barker barkers barking barks barmy barn barns baron barons barony barre barred barrel barrels barren barrens barres barring bars barter barters baryon baryons bash bashes bask basks bast baste basted baster basters bastes bat batch batched batches bate bated bates bath bathe bathed bather bathers bathes bathos baths bats batted battled baud bawd bawds bawdy bawled bay bays be bead beads beady bean beans bear beard bearding beards bearer bearers bearing bearings bears beast beasts beat beats beaut beauts beauty bed beds bee beef beefs beefy been beep beeps beer beers beery bees beet beets beg began begat beget begets begs belated bellow bellows below belt belts bend bends bendy bent bento bents bereft beret berets berg bergs beset besets besot besots best bests bet beta betas bets bevvy bevy bewaring bey beys bias bibs bid bide bides bidet bidets bids big bill bills billy bin bind bindi bindis binds bins bios bird birds bis bit bite biter biters bites bits bitter bittern bitterns bitters bittier blabs blacked blade bladed blades blame blamed blames bland blank blanks blare blared blares blaring blast blasted blaster blasters blasts blather blathers blear bleary bleat bleats bled bleed bleeds bleep bleeps blend blends blimey blind blinds blink blinked blinker blinkers blinks blithe blither bloat bloated bloats blog blogs blond blonde blonder blondes blondest blonds blooming blooping blot blots blouse bloused blouses blow blowing blown blows blowy blowzy blued bluefish blueish bluish blunts blurbs blurs blurts blush blushed blusher blushers blushes blushing boar board boarder boarders boards boars boast boasted boaster boasters boasts boat boated boats bodging boding body bog bogs bogus boing boings bold bole boles bonce bonces bond bonded bonding bonds bone boned boner boners bones bong bonged bonging bongo bongos bongs bonier boning bonked bonkers bonking bonnier bonny bonus bony boobing booing booking bookings booming boosting booting boozing border borders bore bored borer borers bores boring borne botcher botchers bother bothers boules bounce bounced bouncer bouncers bounces bouncier bound bounded bounding bounds bout bouts bow bowed bowel bowels bowing bowl bowled bowling bowls bows boxing boxy boy boys brace braced bracer bracero braceros bracers braces bract bracts brad brads brag bragged brags braid braided braids brain brains brainy braises bramble brambles bran brand brands brandy brash brashest brat brats brattier brawled brawn brawny bray brays bread breads bream breams breast bred breed breeds brewed bricked bride brides bridge bridged bridges bridle bridled bridles brig brigs brill brindle brindled bring brings brink brinks broad broads brood broods broody brooking brother brothers brow brown browns brows browse browsed browser browsers browses brunet brunets brunt brush brushed brushes brushing brushy bubs buds bugs bulbs bump bumph bumps bumpy bums bungs bunks buns bunts buoy buoys burbs burghs burgs burls burly burns burps burros burrows burrs burs bursa bursae bursar bursars bursary burst bursting bursts bury bus busbies busboy busboys busby bused buses bush bushed bushels bushes bushiest bushing bushings bushy busied busies busiest busing busk busked busking busks buss bussed busses bussing bust busted bustiest busting bustled bustling busts busy busying buts butters buttes butties butts buy buys by bye byes byre byres byroad byroads byte bytes cable cabled cables cabs cache cached caches cachet cachets cadge cadged cadger cadgers cadges cadre cadres cads cage caged cages cagey calm calms cam came camel camels cameo cameos camo camos camp camped camper campers campier camps campus campy cams can cancer cancers cane caned caner caners canes canker cankers canned cannon cannons canoe canoed canoes canon canons cans cant canted canter canters canto canton cantons cantor cantors cantos cants canyon canyons cap cape caped caper capers capes capo capon capons capos capped caps car carat carats carbs card carded carder carders cardies cards care cared career careers carer carers cares caress caret carets caries carnies carobs carouse caroused carousel carousels carouser carousers carouses carp carped carper carpers carpet carpets carpi carps carpus carriers carries cars cart carted carter carters carts carve carved carver carvers carvery carves cash cashes cashews cask casks cast caste caster casters castes castle castled castles casts cat catchers catches cats cawed cawing cent cents chains chair chaired chairs champ champed champers champs chant chanted chanter chanters chants chap chapped chaps char chard charm charmed charms chars chart charted charter charters charts chary chaste chasten chastens chaster chat chats chatted chatter chatters chattier cheap cheapo cheat cheated cheater cheaters cheats chew chewer chewers chewier chews chewy chide chided chides chill chills chilly chimps chines chinks chinos chins chips chirps chis chit chits chive chives chivies chocked choir choirs choke choked choker chokers chokes chomp chomped chomping chomps choose chooser choosers chooses choosier chop chopped chopping chops chorales chorals chord chords chore chorea chores chose chosen chowed chowing chows chump chumps chute chutes cis clacked clad clade clades claim claims clam clammed clamp clamped clamps clams clan clang clangs clank clanks clans clap clapped claps claret clarets clash clashes clasp clasps clatter clatters clawed clawing clean cleans cleanse cleansed cleanser cleansers cleanses cleaver cleavers clever clicked clime climes clinger clingers clingier clink clinked clinker clinkers clinks clit clits clocked clod clods clogs clomp clomped clomping clomps clone cloned clones clonk clonked clonks clop clopped clopping clops close closed closer closers closes closest closet closets clot cloth clothe clothed clothes cloths clots cloud clouds cloudy clout clouts clove clover clovers cloves clowned clue clued clues clump clumps clumpy clutter clutters coached coaches coals coast coaster coasters coasts coat coats coaxed cobs cocked cocoas cocos cod coda codas code codec codecs coded coder coders codes codex codger codgers codon codons cods coed coeds cogs cohos cohost cohosts coils coin coined coins coir coked colas cold colder colds colognes colon colonels colones colonies colonizers colonizes colons colony cols colt colts combos combs comp comped comping comps con cone coned cones coney coneys conk conked conks conned cons convert converts convey conveys cooed cooked cooks cooled cools coon coons coop cooped cooping coops coos coot coots cop copay cope coped copes copied copiers copies coping copings copped copping cops copse copses copy copying cor corals cord corded cordon cordons cords core cored corer corers cores cork corked corker corkers corks corm corms corn corned corner corners cornier corns corny coroner coroners corps corpse corpses corpus corrals cos cosh cost costs cot cote cotes cots could coup coupe coupes couple coupled coupler couplers couples couplet couplets coups course coursed courser coursers courses cove coven covens cover covers covert coverts coves covet covets covey coveys cowed cowing cowling cowlings cowls cows coxed crabs cracked crackled craft crafted crafter crafters craftier crafts crafty crag crags cram cramp cramped cramping cramps crams crane craned cranes crank cranked cranks cranky crape crapes crapped crapping craps crash crashes crate crated crater craters crates craw crawl crawls crawly craws cream creams creamy create created creates cred credo credos creed creeds creel creels cremate cremated cremates crest crests crewed crewel crewmate crewmates cricked cried criers cries crimes cripes crises crocked crone crones cronies crooked crooks croon croons crop cropped cropping crops croup croupy crowded crowding crowds crowed crowing crowned crowning crowns crows cruise cruised cruiser cruisers cruises crumble crumbled crumbles cruse cruses crusher crushers crushes crust crusts crusty cube cubed cuber cubers cubes cue cued cues cumber cumbers cup cups curate curated curates curbed curdled cure cured curer curers cures curiae curie curies curled curler curlers curlier curries curse cursed curses curter curve curved curves cusp cusps cute cutely cuter cutesy cutey cuteys cutie cuties cutler cutlers cutlery cutter cutters cyan czar czars dabs dace daces dado dads daft dafter dais daisy dale dales dally dam dame dames damns damp damps dams dance danced dancer dancers dances dare dared darer darers dares darker darned darner darners dart darted darter darters darts dash dashers dashes date dated dater daters dates daubs daunt daunts dawn dawning dawns dear dearer dearly dears deary debar debark debarks debars deice deiced deicer deicers deices deliver delivers delivery delver delvers deprive deprived deprives derive derived derives device devices dibs dice diced dices dicey dickey dickeys did dido die died dies diet diets dig digs dike diked dikes dill dills dilly dime dimes dims din dine dined diner diners dines ding dinged dinghy dingo dings dingus dingy dinky dinned dinner dinners dins dint dips dipso dipsos dire direr dirge dirges dis disc disco discos discs discus discuses discuss discusses dish dishy disk disks dive dived diver divers diverse divert diverts dives divest divests do dob dobs doc dock docks docs dodge dodged dodgem dodgems dodger dodgers dodges dodgier doe doer doers does dog doge doges doggies doggiest dogie dogies dogs doing doings dole doled doles doling dolled dolling dolt dolts dome domed domes doming don dona donas done dong dongs dons doomed dooming dope doped doper dopers dopes dopey dopier doping dories dos dose dosed doses dosh dosing doss dossed dossers dosses dossiers dossing dost dot dote doted doter doters dotes doth doting dots dotted dotting dour douse doused douses dousing dove doves dower dowers down downed downer downers downier downing downs downy dowries dowse dowsed dowser dowsers dowses dowsing dox doxes doxing doxings doxx doxxes doxxing doxxings doze dozed dozen dozens dozer dozers dozes dozier dozing drabs draft drafted drafter drafters draftier drafts drafty drag dragged drags drain drains dram drama dramas drams drank draping drat dratted draw drawl drawls drawn draws dray drays dread dreads dream dreams dreamy drear dreary dried dries driest drill drills drink drinks drip drips drive drivel drivels driven driver drivers drives drone droned drones dross drove drover drovers droves drown drowned drowning drownings drowns drowse drowsed drowses drowsing drub drubs dryads drying dump dumps dumpy duo duos dwelt dyads dyeing dying ear earl earls early earn earns ears east eastern eat eats ebony eel eels eking eland elands elapses elate elated elates elite elites eloping elver elvers email emails emend emends emerge emerged emerges emus end ends eon eons epics ere erode eroded erodes espies espouse espoused espouses estate estates etc etch ethane event events ever every ewe ewer ewers ewes exon exons fable fabled fables face faced faces facet facets fact facts fades fads failed fain fainer fainest faint fainter faintest faints fan fang fangs fans farce farces fare fared fares farm farmed farms fart farted farts fast fasted fasts fat fate fated fates fats fatso fatsos faucet faucets faun fauna faunas fauns fawn fawning fawns fear feared fears feast feasted feasts feat feats fed feds feed feeds feel feels felted fend fends fetch feted feud feuds fever fevers fewer fiat fiats fiend fiends filed fill filled fills filly filmed fin find finder finders finds fine fined finer finery fines finest finger fingers finis finish fink finked finks finned fins first firsts fist fists fit fits fjord fjords flailed flambe flame flamed flames flan flank flanks flans flare flared flares flash flashers flashes flashy flat flats flatter flatters flattery flatus fled flicked flied fliers flies fliest flint flints flinty flirt flirts flirty flit flits float floats floe floes flopping floss flosses flossy flour flours floury flout flouts flow flowed flowing flown flows flurry flusher foe foes foiled foist foists fold folds for forage foraged forager foragers forages foray forays force forced forceps forces ford fords fore foregoes fores forest forests forge forged forger forgers forgery forges forget forgets forgoer forgoers forgoes fork forks form forms fort forte fortes forth forties forts forty forum forums four fours fourth fourths foxes fracked frailly frank franks frat frats fray frays freed fridge fridges friend friends frig frigs frill frilled frills frilly frump frumps frumpy fry furry fury fuse fused fusee fusees fuses fusing fussed fusses fussing gabble gabbled gabbles gable gabled gables gabs gads gags gain gains gait gaits galas gale gales gallery galley galleys galls gals gamble gambled gambler gamblers gambles gamboled gamin gamine gamines gaminess gaming gamins gangs gapes gaping gaps garble garbled garbles garbs gars gas gash gashes gasp gasping gasps gate gated gates gaunt gawping gawps gays gear gears gen gene genes genie genies genius genre genres gens gent gents genus gestate gestated gestates get gets ghat ghats ghosted gift gifts gill gills gilt gilts gin gins girt girth girths girts gist git gite gites gits glace glaces glad glade glades glads glam glance glanced glances gland glandes glands gleam gleams glean gleans glen glens glint glints glitter glitters glittery gloat gloats gloss glosses glossies glossiest glossy glow glowed glowing glows gnash gnashes gnus goads goals goat goats going goings gold golds gonads gone goner goners gong gongs gore gored gores gorge gorged gorges gorging goring gorse gout gouty gown gowned gowning gowns grabs grace graced graces grad grade graded grader graders grades grads graft grafted grafter grafters grafting grafts grain grains grainy gram grams gran grand grander grandeur grands grange granges grans grant granted granter granters granting grants grapes grasp grasping grasps grate grated grater graters grates gratin grating gratings gratins gravy gray grays greater greed greedy grid grids grill grille grilled grilles grills grin grind grinds grins grip gripe griped griper gripers gripes grippe gripped gripper grippers grips grist grit grits groan groans groat groats groin groins groping grouping groupings grouse groused grouser grousers grouses grout grouted grouts growing growling grown grub grubs grumble grumbled grumbler grumblers grumbles grump grumps grumpy grunt grunts guilt guilts guilty gusher gushers gushier gyrate gyrated gyrates gyrating had haft hafts hags hailed haired hale haled haler hales halest haloed halt halted halter halters halts halve halved halves ham hams hand hands handy hangs hard hardily hardly hardy hare hared harem harems hares harked harm harmed harms harped harsh hart harts has hash hashes hasp hasps hast haste hasted hasten hastens hastes hasty hat hatch hate hated hater haters hates hath hatred hatreds hats hatted hatter hatters hauled hauler haulers haulier hauliers haunt haunts hawed hawing hawked hawking hawks haws hay hays hazy he head heads heady healed healer healers health healthy heap heaps hear heard hears hearse hearses heart hearted hearth hearths hearts hearty heat heated heater heaters heath heather heathers heaths heats heel heels heir heirs heist heists helm helms help helps hem heme hemp hems hen hens hep her herb herbs herd herds here hereon hero heroin heroine heroines heroins heron herons hers hew hewer hewers hewn hews hex hey hide hided hider hiders hides hie hied hies hike hiked hiker hikers hikes hill hills hilly hilt hilts hinder hinders hint hints hips hire hired hires his hiss hist hit hits hive hived hives hoard hoards hoarse hoarser hocked hockey hoe hoed hoer hoers hoes hoicked hoist hoisted hoists hoke hoked hokes hokey hold holds hole holed holes holey home homed homely homer homers homes homey homeys homier hon hone honed honer honers hones honest honestly honesty honey honeys honk honked honker honkers honks honky hons hooked hooped hooping hoover hoovers hope hoped hopes hoping hopped hopping horn horned horns horse horsed horses horsey hose hosed hoses hosted hotkey hotkeys hour houri houris hours house housed houses hove hovel hovels hover hovers howled hue hued hues huge huger hugger huggers hump humph humphs humps hunger hungers ibid ibis ice iced ices icon icons ideals ideas ides idlers idles idlest ids ifs ill ills image imaged images imagoes imam imams in ink inks inky inn inns ins ion ions irate irises iron irons irony is ism isms it its jabs jam jamb jambs jams japes japing jaunt jaunts jaunty jawed jawing jink jinks jounce jounced jounces joust jousts jump jumps jumpy kale karat karate karats kart karts keel keels ketch kids kills kiln kilns kilt kilted kilts kin kind kinda kinds king kings kink kinks kinky kit kite kited kites kith kits kitted kneel kneels knicker knickers knit knits knitted knob knobs knot knots know known knows krill kvetch labs lace laced laces lacked lad laddies lade laded laden lades ladies ladle ladled ladles lads lady laid laird lairds lam lama lamas lamb lambed lambs lame lamed lamer lames lamest lammed lamp lamps lams lance lanced lancer lancers lances lancet lancets land landed lands lapses larches lard larded lards lardy lash lashes latched latches late later latex lathe lathed lather lathers lathery lathes latke latkes latte latter lattes laud lauded lauds lawn lawns lead leaded leaden leads leans learn learns leash leashes least leather leathers leathery leaver leavers led lend lends lens lever levers levier leviers lewd lice licked lid lido lidos lids lie lied lief liefer lien liens lies lieu life lifer lifers lift lifter lifters lifts like liked liken likens likes lilt lilts lime limed limes limey limeys limned limped linden lindens line linear lined linen linens liner liners lines linger lingers link linked linker links lint linty lion lions lire list lists lit lite liter liters lithe lither litter litters live lived liven livens liver livers livery lives livest llama llamas load loaded loads loam loamy loaner loaners loath loathe loathed loather loathers loathes loft lofts lofty loiter loiters lone loner loners longer looping loose loosed loosen loosens looser looses loosest loot loots loping lopping lore lose loser losers loses loss losses lost lot lots lotus lotuses lounger loungers lour lours louse loused louses lout louts louver louvers lover lovers low lowed lowing lows lump lumps lumpy lusher mace maced maces macs mads mag mage mages magi magic magma mags maid maids mail mailer mailers mails maim maims main mainly mains male males malt malted malteds malts malty mam mama mamas mamba mambas mamma mammae mammal mammals mams man mana manage managed manager managers manages manana mane maned manege manes manga mange manger mangers mangier mangle mangled mangles mangy mania maniac maniacs manias manila manky manly manna manned mans manse manses manta mantas mantis mantra mantras many maple maples maps marched marchers marches mare mares marge marks mars marsh marshes marshy mart martinis martins marts mas masa masas mash mashers mashes mask masks mass mast masted master masterly masters mastery masts mat match mate mated mater maters mates matey mateys math matings matins mats matte matted matter matters mattes maws max maxi maxim maxima maximal maxims maxis may mayo mayor mayors meal meals mealy mean meanly means meant meany measly meat meats meaty medal medals medial medical medicals mend mends mental meowed meowing mere meres merest merge merged merger mergers merges metal metals methane mice mid midi midis mil mild milder mile miler milers miles milk milker milkers milkier milks milky mill miller millers mills mils milt milts mince minced mincer mincers minces mind minded minds mined mink minks minted minuted mkay moan moaned moans moat moated moats moil moils moire moires mold molds moldy mole moles molest molests moping mopping morally more morel morels mores morsel morsels mortally mother mothers mouse moused mouser mousers mouses mousier mousing mousse moussed mousses moussing mover movers mowed mowing mown mugs mumps mus muse mused muses mush mushed musher mushers mushes mushier mushing mushy musing musings musk musky muss mussed mussels musses mussing mussy must musts musty my nabs nacre napes nascent near nearly nears neat neath neon never newer nice nicer niche niches nicker nickers niece nieces nit nits no nob nobs nod node nodes nods noir noirs non nonce none noon nor nori noris norm norms not note noted notes noun nouns nous now nowt nubs numbs nuns nus nuts oar oars oat oath oaths oats obey obeys obis obit obits ogle ogled ogler oglers ogles ogre ogres ogress oink oinks old ole oleo olive olives on once one ones onus opals opine opined opines oping opting opus or orally orange oranges orate orated orates orb orbit orbits orbs orc orca orcas orcs ore ores ornate other others ounce ounces our ours oust ousts out outs over overs overt owe owed owes owing own owned owning owns ozone pace paced pacer pacers paces pacey pacier packed packer packers pact pacts pad padre padres pads page paged pager pagers pages paid pails pain pained pains paint painted paints pair paired pairs palace palaces palate palates pale paled palely paleo paler pales palest palled palls pally palmate palmed palms palpate palpated palpates pals palsy pampas pan pane panel panels panes pang pangs pans pansy pant panted panto pantos pants papas paps par para paras parched parches pare pared parer parers pares parity park parka parkas parked parks parky parole paroled parolee parolees paroles parred parried pars parse parsec parsecs parsed parser parses part parted partied partly parts party pas pass passe passed passel passels passer passers passes past pasta pastas paste pasted pastel pastels pastern pasterns pastes pasties pastiest pastimes pastries pastry pasts pasty pat patch patchy pate pates path pathos paths pats patsy pawed pawing pawls pawn pawned pawning pawns paws pays peace peaces peaches peaks pealed peals pear pearl pearled pearls pearly pears peas peat peaty pedaled pedalos pedals peel peels peer peers pelt pelts pend pends pent peon peonies peons peony per perk perks perky perm perms perp perps pert perter perv pervs pest pester pesters pesto pests pet petaled petals peter peters pets pewter pewters phat phew phis phish phone phoned phones phonied phonies phoniest picker pickers pickier picks pics pier piers pies piety pig pigs piker pikers pikes piles pill pills pilot pilots pin pine pined pines piney ping pinged pings pink pinked pinker pinko pinkos pinks pinned pins pint pinto pintos pints piper pipers pipes pips pirate pirated pirates pis pit pita pitas pitch pith pithy pits pitta pittas pity place placed placer placers places placid plaice plaid plaids plain plainer plains plaint plaints plait plaited plaits plan plane planed planer planers planes planet planets plank planked planks planned planner planners plans plant planted planter planters plants plash plashes plat plate plated platen platens plates plats platted platter platters platy platys playas plays plead pleaded pleads pleas please pleased pleaser pleasers pleases pleat pleated pleats pliant plied pliers plies plopping plot plots plover plovers plow plowed plowing plows plugs plumbs plumes plump plumps plums plunks plus plush plusher plushier plushly plushy poet poets point points pointy pole poled poles polled ponce ponced ponces pone pones ponies pooled pore pored pores port ported portend portends ports posit posits post posts pot pother potherb potherbs pothers pots pounce pounced pounces pour poured pours pout pouts pouty praises pram prams prang pranged prangs prank pranks prat prate prated prater praters prates prats prattled prattler prattlers prawn prawned prawning prawns pray prays preachers preaches prelate prelates present presents preset presets presto prestos price priced prices pricey pricked pricker prickers prickled pride prided prides prier priers pries priest priests prig prigs primer primers primes primmer prince princes princess print prints prizes prod prods prole proles prone proud psalms psis pubes pubis pubs puds pugs pulp pulps pulpy pump pumps punks puns punt punts pup pupa pupae pupal pupate pupated pupates pups pus push pusher pushers pushier pushy puss put puts putt putts putty putz rabid race raced racer racers races racier racked racy rad rads raft rafted rafter rafters rafts rag raga ragas rage raged rages ragga ragged raggedly raggedy rags rah raid raided raider raiders raids rain rains rainy raisers raises rally ram ramble rambled rambler ramblers rambles ramp ramping ramps rams ran rand rands randy rang range ranged ranger rangers ranges rangier rangy rank ranks rant ranted ranter ranters rants rapid rapider rapids raping rapping rapt rare rared rarer rares rarest rash rashers rashes rashest rasp rasping rasps raspy raster rat rate rated rater raters rates rather rats ratted ratter ratters rattier rattled rattler rattlers raw ray rays read reads ready really realm realms ream reams reaping rear reared rearm rearmed rearms rears rebar rebars rebel rebels rebuses recluse recluses recuse recused recuses red redo reds reed reeds reedy reel reels reflate reflated reflates refuse refused refuses regally relapses relate related relater relaters relates remedy rend rends repeal repeals repel repels resat resent resents reset resets resist resists resit resits rest restarted restate restated restates restrain restrains restraint restraints rests retain retains retch retrain retrains reuse reused reuses reveal reveals revel revels rewarm rewarmed rewarms rewed reweds rice riced ricer ricers rices richer riches richest ricked rid ride rider riders rides ridge ridged ridges rids rig rigs rill rills rind rinds ring rings rink rinks rinses riot riots rip ripe ripen ripens riper ripper rippers rips risers rises road roads roadster roadsters roam roams roan roans roar roared roarer roarers roars roaster roasters robot robots robust rod rode rodeo rodeos rods role roles roman romping rood roods roost roosts root roots roping rot rota rotas rote roti rotis rots rough roughs rouse roused rouses roust rousted rousts rout route routed router routers routes routs rover rovers rowan rowans rowed rowing rub rubble rube rubes rubies rubiest ruble rubles rubs ruby rued rugby ruing rule ruled ruler rulers rules ruling rulings rumble rumbled rumbles rump rumps rumpus runt runts runty ruse ruses rusher rushers rushes rust rusts rusty rut ruts sable sables sad sage sager sages sagest said sale sales sally salt salted salting salts salty salute saluted salutes saluting salve salved salver salvers salves sand sands sandy sarge sarges sash sashes sat satay sate sated sates sating saute sautes sawed sawing say says scabs scad scads scald scalded scalds scale scaled scales scalped scam scamp scamper scampers scampi scamps scams scan scanned scans scant scanted scanter scantier scantily scantly scants scanty scar scarce scarcer scare scared scares scarf scarfed scarfs scarp scarped scarper scarpers scarps scarred scars scarves scary scat scats scent scents scold scolds sconce sconces scone scones scoop scooped scooping scoops scoot scoots scope scoped scopes scoping score scored scorer scorers scores scorn scorned scorner scorners scorns scour scoured scourer scourers scourged scours scow scowl scowling scowls scows scrag scrags scram scrams scrape scraped scraper scrapers scrapes scrapie scrapped scrapper scrappers scrappier scrapping scraps scrawl scrawls scrawly scream screams screed screeds scurries sea seal seals seam seams seamy sear sears seas seat seated seating seats secant secants sect sects sedated sedating see seed seeds seedy seek seeks seem seems seen seep seeps seer seers sees seine seined seiner seiners seines send sends sent sepal sepals septal sere serer serge serine serve served server servers servery serves set sets sett setts seven sevens sever severe severed severer severs sewed sewer sewers sewing sexed sexes shad shade shaded shades shads shady shaft shafts shags shaky shale shalt sham shame shamed shames shammed shams shandy shard shards share shared sharer sharers shares sharped sharper sharpers shatter shatters shay shays she shear sheared shearer shearers shears sheath sheathe sheathed sheathes sheaths shed sheds sheen sheeny sheep sheer sheers shew shewed shewing shewn shews shied shield shields shies shift shifted shifting shifts shifty shill shills shims shin shine shined shiner shiners shines shingle shingled shingles shinier shinned shinnied shinny shins shiny ships shire shires shirts shits shitting shoat shoats shocked shod shoe shoes shone shoot shoots shop shopped shopping shops shore shored shores shorn short shorted shorter shortly shorts shorty shot shots shout shouts shove shoved shovel shovels shoves show showed showing showings shown shows showy shred shreds shrew shrewd shrews shrift shrill shrills shrilly shrine shrines shticks shun shuns shunt shunts shy sickos sicks sics sides sidles sift sifted sifting sifts sigh sighs sight sights sign signs sill sills silly silt silted silting silts silty simile similes simps sims sin since sine sines sinew sinews sinewy sing singe singed singer singers singes single singled singles singlet singlets sings sink sinks sins sinus sips sirens sires sirs sis sit sitar sitars site sited sites siting sits sitting sittings situ skate skated skater skaters skates skating skein skeins sketch sketchy skewed skewer skewers skewing skids skiers skies skill skills skimps skims skin skins skint skips skirt skirts skis skit skits skivers skives skunk skunks slabs slacked slam slammed slams slant slanted slanting slants slash slashers slashes slat slate slated slates slather slathers slating slats slatted slay slays sled sleds sleek sleeks sleep sleeps sleepy sleight sleights slewed slewing slice sliced slicer slicers slices slicked slicker slickers slicks slid slide slider sliders slides slight slights slime slims sling slings slink slinks slinky slips slit slither slithers slithery slits slitting sliver slivers slob slobs sloop sloops slop slope sloped slopes sloping slopped slopping slops slot sloth sloths slots slow slowed slowing slows slued sluice sluiced sluices sluing slump slumps slung slunk smart smartly smarts smarty smash smashers smashes smear smears smeary smile smiled smiles smiley smileys smite smites smiting smooth smoothed smoother smooths smother smothers sneer sneers snicker snickers snicks snipers snipes snips snit snits snob snobs snoot snoots snooty snore snored snorer snorers snores snort snorted snorter snorters snorts snot snots snout snouts snow snowed snowing snows snowy snubs so soap soaps soapy soar soars sob soba sobs sod soda sodas sods soever soft softly softy soil soiled soiling soils sol solar sold sole soled soles solid solider solidi solids solidus soling solo soloed soloing solos sols solve solved solver solvers solves solving son sonar sonars song songs sons soon soot sooth soothe soothed soother soothers soothes sooty sop sops sore sorer sores sorest sort sorta sorter sorters sorts sot sots sou souk souks soul souls soup soups soupy sour sourer sourest sours sous souse soused souses sow sowed sowing sown sows soy space spaced spacer spacers spaces spacey spacier spams span spank spanks spans spar spare spared sparer spares sparest sparing spark sparked sparking sparkled sparkling sparkly sparks sparky sparred sparring spars sparse sparser sparsest spas spasm spasms spat spate spates spathe spathes spats spawn spawned spawning spawns spay spays speaks spear speared spearing spears speed speeds speedy spend spends spent sperms spewed spewer spewers spewing spices spics spiels spies spikes spill spills spin spine spines spinet spinets spins spiny spireas spires spit spite spited spites spiting spits spitted spitting splash splashes splashy splat splats splatted splatter splatters splay splays splice spliced splicer splicers splices spline splines splint splints split splits splitting splittings spoil spoiled spoiling spoils spooled spoon spoons spoored spooring spore spored spores sporing sport sported sporting sports sporty spot spots spouse spouses spout spouts sprang sprat sprats spray sprays sprier spriest sprig sprigs spring springs springy sprint sprints sprite sprites spritzers spritzes sprout sprouts spuds spun spunk spunks spunky spurn spurns ssh stable stabled stabler stables stablest stabs stage staged stages stagy staid stair stairs stale staled staler stales stalest stalked stalker stalkers stalled stamp stamped stampede stampeded stampedes stamper stampers stamping stamps stand stands stank staple stapled stapler staplers staples star stare stared starer starers stares staring stark starker starkers starling starlings starred starring stars start started starter starters starting startled startling starts starve starved starves starving starvings stash stashes stat state stated states stating stats statue statues stature statures status statuses statute statutes stay stays steak steaks steal steals steam steamed steams steamy steed steeds steep steeps steer steers stent stents stern sterns stet stets stewed stewing sticks sties stifle stifled stifles stile stiles still stilled stiller stills stilt stilted stilts stims sting stinger stingers stingier stings stingy stink stinks stinky stint stints stirs stoat stoats stocked stoke stoked stoker stokers stokes stole stolen stoles stolid stolider stomp stomps stone stoners stones stonier stony stool stools stoop stoops stop stops store stored stores storied stories storing stormed storming stoup stoups stout stouts stow stowed stowing stows strain strains strand strands strapped strapping stratus stray strays streak streaks streaky stream streambed streambeds streamed streams strewed strewing strikers strikes string stringer stringers stringier strings stringy strip stripe striped stripes stripey stripped stripper strippers strips stripy stroke stroked strokes strop strops strung stump stumps stumpy stun stung stunk stuns stunt stunts suet suety suing suit suite suited suites suiting suits sump sumps sun sung sunk sunlit suns sup supine sups surety swaddled swagged swags swain swains swan swank swanked swanks swanky swans sward swards swarm swarms swash swashes swat swatch swatches swath swathe swathed swathes swaths swats sway sways swear swears sweat sweated sweating sweats sweaty sweep sweeps swept swerve swerved swerves swift swifts swig swigs swill swills swims swine swines swing swinger swingers swings switch switched switchers switches swoon swoons swore sworn swot swots swung table tabled tables tablet tablets tabs tacit tact tads tail tailed tails taint taints tale tales tally tam tame tamed tamer tamers tames tamest tamp tamped tamper tampers tamping tamps tams tan tang tango tangos tangs tangy tank tanks tans tansy taped tapers tapes taping tapped tappers tapping tare tared tares tarn tarns tarot tarots tarred tarried tart tarted tartly tarts tarty task tasks tat tats taunt taunts taut taxis tea teak teaks teal teals team teamed teams tear teared tears teary teas tease teased teasel teasels teaser teasers teases teat teats ted teds teed teen teens teensy teeny ten tend tends tenet tenets tens tense tensed tenser tenses tensest tent tenth tenths tents tern terns testate than thane thanes thank thanks that thatch thawed thawing thaws the theater theaters thee their theirs theist theists them theme themed themes then there thereat thereon therm thermos therms these theses thew thews they thin thine thing things thingy think thinks thins this tho thole tholes thong thongs thorn thorns thorny thorough those thou though thought thoughts thrash thrashers thrashes thread threads thready threat threats three threes threw thrice thrill thrilled thrills throng throngs through throw throwing thrown throws thrust thrusts thump thumps tide tided tides tidied tidies tidiest tie tied tier tiered tiers ties tiger tigers til tilde tildes tile tiled tiler tilers tiles till tilled tiller tillers tills tilt tilted tilts timber timbers time timed timer timers times tin tine tines ting tinge tinged tinges tingle tingled tingles tings tinny tins tint tints tiny tip tips tipsy tirade tirades tire tired tires title titled titles tittle tittles to toads toe toed toes tog toga togas togs toil toiled toiler toilers toils toke toked token tokens tokes told tole tom tomb tombs tome tomes toms ton tone toned toner toners tones tong tonged tongs tongued tonier tonne tonnes tons tony too took tool tools toot tooted tooth toothed toothy tootled toots top topi topic topics tops tor tore torn tors torso torsos tort torte tortes torts torus tot tote toted totem totems totes tots totted tough toughs tour tours tout touted touts tow towed towing town towns tows toy toyed toying toys trace traced tracer tracers tracery traces tracked tracker trackers tract tracts trad trade traded trader traders trades trail trailed trails train trains tram tramp tramped tramper trampers tramping trampled trampler tramplers trampling tramps trams trance trances tranche tranches trans trapped trappers trapping trappings trash trashes trashy tray trays tread treads treat treats treaty treed trend trends trendy trey treys triad triads tribes trice tricked trickled tried trier triers tries trig trikes trill trilled trills trip tripe triple tripled triples triplet triplets triplex tripods tripos tripper trippers trips triter trod tromping tropic tropics trot troth trots trotted trough troughs trout trouts trow trowed trowing trows troy trued truest truing trump trumps trust trusts trusty try trying tryout tryouts tuft tufts tut tuts tutu tutus twaddled twain twang twangs twangy twas twats tweak tweaks twee tweed tweeds tweedy tween tweet tweets twig twigs twill twilled twin twine twined twiner twiners twines twinge twinged twinges twinkled twinned twins twist twists twisty twit twitch twitched twitches twitchy twits twixt two twos tying typing udon ump umps unfit unfits unit unite united unites unities unitizes units unity unlit up upend upends upraises ups us usable usage usages use used user users uses usher ushers using vague vaguer vain vale vales valet valets valley valleys value valued valuer valuers values valve valved valves vamp vamping vamps van vane vanes vans vapes vaping varlet varlets vast vasts vat vats vaunt vaunts vend vends vent vents vert vest vests vet vetch veto vets vice viced vices voice voiced voices voile vole voles vowed vowing wad wadded waddled wade waded wader waders wades wadge wadges wadi wadis wads waft wafts wage waged wager wagers wages wagged waggled wags wailed wain wains waist waists wait waits wale waled wales walked walled wally wan wand wander wanders wands wane waned wanes wanked want wanted wants ward warded warder warders wards ware wares warm warms warn warned warns warps wars wart warts warty was wash washers washes washy wasp wasps ways we wean weaned weans wear wears weary web webs wed weds wee weed weeds weedy week weeks ween weens weensy weeny weep weeps weepy weer wees weest weft wefts weld welds welt welts wen wend wends wens went wept were west wet wets whale whaled whaler whalers whales wham whams what wheat whee wheel wheels whelm whelms whelp whelps when whens where whereas whereon wheres whet whets whew whey whilst whine whined whiner whiners whines whinge whinged whinger whingers whinges whinier whinny whiny whips whist whit white whited whiten whitens whiter whites whitest whitey whiteys whither whits whole wholes whooped whooping whopped whopping whose width widths wield wields wig wigs wildly will wills willy wilt wilts win wince winced winces winched winches wind winded winds windy wine wined wines wing winged wings wink winked winkled winks wino winos wins winy wiring wit witch witched witches witchy with withe withed wither withers withes wits woad woe woes woke woken woker wold wolds won wonk wonks wonky wont wore worker workers world worlds worn worse worsen worsens would wove woven wowed wowing wracked wrapping wrappings wren wrens wrest wrests wretch wring wrings wrinkled wrist wrists writ write writer writers writes writhe writhed writhes writs wrote wryest xis yam yams yawed yawing yawn yawned yawning yawns year yearly yearn yearns years yeast yeasts yeasty yids yin yon yore your yours yup yups zany zit ziti zits zone zoned zones zonked".split(" "));
+const COMMON=new Set("abate abed abide able aboard abound abounds about abreast abroad abs abused abusers abuses abusing ace aced aces ache ached aches acid acids acme acne acorn acorns acre acres act acted acts acute acutely adds ado ads advert adverts aflame afloat aft again age aged agent agents ages aglow agreed ahead ahem ahold aid aide aided aides aids aim aims akin ale ales alien aliens alike alive allay alley alleys alloy alloys ally aloe aloft alone am amass amend amends amid amp amps amuse amused amuses amusing an and anon ant ante anti antic antics ants antsy any apart apes apt arched archers arches are area areas arena arenas ares argent argue argued argues arid arises arm arms army arouse aroused arouses art arts artsy arty as ascent ash ashamed ashes ashore ashtray ashtrays ashy aside ask asks asleep asp aspires astern astray at ate atheist atheists atom atoms atone atoned atop aunt aunts avast avert avid avoid avoids await awaits award awarded awards aware awash awe awed awning awoke awoken axis axle baby bad baht bailed bairn bait baited bald balder baldy bale bales balled baller ballers ballsy bally ban band bands bandy bane banes bang bangs bani bank banks banns bans bar barb barbed barber barbers barbs bard bare bared barf barfed barfing barge barged barges barging baring bark barked barker barking barks barmy barn barns baron barons barre barred barrel barrels barren barring bars barter bash bashes bask bast baste baster bat batch batches bate bated bates bath bathe bathed bathes baths bats batted battled bawdy bawled bay bays be bead beads beady bean beans bear beard beards bearer bearers bearing bearings bears beast beasts beat beats beaut beauty bed beds bee beef beefs beefy been beep beeps beer beers bees beet beets beg began begat beget begets begs belated bellow bellows below belt belts bend bends bendy bent bento bereft beret berets berg beset best bet beta betas bets bevy bey bias bibs bid bide bidet bids big bill bills billy bin bind bindi binds bins bios bird birds bis bit bite biter biters bites bits bitter bitters blacked blade blades blame blamed blames bland blank blanks blare blares blaring blast blasted blaster blasters blasts blather bleat bleats bled bleed bleeds bleep bleeps blend blends blimey blind blinds blink blinked blinker blinkers blinks blithe bloat bloated blog blogs blond blonde blondes blonds blooming blot blots blouse blouses blow blowing blown blows bluish blunts blurs blush blushed blushes blushing boar board boarder boarders boards boars boast boasted boasts boat boats body bog bogs bogus boing bold boles bond bonded bonding bonds bone boned boner boners bones bong bongo bongos bongs boning bonkers bonking bonny bonus bony booing booking bookings booming boosting booting boozing border borders bore bored bores boring borne bother bothers bounce bounced bouncer bouncers bounces bound bounded bounding bounds bout bouts bow bowed bowel bowels bowing bowl bowled bowling bowls bows boxing boxy boy boys brace braced braces brad brag bragged brags braid braided braids brain brains brainy bramble brambles bran brand brands brandy brash brat brats brawn brawny bray brays bread breads bream breast bred breed breeds brewed bricked bride brides bridge bridges bridle brig brill bring brings brink broad broads brood broods broody brother brothers brow brown browns brows browse browser brunt brush brushed brushes brushing bubs buds bugs bulbs bump bumps bumpy bums bunks buns buoy buoys burbs burly burns burps burrows bursar burst bursting bursts bury bus busboy busboys busby buses bush bushed bushels bushes bushy busiest busses bust busted busting bustling busts busy buts butters butts buy buys by bye byte bytes cable cabled cables cabs cache caches cachet cadre cage caged cages cagey calm calms cam came camel camels cameo camo camp camped camper campers camps campus cams can cancer cancers cane caned canes canker canned cannon cannons canoe canoes canon canons cans cant canter canto canton cantor canyon canyons cap cape caped caper capers capes capo capon capped caps car carat carats carbs card cards care cared career careers carer carers cares caress carousel carp carpet carpets carriers carries cars cart carted carter carts carve carved carver carves cash cashes cashews cask casks cast caste caster castes castle castles casts cat catchers catches cats cawing cent cents chains chair chaired chairs champ champs chant chanted chants chap chapped chaps char chard charm charmed charms chart charted charter charters charts chaste chat chats chatted chatter chatters cheap cheat cheated cheater cheaters cheats chew chews chewy chide chill chills chilly chimps chinks chins chips chirps chis chit chives choir choirs choke choked choker chokes chomp chomping chomps choose choosers chooses chop chopped chopping chops chord chords chore chores chose chosen chump chumps chute chutes cis clad claim claims clam clammed clamp clamped clamps clams clan clang clangs clank clanks clans clap clapped claps claret clash clashes clasp clasps clatter clatters clawed clawing clean cleans cleanse cleansed cleanser cleanses cleaver clever clicked climes clink clinks clit clocked clod clods clogs clone cloned clones clop close closed closer closes closest closet closets clot cloth clothe clothed clothes cloths clots cloud clouds cloudy clout clove clover clovers cloves clue clued clues clump clumps clutter coached coaches coals coast coaster coasters coasts coat coats coaxed cocked cod coda code coded coder codes codex codger coed coeds cogs coils coin coined coins coked cold colder colds colon colonels colonies colony colt colts combs comp comped comps con cone cones coney conk conked conned cons convert converts convey conveys cooked cooks cooled cools coon coons coop cooped coos coot cop cope coped copied copies coping copped copping cops copse copy copying cor corals cord cordon cords core cores cork corked corker corks corn corned corner corners corns corny coroner coroners corps corpse corpses corpus cos cost costs cot cote cots could coup coupe couple coupled couples couplet coups course courses cove coven cover covers covert covet cowed cows crabs cracked craft crafted crafts crafty crag cram cramp cramped cramping cramps crane cranes crank cranked cranks cranky crapped crapping craps crash crashes crate crater craters crates craw crawl crawls crawly cream creams creamy create created creates cred credo creed creeds creel cremate cremated crest crests cried cries crimes cripes crises crone cronies crooked crooks croon crop cropped cropping crops croup crowded crowding crowds crowed crowing crowned crowning crowns crows cruise cruised cruiser cruisers cruises crumble crumbled crumbles crusher crushes crust crusts crusty cube cubed cubes cue cued cues cup cups curate curdled cure cured cures curie curled curlers curries curse cursed curses curve curved curves cusp cute cuter cutesy cutie cuties cutler cutlery cutter cutters czar dabs dado dads daft dais daisy dale dales dally dam dame dames damp dams dance danced dancer dancers dances dare dared dares darker darned dart darted darts dash dashes date dated dates dawn dawning dawns dear dearer dearly dears deary deliver delivers delivery deprive deprived derive derived derives device devices dibs dice diced dices dicey dickey did dido die died dies diet diets dig digs dike dill dilly dime dimes din dine dined diner diners dines ding dinged dinghy dingo dings dingus dingy dinky dinner dinners dint dips dire dirge dis disc disco discos discs discus discuss discusses dish dishy disk disks dive dived diver divers diverse divert dives do dob doc dock docks docs dodge dodged dodger dodgers dodges doe doer doers does dog doge doggies dogs doing doings dole doling dolled dolt dome domes don dona done dong dongs dons doomed dope doped dopes dopey doping dos dose dosed doses dosh dosing doss dossiers dost dot dote doted dotes doth doting dots dotted dour douse doused dove doves down downed downer downers downing downs downy dowsing doze dozed dozen dozens dozer dozing draft drafted drafts drafty drag dragged drags drain drains dram drama dramas drank draping drat draw drawl drawn draws dread dreads dream dreams dreamy dreary dried dries driest drill drills drink drinks drip drips drive drivel driven driver drivers drives drone drones drove drover droves drown drowned drowning drowns drying dump dumps dumpy duo dwelt dyeing dying ear earl earls early earn earns ears east eastern eat eats ebony eel eels elated elite elites eloping email emails emerge emerged emerges end ends eon eons epics ere erode eroded estate estates etc etch event events ever every ewe fable fabled fables face faced faces facet facets fact facts fades fads failed fain faint fainter faintest faints fan fang fangs fans farce fare fared fares farm farmed farms fart farted farts fast fasted fat fate fated fates fats fatso faucet faucets faun fauna fawn fawning fear feared fears feast feasted feasts feat feats fed feds feed feeds feel feels fend fetch feud feuds fever fevers fewer fiat fiend fiends filed fill filled fills filly filmed fin find finder finders finds fine fined finer finery fines finest finger fingers finish fink fins first firsts fist fists fit fits fjord fjords flame flamed flames flan flank flanks flare flared flares flash flashes flashy flat flats flatter flatters flattery fled flicked fliers flies flint flirt flirts flirty flit float floats floe flopping floss flour flout flow flowed flowing flown flows flurry foe foes foiled foist fold folds for forage foray force forced forceps forces ford fords fore forest forests forge forged forger forgers forgery forges forget forgets fork forks form forms fort forte forth forties forts forty forum forums four fours fourth foxes frank franks frat fray freed fridge fridges friend friends frig frills frilly frump frumpy fry furry fury fuse fused fuses fusing fussed fusses fussing gable gables gags gain gains gait gale gales gallery galley galleys gals gamble gambled gambler gamblers gambles gaming gangs gaping gaps garbled gas gash gasp gasping gasps gate gated gates gaunt gawping gays gear gears gen gene genes genie genies genius genre genres gent gents genus get gets gift gifts gill gills gilt gin gins girth gist git glad glade glades glam glance glanced glances gland glands gleam gleams glean glen glint glitter glitters glittery gloat gloss glossy glow glowed glowing glows goals goat goats going goings gold golds gonads gone goner goners gong gongs gore gored gorge gorged gorges gorging goring gout gown gowns grabs grace graced graces grad grade graded grader graders grades graft grafted grafting grafts grain grains grainy gram grams gran grand grander grandeur grands grange grant granted granting grants grapes grasp grasping grasps grate grated grater grates gratin grating gravy gray grays greater greed greedy grid grids grill grille grilled grills grin grind grinds grins grip gripe gripped grips grit grits groan groans groat groin groping grouping grouse grout growing growling grown grub grubs grumble grumbles grump grumpy grunt grunts guilt guilty gusher had hags hailed haired hale hales halt halted halter halve halved halves ham hams hand hands handy hangs hard hardly hardy hare harem hares harm harmed harms harsh hart has hash hast haste hasten hasty hat hatch hate hated hater haters hates hath hatred hats hatter hauled hauler haunt haunts hawking hawks hay hays hazy he head heads heady healed healer healers health healthy heap heaps hear heard hears hearse heart hearted hearth hearts hearty heat heated heater heaters heath heather heats heel heels heir heirs heist heists helm helms help helps hem hemp hen hens hep her herb herbs herd herds here hero heroin heroine heroines heron herons hers hew hewn hex hey hide hides hie hike hiked hiker hikers hikes hill hills hilly hilt hinder hinders hint hints hips hire hired hires his hiss hit hits hive hives hoard hoards hoarse hocked hockey hoe hoes hoist hoisted hoke hokey hold holds hole holed holes home homely homer homes homey homeys hon hone honed honest honestly honesty honey honeys honk honked honks honky hooked hoover hope hoped hopes hoping hopped hopping horn horned horns horse horses horsey hose hosed hoses hosted hour hours house housed houses hove hovel hover hovers howled hue hues huge hugger huggers hump humph humps hunger ibis ice iced ices icon icons ideals ideas ides idlers ids ifs ill ills image images imam in ink inks inky inn inns ins ion ions irate irises iron irons irony is ism it its jabs jam jams jaunt jaunty jawing jinks joust jump jumps jumpy kale karat karate kart keel ketch kids kills kiln kilt kilts kin kind kinda kinds king kings kink kinks kinky kit kite kites kith kits kneel kneels knickers knit knits knitted knob knobs knot knots know known knows krill labs lace laced laces lacked lad laden ladies ladle lads lady laid laird lam lama lamas lamb lambs lame lamer lamest lamp lamps lance lancer lancers lances lancet land landed lands lapses lard lash lashes latched latches late later latex lathe lather latte latter lattes lawn lawns lead leaded leads leans learn learns leash leashes least leather leathers leathery led lend lends lens lever levers lewd lice licked lid lido lids lie lied lien lies lieu life lifer lifers lift lifter lifts like liked liken likes lime limes limey limped linden line linear lined linen linens liner liners lines linger lingers link linked links lint lion lions lire list lists lit lite liter liters lithe litter litters live lived liven liver livers livery lives llama llamas load loaded loads loam loaner loath loathe loathed loathes loft lofts lofty loiter lone loner loners longer looping loose loosed loosen loosens looser loot lore lose loser losers loses loss losses lost lot lots lotus louse lout louts lover lovers low lowing lows lump lumps lumpy mace macs mads mag mage magi magic magma mags maid maids mail mailer mails maim main mainly mains male males malt malted mam mama mamas mamba mamma mammal mammals man mana manage managed manager managers manages manana mane manes manga mange manger mangle mangled mangy mania maniac maniacs manila manky manly manna manned mans manta mantis mantra mantras many maple maples maps marched marchers marches mare mares marge marks mars marsh marshes marshy mart martinis martins mas masa mash mask masks mass mast master masterly masters mastery masts mat match mate mated mater mates matey mateys math mats matte matted matter matters max maxi maxim maxima may mayo mayor mayors meal meals mean means meant measly meat meats meaty medal medals medial medical mend mental meowing mere merest merge merged merger mergers merges metal metals methane mice mid midi mil mild milder mile miles milk milks milky mill miller millers mills mils milt mince minced mind minded minds mined mink minks minted mkay moan moaned moans moat mold molds moldy mole moles molest moping mopping morally more morel mores morsel morsels mortally mother mothers mouse mousse mover movers mowed mowing mugs mumps mus muse muses mush mushy musing musings musk musky muss mussels must musty my nascent near nearly nears neat neath neon never newer nice nicer niche niches nickers niece nieces nit nits no nob nod node nodes nods noir non nonce none noon nor nori norm norms not note noted notes noun nouns nous now nowt numbs nuns nuts oar oars oat oath oaths oats obey obeys obit ogle ogre ogres oink old ole olive olives on once one ones opting opus or orally orange oranges orb orbit orbits orbs orc orca orcas orcs ore ornate other others ounce ounces our ours oust out outs over overs overt owe owed owes owing own owned owning owns ozone pace paced pacer paces pacey packed packer packers pact pacts pad padre padres pads page paged pager pagers pages paid pails pain pained pains paint painted paints pair paired pairs palace palaces palate palates pale paler pales pally palms pals palsy pampas pan pane panel panels panes pang pangs pans pansy pant panto pants papas paps par para paras parched pare park parka parked parks parky parole paroled parolee parolees part parted partied partly parts party pas pass passe passed passer passes past pasta paste pasted pastel pastels pasties pastimes pastries pastry pasts pasty pat patch patchy pate path pathos paths pats patsy pawing pawn pawned pawning pawns paws pays peace peaches peaks pear pearl pearls pearly pears peas peat pedals peel peels peer peers pelt pelts pent peon peonies peons peony per perk perks perky perm perp perps pert perv pervs pest pester pesto pests pet petals peter peters pets pewter phat phew phish phone phoned phones phonies picker pickers picks pics pier piers pies piety pig pigs pikes piles pill pills pilot pilots pin pine pined pines piney ping pinged pings pink pinker pinko pinks pinned pins pint pinto pints piper pipers pipes pips pirate pirated pirates pis pit pita pitch pith pithy pits pity place placed places placid plaid plain plainer plains plait plaits plan plane planed planes planet planets plank planks planned planner planners plans plant planted planter planters plants plate plated plates platter platters plays plead pleaded pleads pleas please pleased pleaser pleases pleated pleats plied pliers plot plots plover plow plowed plowing plows plugs plumes plump plums plus plush poet poets point points pointy pole poles polled ponce ponies pooled pore pores port ports posit post posts pot pots pounce pounced pour poured pours pout pouty praises pram prank pranks prat prawn prawns pray prays preachers preaches prelate present presents preset presto price priced prices pricey pricked pride prided prides priest priests prig primer primes prince princes princess print prints prizes prod prone proud psalms pubes pubs pulp pump pumps punks puns punt pup pupa pups pus push pusher pushers pushy puss put puts putt putty putz rabid race raced racer racers races racked racy rad rads raft rafters rafts rag raga rage raged rages ragged raggedly raggedy rags rah raid raided raider raiders raids rain rains rainy raises rally ram ramble rambler ramblers ramp ramping ramps rams ran rand randy rang range ranged ranger rangers ranges rank ranks rant rants rapid rapids raping rapping rapt rare rarer rarest rash rashes rasp rasping raspy rat rate rated rates rather rats ratted rattled rattler raw ray rays read reads ready really realm realms ream reams reaping rear reared rears rebar rebel rebels recluse recuse recused red redo reds reed reeds reel reels refuse refused refuses relate related relates remedy rend repeal repel repels resent resents reset resets resist resists rest restarted restrain restraint restraints rests retain retains retch retrain reuse reveal reveals revel revels rice richer riches richest rid ride rider riders rides ridge ridges rig rigs rind rinds ring rings rink riot riots rip ripe ripen ripper rips risers rises road roads roadster roam roams roan roar roared roars roaster robot robots robust rod rode rodeo rodeos rods role roles roman romping roost root roots roping rot rota rote roti rots rough rouse roused roust rout route routed router routes rover rovers rowan rowed rowing rub rubble rube rubes rubies ruble rubles rubs ruby rugby rule ruled ruler rulers rules ruling rulings rumble rumbled rumbles rump rumpus runt runts ruse rushes rust rusty rut sable sables sad sage sages said sale sales sally salt salted salts salty salute saluted salutes saluting salve sand sands sandy sarge sash sat sate sated saute sawed sawing say says scabs scald scalded scale scaled scales scalped scam scamp scamper scampi scams scan scanned scans scant scar scarce scare scared scares scarf scarper scarred scars scarves scary scat scent scents scold scolds scone scones scoop scooped scooping scoops scoot scope scoped scopes scoping score scored scorer scores scorn scorned scorns scour scoured scow scowl scowling scram scrape scraped scraper scrapes scrapped scrapper scrapping scraps scrawl scream screams sea seal seals seam seams sear sears seas seat seated seating seats sect sects sedated see seed seeds seedy seek seeks seem seems seen seep seeps seer seers sees seine send sends sent serge serve served server servers serves set sets seven sevens sever severe severed sewed sewer sewers sewing sexes shad shade shaded shades shady shaft shafts shags shaky shale shalt sham shame shamed shames shams shandy shard shards share shared shares sharper shatter shatters shay she shear sheared shearer shears sheath shed sheds sheen sheep sheer shied shield shields shift shifted shifting shifts shifty shill shin shine shined shiner shines shingle shingles shins shiny ships shire shirts shits shitting shocked shod shoe shoes shone shoot shoots shop shopped shopping shops shore shores shorn short shorted shorter shortly shorts shorty shot shots shout shouts shove shoved shovel shovels shoves show showed showing shown shows showy shred shreds shrew shrewd shrews shrift shrill shrilly shrine shrines shun shunt shy sickos sides sift sifted sifting sigh sighs sight sights sign signs sill silly silt simile sims sin since sine sinew sinews sing singe singed singer singers single singled singles sings sink sinks sins sinus sips sirens sirs sis sit sitar site sites sits sitting situ skate skated skater skaters skates skating sketch sketchy skewed skewer skewers skids skiers skies skill skills skin skins skint skips skirt skirts skis skit skits skunk skunks slabs slam slammed slams slant slanted slash slashes slate slated slates slats slay slays sled sleds sleek sleep sleeps sleepy sleight slice sliced slicer slices slicker slid slide slider sliders slides slight slime sling slings slink slinky slips slit slither slits slitting sliver slivers slob slobs sloop slop slope slopes sloping slot sloth sloths slots slow slowed slowing slows sluice slump slung smart smartly smarts smarty smash smashes smear smears smile smiled smiles smiley smite smooth smoothed smoother smother smothers sneer snicker snickers snipers snipes snips snob snobs snoot snooty snore snored snores snort snorted snorts snot snout snouts snow snowed snowing snows snowy so soap soaps soapy soar soars sob soba sobs sod soda sodas sods soft softly softy soil soiled soiling soils sol solar sold sole soles solid solider solids solo solos solve solved solver solves solving son sonar song songs sons soon soot sooth soothe soothed soothes sooty sop sore sores sort sorta sorts sot sou soul souls soup soups soupy sour sours sous sow sowed sowing sown sows soy space spaced spaces spacey span spank spans spar spare spared spares sparing spark sparked sparking sparkled sparkling sparkly sparks sparky sparring sparse spas spasm spasms spat spate spats spawn spawned spawning speaks spear spears speed speeds speedy spend spends spent sperms spewed spewing spices spics spies spikes spill spills spin spine spines spins spiny spires spit spite spits spitting splash splashes splashy splat splatter splatters splice spliced splint splints split splits splitting spoil spoiled spoiling spoils spoon spoons spore spores sport sporting sports sporty spot spots spouse spouses spout sprang sprat spray sprays sprig spring springs springy sprint sprints sprite sprites sprout sprouts spuds spun spunk spunky spurn ssh stable stabler stables stabs stage staged stages stair stairs stale stalked stalker stalkers stalled stamp stamped stampede stamper stamping stamps stand stands stank staple stapled stapler staples star stare stared stares staring stark starling starlings starred starring stars start started starter starters starting startled startling starts starve starved starves starving stash stashes stat state stated states stating stats statue statues stature status statute statutes stay stays steak steaks steal steals steam steamed steamy steed steeds steep steer steers stent stern stewed stewing sticks stifle stifled stifles stiles still stilled stiller stills stilts sting stinger stingers stings stingy stink stinks stinky stint stirs stoat stocked stoke stoked stoker stokes stole stolen stomp stomps stone stoners stones stony stool stools stoop stoops stop stops store stored stores storied stories storing stormed storming stout stow stowed strain strains strand strands strapped strapping stray strays streak streaks stream streamed streams strikers strikes string stringer strings stringy strip stripe striped stripes stripped stripper strippers strips stripy stroke stroked strokes strung stump stumps stumpy stun stung stunk stuns stunt stunts suet suing suit suite suited suites suiting suits sump sun sung sunk sunlit suns sup surety swain swan swank swanky swans swarm swarms swat swatch swatches swath sway sways swear swears sweat sweated sweating sweats sweaty sweep sweeps swept swerve swerved swift swig swill swims swine swines swing swinger swingers swings switch switched switches swoon swore sworn swot swung table tables tablet tablets tabs tacit tact tail tailed tails taint tale tales tally tam tame tamed tamer tamper tan tang tango tangos tangy tank tanks tans tansy taped tapes taping tapped tapping tarn tarot tarred tart tarts task tasks tat tats taunt taunts taut taxis tea teak teal team teamed teams tear teared tears teary teas tease teased teaser teases teat teats ted teed teen teens teensy teeny ten tend tends tenet tenets tens tense tensed tent tenth tenths tents tern terns than thane thank thanks that thatch thawed thawing thaws the theater theaters thee their theirs them theme themed themes then there thermos these theses they thin thine thing things thingy think thinks thins this tho thong thongs thorn thorns thorny thorough those thou though thought thoughts thrash thread threads thready threat threats three threes threw thrice thrill thrilled thrills throng through throw throwing thrown throws thrust thrusts thump thumps tide tides tidied tie tied tier tiers ties tiger tigers til tilde tile tiled tiles till tiller tills tilt tilted tilts timber timbers time timed timer timers times tin tine ting tinge tinged tingle tingles tings tinny tins tint tiny tip tips tipsy tirade tire tired tires title titled titles to toads toe toes toga toil toiled toils toke token tokens told tom tomb tombs tome tomes toms ton tone toned toner tones tong tongs tonne tonnes tons tony too took tool tools toot tooth toothy toots top topic topics tops tor tore torn torso tort torte tot tote totem totems totes tots tough tour tours tout tow towed towing town towns toy toyed toying toys trace traced tracer tracers traces tracked tracker trackers tract tracts trade traded trader traders trades trail trailed trails train trains tram tramp tramping trampled trampling tramps trams trance trans trapped trappers trapping trappings trash trashy tray trays tread treads treat treats treaty trend trends trendy trey triad triads tribes trice tricked tried trier tries trig trill trills trip tripe triple tripled triples triplets tripper trips trod tropic tropics trot troth trots trotted trough troughs trout troy truest trump trumps trust trusts trusty try trying tryout tryouts tuft tufts tut tuts tutu twain twang twas twats tweak tweaks tweed tweedy tween tweet tweets twig twigs twill twin twine twinge twins twist twists twisty twit twitch twitched twitches twitchy twits twixt two twos tying typing udon ump unfit unit unite united unites units unity up ups us usable usage use used user users uses usher ushers using vague vain vale valet valets valley valleys value valued values valve valves vamp vamps van vane vans vast vat vats vent vents vert vest vests vet veto vets vice vices voice voiced voices vole vowed vowing wad wade waded waders wadi wads waft wage waged wager wagers wages wags waist wait waits wales walked walled wally wan wand wander wanders wands wane waned want wanted wants ward warder wards ware wares warm warms warn warned warns warps wars wart warts was wash washers washes wasp wasps ways we wean weaned wear wears weary web webs wed weds wee weed weeds weedy week weeks weeny weep weeps weepy weld welds welt welts wen went wept were west wet wets whale whaler whalers whales wham what wheat whee wheel wheels whelp when where whereas wheres whet whew whey whilst whine whined whiner whines whinny whiny whips whist whit white whiter whites whitest whitey whither whole whooped whooping whopping whose width wield wields wig wigs wildly will wills willy wilt wilts win wince winces wind winded winds windy wine wined wines wing winged wings wink winked winks wino winos wins wiring wit witch witches witchy with wither withers wits woe woes woke woken wold won wonky wont wore worker workers world worlds worn worse worsen worsens would wove woven wowed wracked wrapping wren wrest wretch wring wrinkled wrist wrists writ write writer writers writes writhe writs wrote yam yams yawn yawned yawning yawns year yearly yearn yearns years yeast yin yon yore your yours yup zany zit ziti zits zone zoned zones zonked".split(" "));   // everyday words: the ones that count as growing tall
+/* ---- settings ---- */
+const LAUNCH=new Date(2026,8,12);      // the date of puzzle No. 1
+const PLUS_ENABLED=false;   // turn on once payments are connected
+const FREE_ARCHIVE_DAYS=7;            // free players can replay this many past days
+const PRICES={month:"$2.99",year:"$19.99"};
+/* ------------------ */
+const $=id=>document.getElementById(id);
+const REDUCED=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function today(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());}
+const TODAY=Math.max(1,Math.round((today()-LAUNCH)/864e5)+1);
+const dateOf=n=>new Date(LAUNCH.getFullYear(),LAUNCH.getMonth(),LAUNCH.getDate()+n-1);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const STATS="sproutle-stats";
+const isPlus=()=>PLUS_ENABLED&&!!store.get("sproutle-plus");
+const ABC="abcdefghijklmnopqrstuvwxyz";
+
+let MODE, SEED, PAR, PERFECT, PATH, KEY, S, RULE=false;
+const BLOCKED="sdry";   // with the rule on, these letters can't be added to the end
+const blockedMove=(w,i,c)=>RULE&&i===w.length&&BLOCKED.includes(c);
+let typed="", fresh=false, armed=-1, hintFor="", hintStage=0, hintMove=null, warned={};
+function cur(){return S.hist[S.hist.length-1].w;}
+const MAX_BOUNCES=5;
+const fresh0=()=>({hist:[{w:SEED,at:-1}],log:[],misses:0,wilts:0,snips:0,hints:0,tried:[],done:false,end:null});
+const save=()=>{if(MODE.kind==="practice")store.set("sproutle-practice",{idx:MODE.idx,S});else store.set(KEY,S);};
+
+function load(mode){
+  MODE=mode;
+  const pz=mode.kind==="practice"?PRACTICE[mode.idx%PRACTICE.length]:PUZZLES[(mode.num-1)%PUZZLES.length];
+  [SEED,PAR,PERFECT,PATH]=pz;RULE=pz[4]===1;
+  if(mode.kind==="practice"){const sp=store.get("sproutle-practice");S=sp&&sp.idx===mode.idx?sp.S:fresh0();}
+  else{KEY="sproutle-day-"+mode.num;S=store.get(KEY)||fresh0();}
+  if(!S.hist||!S.hist.length||S.hist[0].w!==SEED)S=fresh0();
+  S.hints=S.hints||0;typed="";armed=-1;fresh=false;hintFor="";hintStage=0;hintMove=null;warned={};reachMemo=new Map();meadowCount=-1;parts=[];
+  save();renderMode();render();
+}
+const isToday=()=>MODE.kind==="daily"&&MODE.num===TODAY;
+
+function canGrow(w){for(let i=0;i<=w.length;i++)for(const c of ABC)if(!blockedMove(w,i,c)&&DICT.has(w.slice(0,i)+c+w.slice(i)))return true;return false;}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+const bounces=()=>S.misses+(S.wilts||0);
+const score=()=>(S.snips||0)+bounces()+(S.hints||0);
+/* can this word still grow to the target? */
+let reachMemo=new Map();
+function kids(w){const out=[];for(let i=0;i<=w.length;i++)for(const c of ABC){if(blockedMove(w,i,c))continue;const n=w.slice(0,i)+c+w.slice(i);if(DICT.has(n)&&!out.includes(n))out.push(n);}return out;}
+function kidsC(w){return kids(w).filter(k=>COMMON.has(k));}
+function goodWays(w){return kidsC(w).filter(canReach);}
+function canReach(w){if(w.length>=PAR)return true;if(reachMemo.has(w))return reachMemo.get(w);reachMemo.set(w,false);const ok=kidsC(w).some(canReach);reachMemo.set(w,ok);return ok;}
+function insertAt(a,b){if(b.length!==a.length+1)return -1;for(let i=0;i<=a.length;i++)if(b.slice(0,i)+b.slice(i+1)===a)return i;return -1;}
+const dead=()=>!S.done&&!canGrow(cur());
+const sick=w=>!canReach(w);
+const mark=h=>h.at<0?h.w.toUpperCase():[...h.w].map((c,i)=>i===h.at?`<b>${c.toUpperCase()}</b>`:c.toUpperCase()).join("");
+const fmt=d=>d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+
+function renderMode(){
+  const bar=$("modebar");
+  if(isToday()){bar.hidden=true;return;}
+  bar.hidden=false;
+  if(MODE.kind==="practice")bar.innerHTML=`<span><b>Practice garden</b> · round ${MODE.idx+1}</span><span class="mb-btns"><button class="chipbtn" type="button" id="newSeed">New seed</button><button class="chipbtn" type="button" id="backToday">Today</button></span>`;
+  else bar.innerHTML=`<span><b>Archive</b> · No. ${MODE.num} · ${fmt(dateOf(MODE.num))}</span><span class="mb-btns"><button class="chipbtn" type="button" id="backToday">Today</button></span>`;
+  $("backToday").onclick=()=>load({kind:"daily",num:TODAY});
+  const ns=$("newSeed");if(ns)ns.onclick=newPractice;
+}
+function newPractice(){const n=(store.get("sproutle-practice-next")||0);store.set("sproutle-practice-next",n+1);closeModal();load({kind:"practice",idx:n});}
+
+function renderPlant(){
+  const w=cur(), plant=$("plant");
+  const grown=S.hist.length-1, buds=S.end==="bloom"?0:Math.max(0,PAR-w.length);
+  const total=Math.max(1,grown+buds);
+  const room=Math.max(60,$("scene").clientHeight-42-52-(S.end==="bloom"?60:14));
+  const nh=Math.max(12,Math.min(30,Math.floor(room/total)));
+  let html=`<div class="pot"><div class="rim"></div><div class="body"><span>${SEED}</span></div></div>`;
+  S.hist.slice(1).forEach((h,i)=>{const side=i%2?"l":"r";const top=i===grown-1;
+    html+=`<div class="node ${side}${top?" top":""}${top&&fresh?" grow":""}" data-h="${i+1}" style="--nh:${nh}px;--k:${i}"><span class="leaf"></span><span class="chip${armed===i+1?" arm":""}">${armed===i+1?"✂️ Cut here?":mark(h)}</span></div>`;});
+  for(let b=0;b<buds;b++)html+=`<div class="node bud${b===0&&!dead()?" nextbud":""}" style="--nh:${nh}px"><span class="budball"></span></div>`;
+  if(S.end==="bloom")html+=`<div class="flower${score()===0?" over":""}">${Array.from({length:6},(_,k)=>`<i style="rotate:${k*60}deg;animation-delay:${k*60}ms"></i>`).join("")}<b></b></div>`;
+  plant.innerHTML=html;
+  const life=Math.max(0,Math.min(1,(w.length-SEED.length)/(PAR-SEED.length)));
+  const sc=$("scene");sc.style.setProperty("--life",life.toFixed(3));
+  renderMeadow(grown);
+  $("bf1").classList.toggle("on",life>=.3);$("bf2").classList.toggle("on",life>=.6);$("bee").classList.toggle("on",life>=.85||S.end==="bloom");
+  sc.classList.toggle("wilt",dead()||S.end==="gave");sc.classList.toggle("done",S.end==="bloom");
+  $("dead").hidden=!dead();
+}
+
+function render(){
+  const w=cur();
+  $("num").textContent=MODE.kind==="practice"?"Practice":"No. "+MODE.num;$("par").textContent=PAR;$("len").textContent=w.length;
+  $("lives").innerHTML=Array.from({length:MAX_BOUNCES},(_,i)=>`<i class="${i<MAX_BOUNCES-bounces()?"":"gone"}"></i>`).join("");$("lives").setAttribute("aria-label",`${MAX_BOUNCES-bounces()} of ${MAX_BOUNCES} leaves left`);$("hints").textContent=S.hints||0;
+  renderPlant();
+  const last=S.hist[S.hist.length-1];const locked=S.done||dead();
+  const showGap=hintFor===w&&hintStage>=1&&hintMove;
+  // today's word, with a glowing marker where a hint says a letter fits
+  let html="";
+  for(let i=0;i<=w.length;i++){
+    if(showGap&&hintMove.at===i)html+=`<span class="hintmark" aria-label="A letter fits here">${hintStage>=2?hintMove.c:"+"}</span>`;
+    if(i<w.length)html+=`<span class="t${fresh&&i===last.at?" new":""}" style="--i:${i}">${w[i]}</span>`;
+  }
+  const box=$("word");box.innerHTML=html;box.classList.toggle("bloom",S.end==="bloom");
+  // the row the player types into
+  const n=w.length+1, row=$("typed");
+  row.hidden=locked;
+  row.innerHTML=Array.from({length:n},(_,i)=>`<span class="slot${i<typed.length?" on":""}${i===typed.length?" cursor":""}">${typed[i]||""}</span>`).join("");
+  fresh=false;
+  $("hint").textContent=S.done?"":typed?"Press Grow when your word is ready.":`Type a ${n}-letter word: ${w.toUpperCase()} plus one letter.`;
+  const ways=$("ways");
+  if(S.done||locked){ways.hidden=true;}else{const g=goodWays(w).length;ways.hidden=false;ways.innerHTML=`🌱 <b>${g}</b> good way${g===1?"":"s"} to grow`;}
+  const hb=$("hintBtn");hb.disabled=locked;hb.textContent=hintFor===w&&hintStage===1?"💡 Show letter":"💡 Hint";
+  $("stopBtn").disabled=S.done;
+  document.querySelectorAll(".k").forEach(k=>k.disabled=locked);
+  const go=document.querySelector(".k.go");if(go)go.classList.toggle("ready",typed.length===n&&!locked);
+}
+
+/* ---------- scene life ---------- */
+const FCOL=["--bloom","--petal-y","--petal-w","--wing-b","--wing-a"];
+let meadowCount=-1;
+function renderMeadow(n){
+  if(n===meadowCount)return;const m=$("meadow");
+  const spots=[[6,10],[88,14],[16,22],[78,6],[26,8],[70,24],[10,30],[92,30],[22,4],[82,20],[4,4],[95,8]];
+  let html=[[3,2],[30,3],[64,2],[97,4],[46,0]].map(([x,y])=>`<span class="tuft" style="--x:${x}%;--y:${y}px"></span>`).join("");
+  for(let i=0;i<Math.min(n,spots.length);i++){const [x,y]=spots[i];html+=`<span class="fl" style="--x:${x}%;--y:${y}px;--c:var(${FCOL[i%FCOL.length]})"></span>`;}
+  m.innerHTML=html;meadowCount=n;
+}
+const fx=$("fx"),ctx=fx.getContext("2d");let parts=[],running=false;
+function sizeFx(){const d=devicePixelRatio||1;fx.width=innerWidth*d;fx.height=innerHeight*d;ctx.setTransform(d,0,0,d,0,0);}
+addEventListener("resize",sizeFx);sizeFx();
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function water(){
+  if(REDUCED)return;const pl=$("plant").getBoundingClientRect(),sc=$("scene").getBoundingClientRect();
+  const cx=pl.left+pl.width/2;
+  for(let i=0;i<16;i++)parts.push({x:cx+(Math.random()-.5)*60,y:sc.top+30+Math.random()*30,vx:(Math.random()-.5)*.6,vy:2+Math.random()*2,r:3.5+Math.random()*2,rot:Math.PI/2,vr:0,c:css("--water"),life:38+Math.random()*12,g:.32,sway:0,t:0});
+  if(!running){running=true;requestAnimationFrame(tick);}
+  const s=$("scene");s.classList.remove("splash");void s.offsetWidth;s.classList.add("splash");
+}
+function burst(x,y,n,colors,opts={}){
+  if(REDUCED)return;
+  for(let i=0;i<n;i++){const a=opts.rain?Math.PI/2+(Math.random()-.5)*.6:Math.random()*Math.PI*2, s=opts.rain?1+Math.random()*2:2+Math.random()*4.5;
+    parts.push({x:opts.rain?Math.random()*innerWidth:x,y:opts.rain?-20-Math.random()*innerHeight*.6:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-(opts.rain?0:2.5),
+      r:opts.size||(5+Math.random()*5),rot:Math.random()*6,vr:(Math.random()-.5)*.3,c:colors[i%colors.length],life:opts.rain?320:70+Math.random()*30,g:opts.rain?.02:.18,sway:opts.rain?Math.random()*6:0,t:0});}
+  if(!running){running=true;requestAnimationFrame(tick);}
+}
+function tick(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.t<p.life&&p.y<innerHeight+40);
+  for(const p of parts){p.t++;p.vy+=p.g;p.x+=p.vx+Math.sin((p.t+p.sway*10)/18)*(p.sway?.8:0);p.y+=p.vy;p.rot+=p.vr;
+    const fade=Math.min(1,(p.life-p.t)/25);ctx.save();ctx.globalAlpha=fade;ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;
+    ctx.beginPath();ctx.ellipse(0,0,p.r,p.r*.55,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  if(parts.length)requestAnimationFrame(tick);else{running=false;ctx.clearRect(0,0,innerWidth,innerHeight);}
+}
+function wave(){const w=$("word");w.classList.remove("wave");void w.offsetWidth;w.classList.add("wave");}
+
+/* ---------- input ---------- */
+function buildKB(){
+  const rows=["qwertyuiop","asdfghjkl","+zxcvbnm-"];
+  $("kb").innerHTML=rows.map(r=>`<div class="kr">${[...r].map(c=>c==="+"?`<button class="k wide go" type="button" data-k="enter">💧 GROW</button>`:c==="-"?`<button class="k wide" type="button" data-k="back" aria-label="Delete">⌫</button>`:`<button class="k" type="button" data-k="${c}">${c}</button>`).join("")}</div>`).join("");
+  $("kb").addEventListener("click",e=>{const b=e.target.closest(".k");if(b)press(b.dataset.k);});
+}
+function press(k){
+  if(S.done||dead())return;
+  if(armed>=0){armed=-1;}
+  const n=cur().length+1;
+  if(k==="enter")return grow();
+  if(k==="back"){typed=typed.slice(0,-1);render();return;}
+  if(/^[a-z]$/.test(k)){$("typed").classList.remove("warn","bad","shake");if(typed.length>=n){toast(`Your next word has ${n} letters.`,1400);return;}typed+=k;buzz(5);render();}
+}
+let tt;function toast(m,ms=2100,kind=""){const t=$("toast");t.textContent=m;t.className="toast show "+kind;clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),ms);}
+
+const CHEERS=["It's growing!","A fresh leaf!","Reaching for the sun!","Look at it go!","Thriving!","The bees noticed!","Blooming soon!"];
+function grow(){
+  const w=cur(), n=w.length+1;
+  if(typed.length<n){toast(`Type all ${n} letters of your next word.`);return;}
+  const nw=typed, at=insertAt(w,nw);
+  if(at<0){toast(`Keep ${w.toUpperCase()} in order and add just one letter.`,2400);shakeRow();return;}
+  if(blockedMove(w,at,nw[at])){buzz(20);shakeRow("warn");toast(`No adding ${nw[at].toUpperCase()} to the end. Try somewhere else.`,2400);return;}
+  if(DICT.has(nw)&&!canReach(nw)){
+    if(S.tried.includes(nw)){toast(nw.toUpperCase()+" won't grow tall enough. You already tried it.");return;}
+    S.tried.push(nw);S.wilts=(S.wilts||0)+1;S.log.push("y");buzz([30,40,30]);typed="";
+    shakeRow("warn");dropLeaf();
+    if(bounces()>=MAX_BOUNCES){save();render();setTimeout(()=>finish("wilted"),500);return;}
+    toast(`${nw.toUpperCase()} is a word, but it won't grow tall enough. +1`,2600);save();render();return;
+  }
+  if(DICT.has(nw)){
+    S.hist.push({w:nw,at});S.log.push("g");typed="";fresh=true;hintFor="";hintStage=0;hintMove=null;buzz(15);
+    if(nw.length>=PAR){S.done=true;S.end="bloom";record();}
+    save();render();water();
+    const tile=$("word").querySelectorAll(".t")[at];
+    if(tile){const r=tile.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,18,[css("--leaf"),css("--leaf-deep"),css("--hill-a")]);}
+    if(S.end==="bloom"){bloom();return;}
+    toast(PAR-nw.length===1?"One more letter to bloom!":CHEERS[S.hist.length%CHEERS.length],1400,"good");
+    return;
+  }
+  // like Wordle: a word that isn't real just shakes, costs nothing, and stays so you can fix it
+  buzz(20);shakeRow("warn");toast("Not in word list",1400);
+}
+function shakeRow(kind){const box=$("typed");box.classList.remove("shake","warn","bad");void box.offsetWidth;box.classList.add("shake");if(kind)box.classList.add(kind);}
+function dropLeaf(){
+  if(REDUCED)return;const icons=$("lives").querySelectorAll("i");const src=icons[MAX_BOUNCES-bounces()];if(!src)return;
+  const r=src.getBoundingClientRect();const el=document.createElement("div");el.className="falling";
+  el.style.left=r.left+"px";el.style.top=r.top+"px";document.body.appendChild(el);
+  el.animate([{transform:"translate(0,0) rotate(0)",opacity:1},{transform:"translate(-24px,110px) rotate(-120deg)",opacity:.9,offset:.5},{transform:"translate(18px,260px) rotate(-260deg)",opacity:0}],{duration:1300,easing:"ease-in"}).onfinish=()=>el.remove();
+}
+function finish(end){if(S.done)return;S.done=true;S.end=end;typed="";record();save();render();
+  toast(end==="wilted"?"Out of leaves. The plant wilted.":"",1800);setTimeout(showResults,1300);}
+function findHint(){
+  const w=cur();
+  const onPath=PATH.indexOf(w);
+  if(onPath>=0&&onPath<PATH.length-1){const nx=PATH[onPath+1];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};}
+  const good=goodWays(w);
+  if(!good.length)return null;
+  const nx=good[0];return{w:nx,at:insertAt(w,nx),c:nx[insertAt(w,nx)]};
+}
+function hint(){
+  if(S.done||dead())return;
+  const w=cur();
+  if(hintFor!==w){hintFor=w;hintStage=0;hintMove=findHint();}
+  if(!hintMove)return;
+  if(hintStage>=2){toast(`Type ${hintMove.w.toUpperCase()} and press Grow.`,2000);return;}
+  hintStage++;S.hints=(S.hints||0)+1;S.log.push("h");buzz(10);
+  if(hintStage===2)typed="";
+  save();render();
+  toast(hintStage===1?"A letter fits where the glow is. +1":`The letter is ${hintMove.c.toUpperCase()}. +1`,2000,"good");
+}
+function pruneTo(h){
+  if(S.done||h<0||h>=S.hist.length-1)return;
+  $("plant").querySelectorAll(".node[data-h]").forEach(n=>{if(+n.dataset.h>h)n.classList.add("cut");});
+  buzz(25);
+  setTimeout(()=>{
+    const removed=S.hist.length-1-h;
+    S.hist=S.hist.slice(0,h+1);S.snips++;S.log.push("s");typed="";armed=-1;hintFor="";hintStage=0;hintMove=null;save();render();
+    toast(`Pruned back to ${cur().toUpperCase()}${removed>1?` (${removed} leaves)`:""}. +1 cut.`,1800);
+  },REDUCED?0:380);
+}
+function chipTap(h){
+  if(S.done)return;
+  if(armed===h){pruneTo(h);return;}
+  armed=h;render();setTimeout(()=>{if(armed===h){armed=-1;render();}},3000);
+}
+function bloom(){
+  wave();
+  burst(innerWidth/2,innerHeight*.3,score()===0?150:110,[css("--bloom"),css("--bloom-deep"),css("--petal-y"),"#ffffff"],{rain:true,size:7});
+  toast(score()===0?"Perfect bloom! No cuts, no misses.":"Full bloom!",2400,"pink");
+  setTimeout(showResults,1700);
+}
+function record(){
+  if(!isToday())return;
+  const st=store.get(STATS)||{played:0,blooms:0,perfect:0,streak:0,max:0,last:0,dist:[0,0,0,0,0,0]};
+  if(st.rec===TODAY)return;
+  st.played++;
+  if(S.end==="bloom"){st.blooms++;if(score()===0)st.perfect++;st.dist[Math.min(4,score())]++;st.streak=st.last===TODAY-1?st.streak+1:1;st.last=TODAY;st.max=Math.max(st.max,st.streak);}
+  else{st.dist[5]++;st.streak=0;}
+  st.rec=TODAY;store.set(STATS,st);
+}
+function giveUp(){S.done=true;S.end="gave";typed="";record();save();render();toast("Here's how it could grow.",1600);setTimeout(showResults,900);}
+const label=()=>S.end!=="bloom"?"Wilted":score()===0?"Perfect bloom":"Full bloom";
+function trail(){return "🌱"+S.log.map(c=>c==="g"?"🟩":c==="x"?"🟥":c==="y"?"🟨":c==="h"?"💡":"✂️").join("")+(S.end==="bloom"?"🌸":"🥀");}
+function shareText(){
+  const res=S.end!=="bloom"?"🥀 wilted":score()===0?"🌸 Perfect!":`🌸 +${score()}`;
+  return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}`;
+}
+
+/* ---------- modals ---------- */
+function openModal(html){$("modal").innerHTML='<button class="close" type="button" aria-label="Close">×</button>'+html;$("scrim").hidden=false;$("modal").querySelector(".close").onclick=closeModal;}
+function closeModal(){$("scrim").hidden=true;clearInterval(cd);}
+$("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeModal();});
+
+function help(){
+  openModal(`<h2>How to play Sproutle</h2>
+  <div class="demo"><span>ORE</span><span class="arrow">→</span><span><b>C</b>ORE</span><span class="arrow">→</span><span><b>S</b>CORE</span><span class="arrow">→</span><span>SCORE<b>D</b></span><span class="arrow">→</span><span>SCO<b>U</b>RED</span></div>
+  <ol class="steps">
+   <li><b class="n">1</b><span>Type a new word that's today's word plus one letter, added anywhere. You can't rearrange the letters, and every word must be real.</span></li>
+   <li><b class="n">2</b><span>Grow it to the target length. Each bud on the stem is one letter to go. No easy endings: you can't add S, D, R or Y to the end of a word.</span></li>
+   <li><b class="n">3</b><span>Every word must still be able to grow to the target. A real word that can't bounces back 🟨 and costs one of your 5 leaves. A made-up word just shakes, with no penalty.</span></li>
+   <li><b class="n">4</b><span>Stuck? Tap Hint to see where a letter fits, then tap again to see the letter. Every hint and bounce adds 1 to your score. A perfect bloom is zero.</span></li>
+  </ol>
+  <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
+  <button class="btn primary" type="button" id="goBtn">Start growing</button>
+  <p class="note" style="text-align:center"><a href="/about">About Sproutle</a> · <a href="/">All games</a> · <a href="/privacy">Privacy</a></p>`);
+  $("goBtn").onclick=closeModal;
+}
+
+function dayStatus(n){const s=store.get("sproutle-day-"+n);if(!s)return{c:"",t:""};
+  if(s.end==="bloom"){const sc=(s.snips||0)+s.misses+(s.wilts||0)+(s.hints||0);return{c:"won",t:sc===0?"🌸 Perfect":"🌸 +"+sc};}
+  if(s.end==="gave")return{c:"lost",t:"🥀"};
+  return s.hist.length>1||s.log.length?{c:"prog",t:"Growing"}:{c:"",t:""};}
+const unlocked=n=>!PLUS_ENABLED||n===TODAY||isPlus()||TODAY-n<=FREE_ARCHIVE_DAYS;
+
+function archive(){
+  const plus=isPlus();
+  let cells="";
+  for(let n=TODAY;n>=1;n--){const st=dayStatus(n),open=unlocked(n),d=dateOf(n);
+    cells+=`<button class="day ${st.c}${open?"":" locked"}${MODE.kind==="daily"&&MODE.num===n?" here":""}" type="button" data-n="${n}">
+      <span class="dn">No. ${n}</span><span class="dd">${n===TODAY?"Today":fmt(d)}</span><span class="ds">${open?(st.t||"Play"):"🔒 Plus"}</span></button>`;}
+  openModal(`<h2>Archive</h2>
+    ${!PLUS_ENABLED?"":plus?`<div class="pluscard on"><div><b>Sproutle+ is on</b><span>Full archive and unlimited practice.</span></div><button class="btn primary" type="button" id="pracBtn">Practice garden</button></div>`
+      :`<div class="pluscard"><div><b>Sproutle+</b><span>Unlock every past puzzle and unlimited practice seeds.</span></div><button class="btn primary" type="button" id="plusBtn">See plans</button></div>`}
+    <p class="note">${PLUS_ENABLED?`The last ${FREE_ARCHIVE_DAYS} days are free for everyone. `:""}Archive plays don't change your streak.</p>
+    <div class="days">${cells}</div>`);
+  $("modal").querySelectorAll(".day").forEach(b=>b.onclick=()=>{const n=+b.dataset.n;if(!unlocked(n)){paywall();return;}closeModal();load({kind:"daily",num:n});});
+  const pb=$("plusBtn");if(pb)pb.onclick=paywall;
+  const pr=$("pracBtn");if(pr)pr.onclick=()=>{const sp=store.get("sproutle-practice");closeModal();load({kind:"practice",idx:sp?sp.idx:0});};
+}
+
+function paywall(){
+  const plus=isPlus();
+  openModal(`<div class="plushead"><span class="badge">Sproutle+</span><h2>Grow as much as you like</h2></div>
+   <ul class="perks">
+    <li><b>🌱</b><span><strong>Unlimited practice garden.</strong> Hundreds of extra seeds, any time.</span></li>
+    <li><b>📅</b><span><strong>The full archive.</strong> Every daily puzzle since No. 1.</span></li>
+    <li><b>💚</b><span><strong>Keep Sproutle growing.</strong> Your support pays for new puzzles.</span></li>
+   </ul>
+   <div class="plans">
+    <button class="plan" type="button" data-p="year"><span class="pt">Yearly</span><span class="pp">${PRICES.year}</span><span class="ps">Best value</span></button>
+    <button class="plan sel" type="button" data-p="month"><span class="pt">Monthly</span><span class="pp">${PRICES.month}</span><span class="ps">Cancel anytime</span></button>
+   </div>
+   <button class="btn primary wide" type="button" id="subBtn">${plus?"You're a member":"Subscribe"}</button>
+   <p class="note">Today's puzzle and the last ${FREE_ARCHIVE_DAYS} days always stay free.</p>
+   <div class="testing"><span>Testing only: payments connect when the site launches.</span><button class="link" type="button" id="prevBtn">${plus?"Turn off Sproutle+ preview":"Preview Sproutle+ on this device"}</button></div>`);
+  $("modal").querySelectorAll(".plan").forEach(p=>p.onclick=()=>{$("modal").querySelectorAll(".plan").forEach(q=>q.classList.toggle("sel",q===p));});
+  $("subBtn").onclick=()=>{if(plus)return;toast("Payments aren't connected yet. They go live with the website.",2600);};
+  $("prevBtn").onclick=()=>{store.set("sproutle-plus",!plus);toast(!plus?"Sproutle+ preview is on.":"Sproutle+ preview is off.",1800,"good");
+    if(plus&&(MODE.kind==="practice"||!unlocked(MODE.num)))load({kind:"daily",num:TODAY});
+    archive();};
+}
+
+let cd;
+function showResults(){
+  const st=store.get(STATS)||{played:0,blooms:0,perfect:0,streak:0,max:0,dist:[0,0,0,0,0,0]};
+  const maxD=Math.max(1,...st.dist);
+  const names=["Perfect","+1","+2","+3","+4 or more","Wilted"];
+  const mine=S.end==="bloom"?Math.min(4,score()):5;
+  const rows=names.map((nm,k)=>`<div class="drow${S.done&&isToday()&&mine===k?" cur":""}"><span>${nm}</span><div style="width:${Math.max(8,st.dist[k]/maxD*100)}%">${st.dist[k]}</div></div>`).join("");
+  const yours=S.hist.map(h=>h.w.toUpperCase()).join(" → ");
+  const sub=S.end==="bloom"?(score()===0?"No bounces, no hints":[S.wilts?`${S.wilts} 🟨 dead-end word${S.wilts===1?"":"s"}`:"",S.misses?`${S.misses} 🟥 non-word${S.misses===1?"":"s"}`:"",S.hints?`${S.hints} hint${S.hints===1?"":"s"}`:""].filter(Boolean).join(" · ")+` · score +${score()}`):`Stopped at ${cur().length} of ${PAR} letters`;
+  const where=MODE.kind==="practice"?"Practice garden":isToday()?"":`Archive · No. ${MODE.num}`;
+  const actions=MODE.kind==="practice"
+    ?`<button class="btn" type="button" id="todayBtn">Today's puzzle</button><button class="btn primary" type="button" id="moreBtn">New seed</button>`
+    :`<button class="btn" type="button" id="moreBtn">Play more</button><button class="btn primary" type="button" id="shareBtn">Share</button>`;
+  openModal(`${S.done?`${where?`<p class="where">${where}</p>`:""}<div class="big${S.end==="bloom"&&score()===0?" over":""}">${label()}<small>${sub}</small></div>
+   <div class="trail" aria-label="Your growth">${trail()}</div>
+   <div class="path"><h3>Your sprout</h3><p>${yours}</p></div>
+   <div class="path"><h3>A perfect path</h3><p>${PATH.map(x=>x.toUpperCase()).join(" → ")}</p><small>${PERFECT===1?"This was the only path with everyday words.":`There are ${PERFECT} paths with everyday words.`}</small></div>`:"<h2>Statistics</h2>"}
+   <div class="stats"><div><b>${st.played}</b><span>Played</span></div><div><b>${st.played?Math.round((st.perfect||0)/st.played*100):0}</b><span>Perfect %</span></div><div><b>${st.streak}</b><span>Streak</span></div><div><b>${st.max}</b><span>Best streak</span></div></div>
+   <h3>Daily scores</h3><div class="dist">${rows}</div>
+   <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>
+   <a class="promo" href="/critter-collector/"><img src="/critter-collector/icon-192.png" alt=""><span><small>${S.done?"While you wait for tomorrow":"Try our other game"}</small><b>Critter Collector</b><em>Merge animals and build an endless zoo</em></span><i>Play</i></a>
+   <p class="morelink"><a href="/">See all games</a></p>`);
+  const tick2=()=>{const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.max(0,Math.floor((t-n)/1000));
+    const el=$("cd");if(el)el.textContent=[s/3600,s%3600/60,s%60].map(x=>String(Math.floor(x)).padStart(2,"0")).join(":");};
+  tick2();clearInterval(cd);cd=setInterval(tick2,1000);
+  const mb=$("moreBtn");if(mb)mb.onclick=MODE.kind==="practice"?newPractice:archive;
+  const tb=$("todayBtn");if(tb)tb.onclick=()=>{closeModal();load({kind:"daily",num:TODAY});};
+  const sb=$("shareBtn");if(sb)sb.onclick=()=>{const txt=shareText();
+    const fb=()=>{let box=$("modal").querySelector(".sharebox");if(!box){box=document.createElement("div");box.className="sharebox";$("modal").appendChild(box);}
+      box.textContent=txt;const rg=document.createRange();rg.selectNodeContents(box);const sl=getSelection();sl.removeAllRanges();sl.addRange(rg);toast("Selected. Copy it to share.");};
+    try{navigator.clipboard.writeText(txt).then(()=>toast("Copied to clipboard",1800,"good"),fb);}catch(e){fb();}};
+}
+
+document.addEventListener("keydown",e=>{
+  if(!$("scrim").hidden){if(e.key==="Escape")closeModal();return;}
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const k=e.key==="Enter"?"enter":e.key==="Backspace"?"back":e.key.length===1?e.key.toLowerCase():null;
+  if(k&&(k.length>1||/[a-z]/.test(k))){e.preventDefault();press(k);}
+});
+$("hintBtn").onclick=hint;
+$("stopBtn").onclick=()=>{if(S.done)return;const b=$("stopBtn");
+  if(b.dataset.arm){delete b.dataset.arm;giveUp();}
+  else{b.dataset.arm=1;b.textContent="Tap again to give up";setTimeout(()=>{delete b.dataset.arm;b.textContent="Give up";},3000);}};
+$("archiveBtn").onclick=archive;$("helpBtn").onclick=help;$("statsBtn").onclick=showResults;$("plusHdr").onclick=paywall;if(!PLUS_ENABLED)$("plusHdr").hidden=true;
+
+/* one-time move: launch-day results saved as No. 1 now belong to No. 31 */
+(function(){if(store.get("sproutle-mig30"))return;
+  const old=store.get("sproutle-day-1");
+  if(old&&old.hist&&old.hist[0].w==="star"){store.set("sproutle-day-31",old);try{localStorage.removeItem("sproutle-day-1");}catch(e){}}
+  const st=store.get(STATS);if(st){if(st.rec===1)st.rec=31;if(st.last===1)st.last=31;store.set(STATS,st);}
+  store.set("sproutle-mig30",1);})();
+addEventListener("resize",()=>{if(S)renderPlant();});
+buildKB();load({kind:"daily",num:TODAY});
+if(!store.get("sproutle-seen")){store.set("sproutle-seen",1);help();}
+else if(S.done)setTimeout(showResults,300);
+
+if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}
+</script>
+
+</body>
+</html>

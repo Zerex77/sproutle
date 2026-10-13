@@ -277,7 +277,7 @@ function help(){
   </ol>
   <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
   <button class="btn primary" type="button" id="goBtn">Start growing</button>
-  <p class="note" style="text-align:center"><a href="/about">About Sproutle</a> · <a href="/games">More games</a> · <a href="/privacy">Privacy</a></p>`);
+  <p class="note" style="text-align:center"><a href="/about">About Sproutle</a> · <a href="/">All games</a> · <a href="/privacy">Privacy</a></p>`);
   $("goBtn").onclick=closeModal;
 }
 
@@ -346,7 +346,7 @@ function showResults(){
    <h3>Daily scores</h3><div class="dist">${rows}</div>
    <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>
    <a class="promo" href="/critter-collector/"><img src="/critter-collector/icon-192.png" alt=""><span><small>${S.done?"While you wait for tomorrow":"Try our other game"}</small><b>Critter Collector</b><em>Merge animals and build an endless zoo</em></span><i>Play</i></a>
-   <p class="morelink"><a href="/games">See all games</a></p>`);
+   <p class="morelink"><a href="/">See all games</a></p>`);
   const tick2=()=>{const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.max(0,Math.floor((t-n)/1000));
     const el=$("cd");if(el)el.textContent=[s/3600,s%3600/60,s%60].map(x=>String(Math.floor(x)).padStart(2,"0")).join(":");};
   tick2();clearInterval(cd);cd=setInterval(tick2,1000);
