@@ -123,6 +123,19 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
 .bar i{display:block;background:var(--key-bg);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
 .bar i.hi{background:var(--good);color:var(--good-ink)}
 .toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;white-space:nowrap}
+/* Keep the keyboard pinned to the bottom of the screen so Enter is always reachable */
+#play{position:sticky;bottom:0;z-index:5;background:var(--bg);margin-inline:-16px;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 16px -12px rgba(0,0,0,.25)}
+/* Shorter phones: shrink the arch, rows and keys so the whole puzzle fits */
+@media (max-height:820px){
+  .wrap{gap:8px;padding-block:6px 0}
+  header{padding-block:2px 6px}.mark{font-size:26px}.ibtn{width:34px;height:34px}
+  .arch{max-width:250px}.archcap{font-size:12px;margin-top:0}
+  .board{gap:4px}.row{min-height:38px;padding:2px 8px}.t{height:30px;font-size:16px}
+  .abtn{height:36px}.k{height:44px}.kb{gap:5px}
+}
+@media (max-height:680px){
+  .arch{max-width:200px}.row{min-height:34px}.t{height:27px;font-size:15px}.k{height:40px}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -147,7 +160,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
   <section class="board" id="board" aria-label="Bridges"></section>
 
   <section id="play">
-    <div class="actions" style="margin-bottom:10px">
+    <div class="actions" style="margin-bottom:8px">
       <button class="abtn" id="btnHint">Reveal a letter</button>
       <button class="abtn" id="btnKey">Guess keystone</button>
     </div>
@@ -311,6 +324,14 @@ function render(){
   $("btnKey").disabled = S.keyAt!==null;
   renderResult();
   fx=null;
+  if(!done) requestAnimationFrame(keepSelVisible);
+}
+// Scroll the active bridge (or the arch) into view above the pinned keyboard
+function keepSelVisible(){
+  const el = sel===KS ? $("arch") : document.querySelector(`.row[data-i="${sel}"]`); if(!el) return;
+  const r=el.getBoundingClientRect(), kbTop=$("play").getBoundingClientRect().top;
+  if(r.bottom > kbTop-6) window.scrollBy({top:r.bottom-kbTop+12,behavior:"smooth"});
+  else if(r.top < 6) window.scrollBy({top:r.top-12,behavior:"smooth"});
 }
 
 function nextOpen(from){
