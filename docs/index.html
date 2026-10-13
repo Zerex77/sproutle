@@ -130,6 +130,7 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
 </div>
 <h2 class="sect">Play anytime</h2>
 <div class="games">
+<a class="game" href="/groupchat/"><div class="game-head"><img src="/groupchat/icon-192.png" alt="" width="64" height="64"><div><h2>Group Chat Disaster</h2><div class="tag">Party game · 2–10 players</div></div></div><p>Put it on the TV, join on your phones, and reply to a group chat that's falling apart. Funniest text gets sent.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Group Chat Disaster</span></div></a>
 <a class="game" href="/critter-collector/"><div class="game-head"><img src="/critter-collector/icon-192.png" alt="" width="64" height="64"><div><h2>Critter Collector</h2><div class="tag">Zoo merge game · play anytime</div></div></div><p>Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Critter Collector</span></div></a>
 </div>
 </main>
@@ -148,7 +149,7 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
     sproutle(){const s=get("sproutle-day-"+spNo);return !s?0:s.done?2:(s.hist&&s.hist.length>1)?1:0},
     ranked(){const s=get("ranked-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     keystone(){const s=get("keystone-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.cracks||d.solved.some(Boolean)||d.rev.some(Boolean))?1:0},
-    trailhead(){const s=get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
+    trailhead(){const s=get("trailhead-daily")||get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
     ballpark(){const s=get("ballpark-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     imposter(){const s=get("imposter-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},
     gridiron(){const s=get("gridiron-v2");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},

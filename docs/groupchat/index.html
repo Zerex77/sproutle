@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#170f2b">
+<meta name="description" content="Group Chat Disaster: a free party game for 2 to 10 players. Put it on the TV, join on your phones, and build the most unhinged group chat ever.">
+<link rel="canonical" href="https://playsproutle.com/groupchat/">
+<meta property="og:title" content="Group Chat Disaster">
+<meta property="og:description" content="A party game for your phones. Reply to the group chat, vote for the funniest text, and watch the conversation fall apart.">
+<meta property="og:url" content="https://playsproutle.com/groupchat/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/groupchat/icon-512.png">
+<link rel="icon" type="image/png" href="/groupchat/icon-192.png">
+<link rel="apple-touch-icon" href="/groupchat/apple-touch-icon.png">
+<title>Group Chat Disaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: party screen. The TV shows a giant phone-style chat thread on the left and the round panel on the right; phones get one focused card at a time. Deliberately single dark theme, like a lit-up phone in a dark room. */
+:root{
+  --night:#170f2b; --panel:#221840; --panel-hi:#2e2254; --line:#3d3068;
+  --ink:#f6f1ff; --muted:#b4a8d6; --npc:#3a2d66; --npc-ink:#f6f1ff;
+  --pop:#ffd23f; --pop-ink:#1d1300; --hot:#ff4f8b; --ok:#3ddc97;
+  --f-display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{min-height:100%}
+body{margin:0;background:var(--night);background-image:radial-gradient(80% 60% at 85% 0%,#3b1d5e 0%,transparent 60%),radial-gradient(60% 50% at 0% 100%,#122a4a 0%,transparent 60%);background-attachment:fixed;color:var(--ink);font:16px/1.45 var(--f-body);padding-inline:16px}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pop);outline-offset:2px}
+a{color:var(--pop)}
+.wrap{max-width:1280px;margin:0 auto;padding-block:16px 32px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font:800 clamp(1.4rem,3vw,2rem)/1 var(--f-display);letter-spacing:-.02em;display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+.logo i{font-style:normal;color:var(--hot)}
+.logo .dots{display:inline-flex;gap:4px;background:var(--npc);padding:8px 10px;border-radius:16px 16px 16px 4px}
+.logo .dots b{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:typing 1.2s infinite}
+.logo .dots b:nth-child(2){animation-delay:.15s}.logo .dots b:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-3px);opacity:1}}
+.home{font-size:.85rem;color:var(--muted);text-decoration:none;font-weight:600}
+.btn{border:none;border-radius:14px;padding:14px 22px;font-weight:800;font-size:1.05rem;background:var(--pop);color:var(--pop-ink);box-shadow:0 4px 0 #b8900f;transition:transform .1s}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #b8900f}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{background:var(--panel-hi);color:var(--ink);box-shadow:0 4px 0 #160f2c}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--muted)}
+.label{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- landing ---------- */
+.landing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;align-items:start}
+.hero{display:flex;flex-direction:column;gap:14px;padding-block:8px}
+.hero h1{font-size:clamp(2.2rem,6vw,4rem);line-height:.95;font-weight:800}
+.hero h1 span{color:var(--pop)}
+.hero p{max-width:46ch;color:var(--muted);font-size:1.05rem}
+.steps{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start}
+.steps b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--panel-hi);font-weight:800;font-size:.85rem}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input{height:54px;border-radius:14px;border:2px solid var(--line);background:var(--night);padding:0 14px;font-size:1.2rem;font-weight:700}
+.field input:focus{outline:none;border-color:var(--pop)}
+#joinCode{text-transform:uppercase;letter-spacing:.3em;font-family:ui-monospace,Menlo,monospace}
+.err{color:var(--hot);font-weight:700;min-height:1.2em;font-size:.9rem}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- TV ---------- */
+.tv{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.tv{grid-template-columns:1fr}}
+.phone{background:#0f0a1e;border:1px solid var(--line);border-radius:32px;padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:min(78vh,760px);max-height:82vh}
+.phead{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+.avs{display:flex}
+.avs span{width:30px;height:30px;border-radius:50%;margin-left:-8px;border:2px solid var(--panel);display:grid;place-items:center;font-weight:800;font-size:.75rem;color:#170f2b}
+.avs span:first-child{margin-left:0}
+.phead h2{font-size:1.15rem}
+.phead .sub{font-size:.8rem;color:var(--muted)}
+.thread{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{display:flex;flex-direction:column;gap:3px;max-width:78%;animation:pop .35s cubic-bezier(.2,1.4,.4,1) both}
+.msg .who{font-size:.78rem;font-weight:700;color:var(--muted);padding-left:12px}
+.msg .b{padding:10px 15px;border-radius:20px;font-size:clamp(1rem,1.6vw,1.3rem);line-height:1.3;overflow-wrap:anywhere}
+.msg.npc .b{background:var(--npc);color:var(--npc-ink);border-bottom-left-radius:6px}
+.msg.pl{align-self:flex-end;align-items:flex-end}
+.msg.pl .who{padding:0 12px 0 0}
+.msg.pl .b{color:#170f2b;font-weight:600;border-bottom-right-radius:6px}
+.msg .votes{font-size:.75rem;font-weight:800;color:var(--pop);padding-right:12px}
+.typing{align-self:flex-start;display:inline-flex;gap:5px;background:var(--npc);padding:12px 14px;border-radius:20px 20px 20px 6px}
+.typing b{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:typing 1.2s infinite}
+.typing b:nth-child(2){animation-delay:.15s}.typing b:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.92)}to{opacity:1;transform:none}}
+.side{display:flex;flex-direction:column;gap:16px}
+.code{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.code .big{font:800 clamp(3rem,7vw,5.5rem)/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;color:var(--pop)}
+.joinrow{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#qr{background:#fff;padding:8px;border-radius:12px;line-height:0}
+#qr img,#qr canvas{width:120px;height:120px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--panel-hi);font-weight:700;font-size:.95rem}
+.chip .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:800;color:#170f2b}
+.chip.done{outline:2px solid var(--ok)}
+.chip.done::after{content:"✓";color:var(--ok);font-weight:800}
+.chip.away{opacity:.45}
+.timer{display:flex;align-items:center;gap:12px}
+.timer .t{font:800 2.6rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2.2ch}
+.bar{flex:1;height:10px;border-radius:99px;background:var(--panel-hi);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--pop);border-radius:99px;transition:width 1s linear}
+.prompt{font:800 clamp(1.4rem,2.6vw,2rem)/1.15 var(--f-display)}
+.prompt em{font-style:normal;color:var(--pop)}
+.opts{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.opts li{background:var(--panel-hi);border-radius:16px;padding:12px 16px;font-size:clamp(1rem,1.5vw,1.2rem);font-weight:600;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;overflow-wrap:anywhere;animation:pop .3s both}
+.opts li .n{font:800 1rem var(--f-display);color:var(--muted)}
+.opts li.win{background:var(--pop);color:var(--pop-ink)}
+.opts li.win .n{color:var(--pop-ink)}
+.opts li .by{font-size:.85rem;font-weight:800;text-align:right}
+.score{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.score li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--panel-hi);font-weight:700;font-variant-numeric:tabular-nums}
+.score li:first-child{background:var(--pop);color:var(--pop-ink)}
+.mvp{font:800 clamp(1.6rem,3vw,2.4rem)/1.1 var(--f-display)}
+.round{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.hostbar{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- phone controller ---------- */
+.pad{max-width:460px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.me{display:flex;align-items:center;gap:10px;font-weight:800}
+.me .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#170f2b;font-weight:800}
+.me .pts{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--pop)}
+.pad .npc{background:var(--npc);border-radius:20px 20px 20px 6px;padding:12px 16px;font-size:1.1rem;font-weight:600}
+.pad .npc small{display:block;color:var(--muted);font-size:.78rem;font-weight:700;margin-bottom:2px}
+textarea{width:100%;min-height:110px;resize:none;border-radius:16px;border:2px solid var(--line);background:var(--night);padding:12px 14px;font-size:1.15rem;line-height:1.35}
+textarea:focus{outline:none;border-color:var(--pop)}
+.count{font-size:.8rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.vote{display:flex;flex-direction:column;gap:10px}
+.vote button{text-align:left;border:2px solid var(--line);background:var(--panel-hi);border-radius:16px;padding:14px 16px;font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+.vote button.pick{border-color:var(--pop);background:var(--pop);color:var(--pop-ink)}
+.wait{text-align:center;padding:30px 10px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.wait .emoji{font-size:3rem;line-height:1}
+.ptimer{font:800 1.1rem var(--f-display);color:var(--pop);font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--night);padding:10px 16px;border-radius:12px;font-weight:700;z-index:9}
+.status{font-size:.8rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <a class="logo" href="/groupchat/"><span class="dots"><b></b><b></b><b></b></span><span>Group Chat <i>Disaster</i></span></a>
+    <a class="home" href="/">All games</a>
+  </header>
+
+  <!-- ===== Landing ===== -->
+  <section id="vLanding" class="landing">
+    <div class="hero">
+      <h1>The group chat is <span>on fire.</span> Reply anyway.</h1>
+      <p>A party game for 2 to 10 people. One screen hosts, everyone plays on their phone. Each round the chat gets a new message, you all reply, and the funniest reply gets sent.</p>
+      <ol class="steps">
+        <li><b>1</b><span>Open this page on a TV or laptop and tap <strong>Host a game</strong>.</span></li>
+        <li><b>2</b><span>Everyone joins on their phone with the 4-letter code.</span></li>
+        <li><b>3</b><span>Write replies, vote for the best one, and watch the chat fall apart over 8 rounds.</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>Join a game</h2>
+      <form id="joinForm" class="pad" style="margin:0;max-width:none" autocomplete="off">
+        <label class="field"><span class="label">Room code</span><input id="joinCode" maxlength="4" inputmode="text" autocapitalize="characters" placeholder="ABCD" required></label>
+        <label class="field"><span class="label">Your name</span><input id="joinName" maxlength="12" placeholder="Name" required></label>
+        <div class="err" id="joinErr"></div>
+        <button class="btn" type="submit" id="joinBtn">Join</button>
+      </form>
+      <div class="or">or</div>
+      <button class="btn ghost" id="hostBtn" type="button">Host a game on this screen</button>
+    </div>
+  </section>
+
+  <!-- ===== TV / host ===== -->
+  <section id="vTV" class="tv" hidden>
+    <div class="phone">
+      <div class="phead"><div class="avs" id="avs"></div><div><h2 id="chatName">Group chat</h2><div class="sub" id="chatSub">Waiting for players</div></div></div>
+      <div class="thread" id="thread"></div>
+    </div>
+    <div class="side">
+      <div class="card" id="panel"></div>
+      <div class="status" id="hostStatus"></div>
+    </div>
+  </section>
+
+  <!-- ===== Phone / player ===== -->
+  <section id="vPad" class="pad" hidden>
+    <div class="me" id="meBar"></div>
+    <div class="card" id="padCard"></div>
+    <div class="status" id="padStatus"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.100.0/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+const SB_URL="https://eiftinbzwcuxalnnmjra.supabase.co", SB_KEY="sb_publishable_w64F-Z-J_Gx0rwIPMl-V3w_e5BJmUE0";
+const ROUNDS=8, WRITE_S=60, VOTE_S=30, REVEAL_S=10, MAXLEN=90, MAXP=10;
+const COLORS=["#ffd23f","#ff7eb6","#5ee6c0","#7cb8ff","#ffa55c","#c49bff","#b6f26a","#ff8a8a","#6ee7ff","#f5b8ff"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function toast(m,ms){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms||2000)}
+const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const initial=n=>esc((n||"?").trim().charAt(0).toUpperCase());
+
+// ---------- Chats: each game is one group chat, 8 messages that escalate ----------
+const CHATS=[
+ {name:"The Family 🏡",msgs:[
+  ["Mom","Who used my car last night?? There's a traffic cone in the back seat."],
+  ["Dad","Also why is there a receipt for 40 chicken nuggets"],
+  ["Grandma","I DONT KNOW HOW TO MAKE THE LETTERS SMALL. ANYWAY WHAT IS A NUGGET"],
+  ["Mom","Ok whoever did it, the neighbors are asking questions"],
+  ["Uncle Rick","Not to change the subject but I'm starting a business. Who wants in?"],
+  ["Dad","The police just called the house. They were very polite but confused."],
+  ["Grandma","I posted this whole chat on Facebook. Is that ok"],
+  ["Mom","Thanksgiving is cancelled until someone explains EVERYTHING."]]},
+ {name:"Roommates 🛋️",msgs:[
+  ["Jess","Whoever keeps eating my labeled yogurt, I know it's you"],
+  ["Jess","Also why is there a goat in the backyard"],
+  ["Landlord Gary","Hello tenants. Surprise inspection TOMORROW at 9am."],
+  ["Jess","Update: the goat ate the inspection notice"],
+  ["Landlord Gary","I'm also hearing reports of \"nightly drumming\""],
+  ["Jess","Gary is literally outside the window right now"],
+  ["Landlord Gary","Who is \"DJ Mattress\" and why is that name on the lease"],
+  ["Jess","Ok we need a cover story for Gary. Go."]]},
+ {name:"Work Chat 💼",msgs:[
+  ["Boss Linda","Quick question. Who replied-all to the entire company with \"lol\"?"],
+  ["Boss Linda","Also the CEO visits tomorrow. Please act normal."],
+  ["Kevin from IT","Someone's password is \"password123password\". You know who you are."],
+  ["Boss Linda","Who microwaved fish AND left it in there overnight"],
+  ["The CEO","Hi team! Excited to meet you. Share a fun fact about yourself!"],
+  ["Kevin from IT","The printer is on fire again. Not metaphorically."],
+  ["The CEO","Who is \"Big Chungus\" on the org chart?"],
+  ["Boss Linda","The CEO left a review of our team. Guess what it says."]]},
+ {name:"Fantasy League 🏈",msgs:[
+  ["Commish","Draft is tonight. Who's actually showing up?"],
+  ["Dave","I drafted a kicker in round 1. I panicked."],
+  ["Commish","Last place gets a punishment this year. Pitch ideas."],
+  ["Mike","Trade offer: my backup QB for your entire team. Final offer."],
+  ["Dave","My wife read this chat and has questions"],
+  ["Commish","We're voting on one new league rule. Make your case."],
+  ["Mike","I lost by 0.2 points. I'd like to file a formal complaint."],
+  ["Commish","The championship trophy arrived. It's... not what I ordered."]]},
+ {name:"Wedding Party 💍",msgs:[
+  ["The Bride","3 days until the wedding!! Status check, everyone"],
+  ["Best Man","Small issue. The rings are in a different state."],
+  ["The Bride","Who RSVP'd \"+3 mystery guests\"??"],
+  ["Mother of the Bride","The cake arrived and it's shaped like a monster truck. Explain."],
+  ["Best Man","I need help with my speech. I have literally nothing."],
+  ["The Groom","Who booked the band? They only know one song."],
+  ["The Bride","The venue says we are \"no longer welcome\". WHY."],
+  ["Officiant","Hi! Just found out I'm not actually ordained. Is that bad?"]]},
+ {name:"Group Trip ✈️",msgs:[
+  ["Sam","Flights booked!! Wait. Which airport did everyone pick"],
+  ["Sam","The Airbnb host says no \"loud ceremonies\". What's a loud ceremony"],
+  ["Priya","Airport security took my snack. I am devastated."],
+  ["Sam","Who packed the inflatable flamingo? It's 9 feet tall."],
+  ["Airbnb Host","Hello guests. Why are there 14 people in my pool"],
+  ["Priya","Plans for day 2? Throw out ideas."],
+  ["Sam","Someone posted the trip and now my boss knows I'm not \"sick\""],
+  ["Airbnb Host","Writing your review now. Anything you'd like me to include?"]]}
+];
+
+// ---------- Transport: Supabase Realtime broadcast (or BroadcastChannel with ?local for testing) ----------
+const LOCAL=new URLSearchParams(location.search).has("local");
+let sb=null;
+function connect(code,onMsg,onStatus){
+  if(LOCAL||!window.supabase){
+    if(!LOCAL){onStatus("error");return null}
+    const bc=new BroadcastChannel("gc-"+code);bc.onmessage=e=>onMsg(e.data);setTimeout(()=>onStatus("SUBSCRIBED"),10);
+    return {send:m=>bc.postMessage(m),close:()=>bc.close()};
+  }
+  sb=sb||window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:20}}});
+  const ch=sb.channel("gc-"+code,{config:{broadcast:{self:false,ack:false}}});
+  ch.on("broadcast",{event:"m"},({payload})=>onMsg(payload)).subscribe(s=>onStatus(s));
+  return {send:m=>ch.send({type:"broadcast",event:"m",payload:m}),close:()=>sb.removeChannel(ch)};
+}
+const LETTERS="BCDFGHJKLMNPQRSTVWXZ";
+const newCode=()=>Array.from({length:4},()=>LETTERS[Math.floor(Math.random()*LETTERS.length)]).join("");
+
+// ======================================================================
+// HOST (the TV). It owns the game state and broadcasts it to every phone.
+// ======================================================================
+let H=null, hostLink=null, tick=null;
+function hostStart(code,resume){
+  history.replaceState(null,"","?host="+code+(LOCAL?"&local":""));
+  H=resume||{code,phase:"lobby",players:[],chatIdx:Math.floor(Math.random()*CHATS.length),used:[],round:0,thread:[],answers:{},votes:{},opts:[],ends:0,lastWin:null,games:0};
+  showView("vTV");
+  hostLink=connect(code,hostRecv,s=>{$("hostStatus").textContent=s==="SUBSCRIBED"?"Connected · room "+code:s==="error"?"Couldn't load the connection. Check your internet and reload.":"Connecting…";if(s==="SUBSCRIBED")push()});
+  clearInterval(tick);tick=setInterval(hostTick,1000);
+  renderTV(true);
+}
+function saveHost(){ls.set("gc-host",H)}
+const chat=()=>CHATS[H.chatIdx];
+function hostRecv(m){
+  if(!m||!m.t||!m.id)return;
+  const p=H.players.find(x=>x.id===m.id);
+  if(m.t==="join"){
+    if(p){p.seen=Date.now();push();return}
+    if(H.players.length>=MAXP){hostLink.send({t:"full",to:m.id});return}
+    let name=String(m.name||"Player").replace(/\s+/g," ").trim().slice(0,12)||"Player";
+    const base=name;let k=2;while(H.players.some(x=>x.name.toLowerCase()===name.toLowerCase()))name=base.slice(0,10)+" "+(k++);
+    const used=new Set(H.players.map(x=>x.color));
+    H.players.push({id:m.id,name,color:COLORS.find(c=>!used.has(c))||COLORS[H.players.length%COLORS.length],score:0,seen:Date.now()});
+    push();renderTV();return;
+  }
+  if(!p)return; p.seen=Date.now();
+  if(m.t==="ping"){return}
+  if(m.t==="start"&&H.phase==="lobby"&&H.players[0]&&H.players[0].id===m.id){startGame();return}
+  if(m.t==="again"&&H.phase==="final"&&H.players[0]&&H.players[0].id===m.id){playAgain();return}
+  if(m.t==="answer"&&H.phase==="write"&&H.round===m.r){
+    const txt=String(m.text||"").replace(/\s+/g," ").trim().slice(0,MAXLEN); if(!txt)return;
+    H.answers[p.id]=txt; push(); renderTV();
+    if(H.players.every(x=>H.answers[x.id]))setTimeout(()=>{if(H.phase==="write")toVote()},700);
+    return;
+  }
+  if(m.t==="vote"&&H.phase==="vote"&&H.round===m.r){
+    const o=H.opts.find(x=>x.oid===m.oid); if(!o||o.by===p.id)return;
+    H.votes[p.id]=m.oid; push(); renderTV();
+    const voters=H.players.filter(x=>H.opts.some(o=>o.by!==x.id));
+    if(voters.every(x=>H.votes[x.id]))setTimeout(()=>{if(H.phase==="vote")toReveal()},700);
+  }
+}
+function secs(){return Math.max(0,Math.ceil((H.ends-Date.now())/1000))}
+function hostTick(){
+  if(!H)return;
+  if(H.phase==="write"&&Date.now()>=H.ends)toVote();
+  else if(H.phase==="vote"&&Date.now()>=H.ends)toReveal();
+  else if(H.phase==="reveal"&&Date.now()>=H.ends)nextRound();
+  renderTimer();
+  if(Date.now()-(H.lastPush||0)>3000)push(); // heartbeat so reconnecting phones catch up
+}
+function startGame(){
+  if(H.players.length<2)return;
+  H.players.forEach(p=>p.score=0);H.thread=[];H.round=0;nextRound();
+}
+function playAgain(){
+  H.used=(H.used||[]).concat(H.chatIdx).slice(-CHATS.length+1);
+  const left=CHATS.map((_,i)=>i).filter(i=>!H.used.includes(i));
+  H.chatIdx=shuffle(left.length?left:CHATS.map((_,i)=>i))[0];
+  H.phase="lobby";H.thread=[];H.round=0;H.games=(H.games||0)+1;startGame();
+}
+function nextRound(){
+  if(H.round>=ROUNDS){H.phase="final";H.ends=0;push();renderTV(true);return}
+  H.round++;H.answers={};H.votes={};H.opts=[];H.lastWin=null;
+  const [from,text]=chat().msgs[H.round-1];
+  H.thread.push({npc:1,name:from,text});
+  H.phase="write";H.ends=Date.now()+WRITE_S*1000;push();renderTV(true);
+}
+function toVote(){
+  const entries=Object.entries(H.answers);
+  if(entries.length===0){H.lastWin=null;H.phase="reveal";H.opts=[];H.ends=Date.now()+4000;push();renderTV(true);return}
+  H.opts=shuffle(entries.map(([by,text],i)=>({oid:"o"+i+Math.random().toString(36).slice(2,6),by,text})));
+  if(entries.length===1){toReveal();return}
+  H.phase="vote";H.ends=Date.now()+VOTE_S*1000;push();renderTV(true);
+}
+function toReveal(){
+  const tally={};Object.values(H.votes).forEach(o=>tally[o]=(tally[o]||0)+1);
+  H.opts.forEach(o=>{o.v=tally[o.oid]||0;const p=H.players.find(x=>x.id===o.by);if(p)p.score+=o.v*100});
+  const top=Math.max(...H.opts.map(o=>o.v));const best=shuffle(H.opts.filter(o=>o.v===top))[0];
+  if(best){const p=H.players.find(x=>x.id===best.by);if(p)p.score+=H.opts.length>1&&top>0?50:0;
+    H.lastWin=best.oid;H.thread.push({by:best.by,name:p?p.name:"?",color:p?p.color:COLORS[0],text:best.text,v:best.v});}
+  H.phase="reveal";H.ends=Date.now()+REVEAL_S*1000;push();renderTV(true);
+}
+// What phones get. Reply authors stay hidden until the reveal.
+function pub(){
+  const s={code:H.code,phase:H.phase,round:H.round,rounds:ROUNDS,left:H.ends?Math.max(0,H.ends-Date.now()):0,
+    chat:chat().name,players:H.players.map(p=>({id:p.id,name:p.name,color:p.color,score:p.score})),
+    done:H.phase==="write"?Object.keys(H.answers):H.phase==="vote"?Object.keys(H.votes):[]};
+  const last=H.thread.filter(x=>x.npc).pop(); if(last)s.npc={name:last.name,text:last.text};
+  if(H.phase==="vote")s.opts=H.opts.map(o=>({oid:o.oid,text:o.text,k:o.by.slice(-4)}));
+  if(H.phase==="reveal"){s.win=H.lastWin;s.res=H.opts.map(o=>({oid:o.oid,by:o.by,v:o.v||0}))}
+  return s;
+}
+function push(){if(!hostLink)return;H.lastPush=Date.now();hostLink.send({t:"state",s:pub()});saveHost()}
+
+// ---------- TV rendering ----------
+function bubble(m){
+  if(m.npc)return '<div class="msg npc"><span class="who">'+esc(m.name)+'</span><div class="b">'+esc(m.text)+'</div></div>';
+  return '<div class="msg pl"><span class="who">'+esc(m.name)+'</span><div class="b" style="background:'+m.color+'">'+esc(m.text)+'</div>'+(m.v?'<span class="votes">'+m.v+' vote'+(m.v===1?'':'s')+'</span>':'')+'</div>';
+}
+let lastThreadLen=-1;
+function renderTV(full){
+  const c=chat();
+  $("chatName").textContent=c.name;
+  $("chatSub").textContent=H.phase==="lobby"?H.players.length+" of "+MAXP+" joined":H.phase==="final"?"Chat archived 💀":"Round "+H.round+" of "+ROUNDS;
+  $("avs").innerHTML=H.players.slice(0,6).map(p=>'<span style="background:'+p.color+'">'+initial(p.name)+'</span>').join("");
+  if(full||H.thread.length!==lastThreadLen){
+    lastThreadLen=H.thread.length;
+    const th=$("thread");
+    th.innerHTML=H.thread.map(bubble).join("")+(H.phase==="write"||H.phase==="vote"?'<div class="typing" aria-label="People are typing"><b></b><b></b><b></b></div>':'')
+      +(H.phase==="lobby"&&!H.thread.length?'<div class="msg npc"><span class="who">'+esc(c.msgs[0][0])+'</span><div class="b">'+esc(c.name)+' is starting soon. Join on your phone 👀</div></div>':'');
+    th.scrollTop=th.scrollHeight;
+  }
+  const P=$("panel"), ppl=H.players, chips=(done)=>'<div class="chips">'+ppl.map(p=>'<span class="chip'+(done&&done.includes(p.id)?' done':'')+(Date.now()-p.seen>20000?' away':'')+'"><span class="dot" style="background:'+p.color+'">'+initial(p.name)+'</span>'+esc(p.name)+'</span>').join("")+'</div>';
+  const url=location.origin+"/groupchat/?code="+H.code+(LOCAL?"&local":"");
+  if(H.phase==="lobby"){
+    P.innerHTML='<div class="joinrow"><div class="code"><span class="label">Room code</span><span class="big">'+H.code+'</span><span class="muted">Join at <b>'+esc(location.host)+'/groupchat</b></span></div><div id="qr" aria-label="QR code to join"></div></div>'
+      +'<span class="label">Players ('+ppl.length+')</span>'+(ppl.length?chips():'<p class="muted">Nobody yet. Scan the code or type it in.</p>')
+      +'<div class="hostbar"><button class="btn" id="startBtn" type="button"'+(ppl.length<2?' disabled':'')+'>Start the chat</button></div>'
+      +'<p class="muted">'+(ppl.length<2?'Needs at least 2 players.':'The first player to join can also start from their phone.')+'</p>';
+    $("startBtn").onclick=startGame;
+    try{if(window.QRCode)new QRCode($("qr"),{text:url,width:240,height:240,colorDark:"#170f2b",colorLight:"#ffffff"});else $("qr").hidden=true}catch(e){$("qr").hidden=true}
+  } else if(H.phase==="write"){
+    const n=H.thread.filter(x=>x.npc).pop();
+    P.innerHTML='<div class="round"><span class="label">Round '+H.round+' of '+ROUNDS+'</span><span class="label">Room '+H.code+'</span></div>'
+      +'<div class="prompt"><em>'+esc(n.name)+'</em> just texted. Reply on your phone!</div>'+timerHTML()+chips(Object.keys(H.answers))
+      +'<div class="hostbar"><button class="btn ghost" id="skipBtn" type="button">Skip to voting</button></div>';
+    $("skipBtn").onclick=toVote;
+  } else if(H.phase==="vote"){
+    P.innerHTML='<div class="round"><span class="label">Round '+H.round+' · Vote</span><span class="label">Room '+H.code+'</span></div>'
+      +'<div class="prompt">Which reply gets <em>sent</em>?</div><ol class="opts">'+H.opts.map((o,i)=>'<li><span class="n">'+(i+1)+'</span><span>'+esc(o.text)+'</span><span></span></li>').join("")+'</ol>'
+      +timerHTML()+chips(Object.keys(H.votes));
+  } else if(H.phase==="reveal"){
+    const byName=id=>{const p=ppl.find(x=>x.id===id);return p?'<span style="color:'+p.color+'">'+esc(p.name)+'</span>':'?'};
+    const sorted=H.opts.slice().sort((a,b)=>(b.v||0)-(a.v||0));
+    P.innerHTML='<div class="round"><span class="label">Round '+H.round+' · Results</span><span class="label">Room '+H.code+'</span></div>'
+      +(sorted.length?'<ol class="opts">'+sorted.map(o=>'<li class="'+(o.oid===H.lastWin?'win':'')+'"><span class="n">'+(o.v||0)+'</span><span>'+esc(o.text)+'</span><span class="by">'+(o.oid===H.lastWin?esc((ppl.find(x=>x.id===o.by)||{}).name||"?"):byName(o.by))+'</span></li>').join("")+'</ol>':'<p class="prompt">Nobody replied. Left on read. 😶</p>')
+      +scoreHTML(3)+'<div class="hostbar"><button class="btn" id="nextBtn" type="button">'+(H.round>=ROUNDS?'Final results':'Next message')+'</button></div>';
+    $("nextBtn").onclick=nextRound;
+  } else if(H.phase==="final"){
+    const top=ppl.slice().sort((a,b)=>b.score-a.score)[0];
+    P.innerHTML='<span class="label">Chat over</span><div class="mvp">🏆 MVP texter: <span style="color:'+(top?top.color:"inherit")+'">'+esc(top?top.name:"nobody")+'</span></div>'
+      +scoreHTML(MAXP)+'<div class="hostbar"><button class="btn" id="againBtn" type="button">New group chat</button><button class="btn ghost" id="lobbyBtn" type="button">Back to lobby</button></div>';
+    $("againBtn").onclick=playAgain; $("lobbyBtn").onclick=()=>{H.phase="lobby";H.thread=[];H.round=0;H.players.forEach(p=>p.score=0);push();renderTV(true)};
+  }
+}
+function timerHTML(){const s=secs(),tot=H.phase==="vote"?VOTE_S:WRITE_S;return '<div class="timer"><span class="t" id="tT">'+s+'</span><div class="bar"><i id="tBar" style="width:'+(s/tot*100)+'%"></i></div></div>'}
+function renderTimer(){const t=$("tT");if(!t||!H)return;const s=secs(),tot=H.phase==="vote"?VOTE_S:WRITE_S;t.textContent=s;$("tBar").style.width=(s/tot*100)+"%"}
+function scoreHTML(n){return '<ol class="score">'+H.players.slice().sort((a,b)=>b.score-a.score).slice(0,n).map((p,i)=>'<li><span>'+(i+1)+'</span><span style="'+(i?'color:'+p.color:'')+'">'+esc(p.name)+'</span><span>'+p.score+'</span></li>').join("")+'</ol>'}
+
+// ======================================================================
+// PLAYER (a phone). Sends answers and votes; renders whatever the host says.
+// ======================================================================
+let P=null, padLink=null, padState=null, padEnds=0, myText={}, myVote={}, padTick=null, joinTimer=null;
+function padStart(code,name){
+  const saved=ls.get("gc-me");
+  const id=(saved&&saved.code===code&&saved.id)||rid();
+  P={code,name,id}; ls.set("gc-me",P);
+  history.replaceState(null,"","?code="+code+(LOCAL?"&local":""));
+  showView("vPad");
+  $("meBar").innerHTML='<span class="dot" style="background:var(--panel-hi)"></span><span>'+esc(name)+'</span>';
+  $("padCard").innerHTML='<div class="wait"><div class="emoji">📲</div><h2>Joining room '+esc(code)+'…</h2></div>';
+  padLink=connect(code,padRecv,s=>{$("padStatus").textContent=s==="SUBSCRIBED"?"Connected to room "+code:s==="error"?"Couldn't connect. Check your internet and reload.":"Connecting…";
+    if(s==="SUBSCRIBED"){padLink.send({t:"join",id:P.id,name:P.name});clearTimeout(joinTimer);joinTimer=setTimeout(()=>{if(!padState)noRoom()},6000)}});
+  clearInterval(padTick);padTick=setInterval(()=>{
+    const t=$("pT");if(t)t.textContent=Math.max(0,Math.ceil((padEnds-Date.now())/1000))+"s";
+    if(padLink&&padState&&Date.now()%15000<1000)padLink.send({t:"ping",id:P.id});
+  },1000);
+}
+function noRoom(){
+  $("padCard").innerHTML='<div class="wait"><div class="emoji">🤷</div><h2>Room '+esc(P.code)+' not found</h2><p class="muted">Check the code on the TV. The host screen has to stay open.</p><button class="btn" id="retryBtn" type="button">Try another code</button></div>';
+  $("retryBtn").onclick=()=>{if(padLink)padLink.close();padLink=null;P=null;history.replaceState(null,"",location.pathname+(LOCAL?"?local":""));showView("vLanding")};
+}
+function padRecv(m){
+  if(!m)return;
+  if(m.t==="full"&&m.to===P.id){$("padCard").innerHTML='<div class="wait"><div class="emoji">🙅</div><h2>This room is full</h2><p class="muted">Up to '+MAXP+' players per game.</p></div>';padState={full:1};return}
+  if(m.t!=="state")return;
+  const s=m.s, prev=padState; padState=s; padEnds=Date.now()+(s.left||0);
+  const me=s.players.find(p=>p.id===P.id);
+  if(!me){padLink.send({t:"join",id:P.id,name:P.name});return}
+  // resend if a reply or vote got lost on the way
+  if(s.phase==="write"&&myText[s.round]&&!s.done.includes(P.id))padLink.send({t:"answer",id:P.id,r:s.round,text:myText[s.round]});
+  if(s.phase==="vote"&&myVote[s.round]&&!s.done.includes(P.id))padLink.send({t:"vote",id:P.id,r:s.round,oid:myVote[s.round]});
+  $("meBar").innerHTML='<span class="dot" style="background:'+me.color+'">'+initial(me.name)+'</span><span>'+esc(me.name)+'</span><span class="pts">'+me.score+' pts</span>';
+  // only redraw when the screen actually changes, so typing isn't interrupted
+  const key=s.phase+"|"+s.round+"|"+(s.done.includes(P.id)?1:0)+"|"+s.players.length+"|"+(s.phase==="final"?s.players.map(p=>p.score).join():"");
+  if(prev&&padRender.key===key)return; padRender.key=key; padRender(s,me);
+}
+function padRender(s,me){
+  const C=$("padCard"), isVip=s.players[0]&&s.players[0].id===P.id, timer='<span class="ptimer" id="pT">'+Math.max(0,Math.ceil((padEnds-Date.now())/1000))+'s</span>';
+  if(s.phase==="lobby"){
+    C.innerHTML='<div class="wait"><div class="emoji">💬</div><h2>You\'re in the chat!</h2><p class="muted">'+s.players.length+' player'+(s.players.length===1?'':'s')+' in <b>'+esc(s.chat)+'</b>. Watch the TV.</p>'
+      +(isVip?'<button class="btn" id="vipStart" type="button"'+(s.players.length<2?' disabled':'')+'>Everyone\'s in. Start!</button>'+(s.players.length<2?'<p class="muted">Waiting for at least one more player.</p>':''):'<p class="muted">The first player or the TV starts the game.</p>')+'</div>';
+    if(isVip)$("vipStart").onclick=()=>padLink.send({t:"start",id:P.id});
+  } else if(s.phase==="write"){
+    if(s.done.includes(P.id)){C.innerHTML='<div class="wait"><div class="emoji">📨</div><h2>Sent!</h2><p class="muted">"'+esc(myText[s.round]||"")+'"</p><p class="muted">Waiting on everyone else. '+timer+'</p></div>';return}
+    C.innerHTML='<div class="round" style="display:flex;justify-content:space-between"><span class="label">Round '+s.round+' of '+s.rounds+'</span>'+timer+'</div>'
+      +'<div class="npc"><small>'+esc(s.npc.name)+'</small>'+esc(s.npc.text)+'</div>'
+      +'<form id="ansForm" style="display:flex;flex-direction:column;gap:8px"><textarea id="ans" maxlength="'+MAXLEN+'" placeholder="Type your reply…" enterkeyhint="send"></textarea><div class="count" id="cnt">0 / '+MAXLEN+'</div><button class="btn" type="submit">Send reply</button></form>';
+    const ta=$("ans"); const draft=sessionStorage.getItem("gc-draft-"+s.round)||""; ta.value=draft; $("cnt").textContent=draft.length+" / "+MAXLEN;
+    ta.oninput=()=>{$("cnt").textContent=ta.value.length+" / "+MAXLEN;try{sessionStorage.setItem("gc-draft-"+s.round,ta.value)}catch(e){}};
+    ta.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("ansForm").requestSubmit()}};
+    $("ansForm").onsubmit=e=>{e.preventDefault();const v=ta.value.replace(/\s+/g," ").trim();if(!v){toast("Type something first");return}
+      myText[s.round]=v;padLink.send({t:"answer",id:P.id,r:s.round,text:v});C.innerHTML='<div class="wait"><div class="emoji">📨</div><h2>Sending…</h2></div>';};
+  } else if(s.phase==="vote"){
+    if(s.done.includes(P.id)){C.innerHTML='<div class="wait"><div class="emoji">🗳️</div><h2>Vote locked in</h2><p class="muted">Results are coming up on the TV. '+timer+'</p></div>';return}
+    const mine=myText[s.round], opts=s.opts.filter(o=>!(mine&&o.text===mine.slice(0,MAXLEN))&&o.k!==P.id.slice(-4));
+    if(!opts.length){C.innerHTML='<div class="wait"><div class="emoji">👀</div><h2>Your reply is on the ballot</h2><p class="muted">Everyone else is voting. '+timer+'</p></div>';return}
+    C.innerHTML='<div class="round" style="display:flex;justify-content:space-between"><span class="label">Pick the funniest reply</span>'+timer+'</div><div class="npc"><small>'+esc(s.npc.name)+'</small>'+esc(s.npc.text)+'</div><div class="vote">'
+      +opts.map(o=>'<button type="button" data-o="'+o.oid+'">'+esc(o.text)+'</button>').join("")+'</div>';
+    C.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{b.classList.add("pick");myVote[s.round]=b.dataset.o;padLink.send({t:"vote",id:P.id,r:s.round,oid:b.dataset.o})});
+  } else if(s.phase==="reveal"){
+    const mine=(s.res||[]).find(r=>r.by===P.id), won=mine&&mine.oid===s.win;
+    C.innerHTML='<div class="wait"><div class="emoji">'+(won?'🔥':mine?'📉':'👀')+'</div><h2>'+(won?'Your reply got sent!':mine?mine.v+' vote'+(mine.v===1?'':'s')+' for you':'Look at the TV')+'</h2><p class="muted">'+(won?'+'+(mine.v*100+(mine.v>0&&s.res.length>1?50:0))+' points':mine?'+'+mine.v*100+' points':'Results are up.')+'</p></div>';
+  } else if(s.phase==="final"){
+    const rank=s.players.slice().sort((a,b)=>b.score-a.score), place=rank.findIndex(p=>p.id===P.id)+1;
+    C.innerHTML='<div class="wait"><div class="emoji">'+(place===1?'🏆':place===rank.length?'🫠':'📱')+'</div><h2>'+(place===1?'You\'re the MVP texter!':'You finished #'+place+' of '+rank.length)+'</h2><p class="muted">'+me.score+' points</p>'
+      +(isVip?'<button class="btn" id="vipAgain" type="button">New group chat</button>':'<p class="muted">Waiting for the next chat…</p>')+'</div>';
+    if(isVip)$("vipAgain").onclick=()=>padLink.send({t:"again",id:P.id});
+  }
+}
+
+// ---------- views & startup ----------
+function showView(v){["vLanding","vTV","vPad"].forEach(x=>$(x).hidden=x!==v)}
+$("hostBtn").onclick=()=>hostStart(newCode());
+$("joinCode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)});
+$("joinForm").onsubmit=e=>{
+  e.preventDefault();
+  const code=$("joinCode").value.trim().toUpperCase(), name=$("joinName").value.replace(/\s+/g," ").trim().slice(0,12);
+  if(code.length!==4){$("joinErr").textContent="Room codes are 4 letters.";return}
+  if(!name){$("joinErr").textContent="Pick a name so your friends know it's you.";return}
+  $("joinErr").textContent=""; ls.set("gc-name",name); padStart(code,name);
+};
+(function boot(){
+  const q=new URLSearchParams(location.search), hc=(q.get("host")||"").toUpperCase(), jc=(q.get("code")||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4);
+  const nm=ls.get("gc-name"); if(nm)$("joinName").value=nm;
+  if(hc){const saved=ls.get("gc-host");hostStart(hc,saved&&saved.code===hc?saved:null);return}
+  if(jc){$("joinCode").value=jc;const me=ls.get("gc-me");if(me&&me.code===jc&&me.name){padStart(jc,me.name);return}$("joinName").focus()}
+})();
+})();
+</script>
+</body>
+</html>
