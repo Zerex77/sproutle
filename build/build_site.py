@@ -139,7 +139,6 @@ GAMES = [
     ('imposter', 'Imposter', 'Daily odd-one-out · 2 min', 'Five rows of four suspects. Three share a secret. Spot the one that doesn\'t belong.', 'Play Imposter', '/imposter/icon-192.png', True),
     ('gridiron', 'Gridiron Golf', 'Daily NFL trivia · 3 min', 'One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.', 'Play Gridiron Golf', '/gridiron/icon-192.png', True),
     ('almamater', 'Alma Mater', 'Daily NFL puzzle · 2 min', "Eleven starters drawn up in their college colors. Name the NFL team in four guesses. Endless mode too.", 'Play Alma Mater', '/almamater/icon-192.png', True),
-    ('zachbox', 'Zach Box Games', 'Party games · 2–10 players', "Loud, messy party games for the TV and your phones, hosted by Wobbles. Starring Group Chat Disaster.", 'Open Zach Box', '/zachbox/icon-192.png', False),
     ('critter-collector', 'Critter Collector', 'Zoo merge game · play anytime', "Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.", 'Play Critter Collector', '/critter-collector/icon-192.png', False),
 ]
 
