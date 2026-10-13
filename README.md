@@ -14,5 +14,6 @@ Live at https://playsproutle.com
 - `build/ballpark/` holds Ballpark, the daily number-guess puzzle (`PUZZLES` list: question, answer, unit, and `tol`, how close counts as a win). Copied to `docs/ballpark/`.
 - `build/imposter/` holds Imposter, the daily odd-one-out puzzle (`CASES` list, five rows per day, easiest first). Copied to `docs/imposter/`.
 - `build/gridiron/` holds Gridiron Golf, the daily NFL trivia game (a seeded daily hole plus an endless mode). Every category is listed in `categories.json` (add one there and the weekly update fills it in for every player since 1999). The page is `index.src.html`; the build fills it with `players.json`. Stats since 1999 come from nflverse, and pre-1999 careers (the `L:` rows) come from Pro Football Reference's career leaders. Every Tuesday the `Update Gridiron Golf stats` GitHub Action runs `update_stats.py` to refresh active players and republish. Run it by hand from the Actions tab any time.
+- `build/almamater/` holds Alma Mater, the daily guess-the-team puzzle: an NFL starting offense drawn as O's in each player's college colors. Lineups are the `L` list in its script, and school colors and codes are the `S` map. Copied to `docs/almamater/`.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).

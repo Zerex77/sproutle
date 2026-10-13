@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#006778">
+<meta name="description" content="Alma Mater: a free daily NFL puzzle. See a starting offense drawn up in each player's college colors and name the team in four guesses.">
+<link rel="canonical" href="https://playsproutle.com/almamater/">
+<meta property="og:title" content="Alma Mater">
+<meta property="og:description" content="Eleven starters. Only their colleges. Name the NFL team. A new lineup every day.">
+<meta property="og:url" content="https://playsproutle.com/almamater/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/almamater/icon-512.png">
+<link rel="icon" type="image/png" href="/almamater/icon-192.png">
+<link rel="apple-touch-icon" href="/almamater/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Alma Mater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column — scoreboard header, the lineup on a turf panel, then a 32-team guess board grouped by division */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --fg:#0f1b1d; --muted:#5b6b6e; --line:#d5dfe0;
+  --teal:#006778; --teal-d:#004f5c; --gold:#d7a22a; --turf:#0c3b33; --turf2:#0f463c; --chalk:#e9f3ef;
+  --bad:#b23a32; --good:#1f8a4c;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1213; --surface:#142022; --fg:#e8efef; --muted:#93a5a8; --line:#25363a;
+  --teal:#1aa0b3; --teal-d:#0e7f90; --gold:#e3b347; --turf:#0a2a25; --turf2:#0d332c; --chalk:#d8e8e2;
+  --bad:#e0645a; --good:#3cbf73; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1213; --surface:#142022; --fg:#e8efef; --muted:#93a5a8; --line:#25363a;
+  --teal:#1aa0b3; --teal-d:#0e7f90; --gold:#e3b347; --turf:#0a2a25; --turf2:#0d332c; --chalk:#d8e8e2;
+  --bad:#e0645a; --good:#3cbf73; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:18px 40px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:2.4rem;letter-spacing:.02em;text-transform:uppercase;line-height:1;margin:0;color:var(--teal)}
+h1 span{color:var(--gold)}
+.tag{margin:4px 0 0;color:var(--muted);font-size:.9rem;max-width:40ch}
+.modes{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.modes button{font:600 .85rem var(--body);padding:7px 14px;border:0;background:var(--surface);color:var(--fg);cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--teal);color:#fff}
+.status{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--teal)}
+.dot.used{background:var(--bad);border-color:var(--bad)}
+.dot.win{background:var(--good);border-color:var(--good)}
+.status b{color:var(--fg);font-variant-numeric:tabular-nums}
+.field{background:repeating-linear-gradient(0deg,var(--turf) 0 34px,var(--turf2) 34px 68px);border-radius:14px;padding:14px 12px 16px;display:flex;flex-direction:column;gap:12px;color:var(--chalk);position:relative;overflow:hidden}
+.field svg{width:100%;height:auto;display:block}
+.field svg text{font-family:var(--display)}
+.roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;font-size:.84rem;margin:0;padding:0;list-style:none}
+.roster li{min-width:0;overflow-wrap:anywhere}
+.roster b{font-family:var(--display);color:var(--gold);letter-spacing:.05em;margin-right:4px}
+.roster span{opacity:.7}
+.hints{display:flex;flex-wrap:wrap;gap:6px}
+.hint{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.hint.on{color:var(--fg);border-color:var(--gold)}
+.hint.on b{color:var(--teal)}
+.msg{min-height:1.4em;font-weight:600;margin:0}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.div h3{margin:0;font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.teams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.t{font:800 .95rem var(--display);letter-spacing:.04em;padding:9px 0;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.t:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
+.t:focus-visible,.modes button:focus-visible,.next:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.t:disabled{cursor:default}
+.t.wrong{background:transparent;color:var(--bad);text-decoration:line-through;opacity:.6}
+.t.right{background:var(--good);border-color:var(--good);color:#fff}
+.t.answer{border:2px solid var(--good);color:var(--good)}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.result h2{margin:0;font-family:var(--display);font-weight:800;font-size:1.5rem;text-transform:uppercase;letter-spacing:.02em}
+.next{align-self:flex-start;font:700 .95rem var(--body);padding:10px 18px;border-radius:999px;border:0;background:var(--teal);color:#fff;cursor:pointer}
+.share{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;white-space:pre-wrap;margin:0}
+.foot{font-size:.78rem;color:var(--muted)}
+@media (max-width:420px){.board{grid-template-columns:minmax(0,1fr)}h1{font-size:2rem}.roster{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.o{animation:in .4s ease both}@keyframes in{from{opacity:0}to{opacity:1}}}
+.hbtns{display:flex;gap:8px;align-items:center}
+.ibtn{width:36px;height:36px;display:grid;place-items:center;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+.ibtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#slb{border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Alma <span>Mater</span></h1>
+      <p class="tag">An NFL starting offense from 2010 to today, drawn up in its school colors. Every O is a player's college. Name the team.</p>
+    </div>
+    <div class="hbtns">
+    <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+    <div class="modes" role="group" aria-label="Mode">
+      <button id="mDaily" aria-pressed="true">Daily</button>
+      <button id="mEndless" aria-pressed="false">Endless</button>
+    </div>
+    </div>
+  </header>
+
+  <div class="status">
+    <div class="dots" id="dots" aria-label="Guesses left"></div>
+    <span id="stat"></span>
+  </div>
+
+  <section class="field" aria-label="Starting lineup">
+    <div id="formation"></div>
+    <ul class="roster" id="roster" hidden></ul>
+  </section>
+
+  <div class="hints" id="hints"></div>
+  <p class="msg" id="msg" aria-live="polite"></p>
+  <div id="result" hidden></div>
+  <div class="board" id="board"></div>
+  <p class="foot">Lineups use each team's most common starters that season, playoff starters where it mattered. Four guesses; each miss unlocks a clue.</p>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+const DIVS={"AFC East":["BUF","MIA","NE","NYJ"],"AFC North":["BAL","CIN","CLE","PIT"],"AFC South":["HOU","IND","JAX","TEN"],"AFC West":["DEN","KC","LV","LAC"],"NFC East":["DAL","NYG","PHI","WAS"],"NFC North":["CHI","DET","GB","MIN"],"NFC South":["ATL","CAR","NO","TB"],"NFC West":["ARI","LAR","SF","SEA"]};
+const NAMES={BUF:"Bills",MIA:"Dolphins",NE:"Patriots",NYJ:"Jets",BAL:"Ravens",CIN:"Bengals",CLE:"Browns",PIT:"Steelers",HOU:"Texans",IND:"Colts",JAX:"Jaguars",TEN:"Titans",DEN:"Broncos",KC:"Chiefs",LV:"Raiders",LAC:"Chargers",DAL:"Cowboys",NYG:"Giants",PHI:"Eagles",WAS:"Commanders",CHI:"Bears",DET:"Lions",GB:"Packers",MIN:"Vikings",ATL:"Falcons",CAR:"Panthers",NO:"Saints",TB:"Buccaneers",ARI:"Cardinals",LAR:"Rams",SF:"49ers",SEA:"Seahawks"};
+const DIV_OF={};for(const[d,ts]of Object.entries(DIVS))ts.forEach(t=>DIV_OF[t]=d);
+
+// team, season, then "POS|Name|College" × 11 (skill players first, then LT LG C RG RT)
+const L=[
+["SEA",2013,"QB|Russell Wilson|Wisconsin","RB|Marshawn Lynch|California","FB|Michael Robinson|Penn State","WR|Golden Tate|Notre Dame","WR|Doug Baldwin|Stanford","TE|Zach Miller|Arizona State","LT|Russell Okung|Oklahoma State","LG|James Carpenter|Alabama","C|Max Unger|Oregon","RG|J.R. Sweezy|NC State","RT|Breno Giacomini|Louisville"],
+["DEN",2013,"QB|Peyton Manning|Tennessee","RB|Knowshon Moreno|Georgia","WR|Demaryius Thomas|Georgia Tech","WR|Eric Decker|Minnesota","WR|Wes Welker|Texas Tech","TE|Julius Thomas|Portland State","LT|Chris Clark|Southern Miss","LG|Zane Beadles|Utah","C|Manny Ramirez|Texas Tech","RG|Louis Vasquez|Texas Tech","RT|Orlando Franklin|Miami"],
+["CAR",2015,"QB|Cam Newton|Auburn","RB|Jonathan Stewart|Oregon","FB|Mike Tolbert|Coastal Carolina","WR|Ted Ginn Jr.|Ohio State","WR|Corey Brown|Ohio State","TE|Greg Olsen|Miami","LT|Michael Oher|Ole Miss","LG|Andrew Norwell|Ohio State","C|Ryan Kalil|USC","RG|Trai Turner|LSU","RT|Mike Remmers|Oregon State"],
+["KC",2019,"QB|Patrick Mahomes|Texas Tech","RB|Damien Williams|Oklahoma","WR|Tyreek Hill|West Alabama","WR|Sammy Watkins|Clemson","WR|Mecole Hardman|Georgia","TE|Travis Kelce|Cincinnati","LT|Eric Fisher|Central Michigan","LG|Stefen Wisniewski|Penn State","C|Austin Reiter|South Florida","RG|Laurent Duvernay-Tardif|McGill (Canada)","RT|Mitchell Schwartz|California"],
+["ATL",2016,"QB|Matt Ryan|Boston College","RB|Devonta Freeman|Florida State","WR|Julio Jones|Alabama","WR|Mohamed Sanu|Rutgers","WR|Taylor Gabriel|Abilene Christian","TE|Austin Hooper|Stanford","LT|Jake Matthews|Texas A&M","LG|Andy Levitre|Oregon State","C|Alex Mack|California","RG|Chris Chester|Oklahoma","RT|Ryan Schraeder|Valdosta State"],
+["NE",2016,"QB|Tom Brady|Michigan","RB|LeGarrette Blount|Oregon","WR|Julian Edelman|Kent State","WR|Chris Hogan|Monmouth","WR|Malcolm Mitchell|Georgia","TE|Martellus Bennett|Texas A&M","LT|Nate Solder|Colorado","LG|Joe Thuney|NC State","C|David Andrews|Georgia","RG|Shaq Mason|Georgia Tech","RT|Marcus Cannon|TCU"],
+["PHI",2017,"QB|Carson Wentz|North Dakota State","RB|LeGarrette Blount|Oregon","WR|Alshon Jeffery|South Carolina","WR|Nelson Agholor|USC","WR|Torrey Smith|Maryland","TE|Zach Ertz|Stanford","LT|Halapoulivaati Vaitai|TCU","LG|Stefen Wisniewski|Penn State","C|Jason Kelce|Cincinnati","RG|Brandon Brooks|Miami (OH)","RT|Lane Johnson|Oklahoma"],
+["LAR",2018,"QB|Jared Goff|California","RB|Todd Gurley|Georgia","WR|Brandin Cooks|Oregon State","WR|Robert Woods|USC","WR|Cooper Kupp|Eastern Washington","TE|Tyler Higbee|Western Kentucky","LT|Andrew Whitworth|LSU","LG|Rodger Saffold|Indiana","C|John Sullivan|Notre Dame","RG|Austin Blythe|Iowa","RT|Rob Havenstein|Wisconsin"],
+["TB",2020,"QB|Tom Brady|Michigan","RB|Ronald Jones II|USC","WR|Mike Evans|Texas A&M","WR|Chris Godwin|Penn State","WR|Antonio Brown|Central Michigan","TE|Rob Gronkowski|Arizona","LT|Donovan Smith|Penn State","LG|Ali Marpet|Hobart","C|Ryan Jensen|Colorado State-Pueblo","RG|Alex Cappa|Humboldt State","RT|Tristan Wirfs|Iowa"],
+["CIN",2021,"QB|Joe Burrow|LSU","RB|Joe Mixon|Oklahoma","WR|Ja'Marr Chase|LSU","WR|Tee Higgins|Clemson","WR|Tyler Boyd|Pittsburgh","TE|C.J. Uzomah|Auburn","LT|Jonah Williams|Alabama","LG|Quinton Spain|West Virginia","C|Trey Hopkins|Texas","RG|Hakeem Adeniji|Kansas","RT|Isaiah Prince|Ohio State"],
+["PHI",2022,"QB|Jalen Hurts|Oklahoma","RB|Miles Sanders|Penn State","WR|A.J. Brown|Ole Miss","WR|DeVonta Smith|Alabama","WR|Quez Watkins|Southern Miss","TE|Dallas Goedert|South Dakota State","LT|Jordan Mailata|None (rugby)","LG|Landon Dickerson|Alabama","C|Jason Kelce|Cincinnati","RG|Isaac Seumalo|Oregon State","RT|Lane Johnson|Oklahoma"],
+["SF",2023,"QB|Brock Purdy|Iowa State","RB|Christian McCaffrey|Stanford","FB|Kyle Juszczyk|Harvard","WR|Deebo Samuel|South Carolina","WR|Brandon Aiyuk|Arizona State","TE|George Kittle|Iowa","LT|Trent Williams|Oklahoma","LG|Aaron Banks|Notre Dame","C|Jake Brendel|UCLA","RG|Spencer Burford|UTSA","RT|Colton McKivitz|West Virginia"],
+["DET",2023,"QB|Jared Goff|California","RB|David Montgomery|Iowa State","WR|Amon-Ra St. Brown|USC","WR|Jameson Williams|Alabama","WR|Josh Reynolds|Texas A&M","TE|Sam LaPorta|Iowa","LT|Taylor Decker|Ohio State","LG|Jonah Jackson|Ohio State","C|Frank Ragnow|Arkansas","RG|Graham Glasgow|Michigan","RT|Penei Sewell|Oregon"],
+["JAX",2017,"QB|Blake Bortles|UCF","RB|Leonard Fournette|LSU","WR|Marqise Lee|USC","WR|Keelan Cole|Kentucky Wesleyan","WR|Dede Westbrook|Oklahoma","TE|Marcedes Lewis|UCLA","LT|Cam Robinson|Alabama","LG|Patrick Omameh|Delaware","C|Brandon Linder|Miami","RG|A.J. Cann|South Carolina","RT|Jermey Parnell|Ole Miss"],
+["JAX",2022,"QB|Trevor Lawrence|Clemson","RB|Travis Etienne|Clemson","WR|Christian Kirk|Texas A&M","WR|Zay Jones|East Carolina","WR|Marvin Jones|California","TE|Evan Engram|Ole Miss","LT|Cam Robinson|Alabama","LG|Tyler Shatley|Clemson","C|Luke Fortner|Kentucky","RG|Brandon Scherff|Iowa","RT|Jawaan Taylor|Florida"],
+["GB",2010,"QB|Aaron Rodgers|California","RB|Brandon Jackson|Nebraska","WR|Greg Jennings|Western Michigan","WR|Donald Driver|Alcorn State","WR|James Jones|San Jose State","TE|Andrew Quarless|Penn State","LT|Chad Clifton|Tennessee","LG|Daryn Colledge|Boise State","C|Scott Wells|Tennessee","RG|Josh Sitton|UCF","RT|Bryan Bulaga|Iowa"],
+["PIT",2010,"QB|Ben Roethlisberger|Miami (OH)","RB|Rashard Mendenhall|Illinois","WR|Hines Ward|Georgia","WR|Mike Wallace|Ole Miss","WR|Emmanuel Sanders|SMU","TE|Heath Miller|Virginia","LT|Jonathan Scott|Texas","LG|Chris Kemoeatu|BYU","C|Maurkice Pouncey|Florida","RG|Ramon Foster|Tennessee","RT|Flozell Adams|Michigan State"],
+["NYG",2011,"QB|Eli Manning|Ole Miss","RB|Ahmad Bradshaw|Marshall","WR|Victor Cruz|UMass","WR|Hakeem Nicks|North Carolina","WR|Mario Manningham|Michigan","TE|Jake Ballard|Ohio State","LT|David Diehl|Illinois","LG|Kevin Boothe|Cornell","C|David Baas|Michigan","RG|Chris Snee|Boston College","RT|Kareem McKenzie|Penn State"],
+["BAL",2012,"QB|Joe Flacco|Delaware","RB|Ray Rice|Rutgers","WR|Anquan Boldin|Florida State","WR|Torrey Smith|Maryland","WR|Jacoby Jones|Lane College","TE|Dennis Pitta|BYU","LT|Bryant McKinnie|Miami","LG|Kelechi Osemele|Iowa State","C|Matt Birk|Harvard","RG|Marshal Yanda|Iowa","RT|Michael Oher|Ole Miss"],
+["SF",2012,"QB|Colin Kaepernick|Nevada","RB|Frank Gore|Miami","FB|Bruce Miller|UCF","WR|Michael Crabtree|Texas Tech","WR|Randy Moss|Marshall","TE|Vernon Davis|Maryland","LT|Joe Staley|Central Michigan","LG|Mike Iupati|Idaho","C|Jonathan Goodwin|Michigan","RG|Alex Boone|Ohio State","RT|Anthony Davis|Rutgers"],
+["DAL",2014,"QB|Tony Romo|Eastern Illinois","RB|DeMarco Murray|Oklahoma","WR|Dez Bryant|Oklahoma State","WR|Terrance Williams|Baylor","WR|Cole Beasley|SMU","TE|Jason Witten|Tennessee","LT|Tyron Smith|USC","LG|Ronald Leary|Memphis","C|Travis Frederick|Wisconsin","RG|Zack Martin|Notre Dame","RT|Doug Free|Northern Illinois"],
+["DEN",2015,"QB|Peyton Manning|Tennessee","RB|C.J. Anderson|California","WR|Demaryius Thomas|Georgia Tech","WR|Emmanuel Sanders|SMU","WR|Jordan Norwood|Penn State","TE|Owen Daniels|Wisconsin","LT|Ryan Harris|Notre Dame","LG|Evan Mathis|Alabama","C|Matt Paradis|Boise State","RG|Louis Vasquez|Texas Tech","RT|Michael Schofield|Michigan"],
+["NO",2018,"QB|Drew Brees|Purdue","RB|Alvin Kamara|Tennessee","WR|Michael Thomas|Ohio State","WR|Ted Ginn Jr.|Ohio State","WR|Tre'Quan Smith|UCF","TE|Ben Watson|Georgia","LT|Terron Armstead|Arkansas-Pine Bluff","LG|Andrus Peat|Stanford","C|Max Unger|Oregon","RG|Larry Warford|Kentucky","RT|Ryan Ramczyk|Wisconsin"],
+["BAL",2019,"QB|Lamar Jackson|Louisville","RB|Mark Ingram|Alabama","WR|Marquise Brown|Oklahoma","WR|Willie Snead|Ball State","TE|Mark Andrews|Oklahoma","TE|Hayden Hurst|South Carolina","LT|Ronnie Stanley|Notre Dame","LG|Bradley Bozeman|Alabama","C|Matt Skura|Duke","RG|Marshal Yanda|Iowa","RT|Orlando Brown Jr.|Oklahoma"],
+["BUF",2020,"QB|Josh Allen|Wyoming","RB|Devin Singletary|Florida Atlantic","WR|Stefon Diggs|Maryland","WR|Cole Beasley|SMU","WR|John Brown|Pittsburg State","TE|Dawson Knox|Ole Miss","LT|Dion Dawkins|Temple","LG|Cody Ford|Oklahoma","C|Mitch Morse|Missouri","RG|Jon Feliciano|Miami","RT|Daryl Williams|Oklahoma"],
+["LAR",2021,"QB|Matthew Stafford|Georgia","RB|Sony Michel|Georgia","WR|Cooper Kupp|Eastern Washington","WR|Odell Beckham Jr.|LSU","WR|Van Jefferson|Florida","TE|Tyler Higbee|Western Kentucky","LT|Andrew Whitworth|LSU","LG|David Edwards|Wisconsin","C|Brian Allen|Michigan State","RG|Austin Corbett|Nevada","RT|Rob Havenstein|Wisconsin"],
+["KC",2022,"QB|Patrick Mahomes|Texas Tech","RB|Isiah Pacheco|Rutgers","WR|JuJu Smith-Schuster|USC","WR|Marquez Valdes-Scantling|South Florida","WR|Kadarius Toney|Florida","TE|Travis Kelce|Cincinnati","LT|Orlando Brown Jr.|Oklahoma","LG|Joe Thuney|NC State","C|Creed Humphrey|Oklahoma","RG|Trey Smith|Tennessee","RT|Andrew Wylie|Eastern Michigan"],
+["PHI",2024,"QB|Jalen Hurts|Oklahoma","RB|Saquon Barkley|Penn State","WR|A.J. Brown|Ole Miss","WR|DeVonta Smith|Alabama","WR|Jahan Dotson|Penn State","TE|Dallas Goedert|South Dakota State","LT|Jordan Mailata|None (rugby)","LG|Landon Dickerson|Alabama","C|Cam Jurgens|Nebraska","RG|Mekhi Becton|Louisville","RT|Lane Johnson|Oklahoma"],
+["DET",2024,"QB|Jared Goff|California","RB|Jahmyr Gibbs|Alabama","WR|Amon-Ra St. Brown|USC","WR|Jameson Williams|Alabama","WR|Tim Patrick|Utah","TE|Sam LaPorta|Iowa","LT|Taylor Decker|Ohio State","LG|Graham Glasgow|Michigan","C|Frank Ragnow|Arkansas","RG|Kevin Zeitler|Wisconsin","RT|Penei Sewell|Oregon"],
+["MIN",2017,"QB|Case Keenum|Houston","RB|Latavius Murray|UCF","WR|Adam Thielen|Minnesota State","WR|Stefon Diggs|Maryland","WR|Jarius Wright|Arkansas","TE|Kyle Rudolph|Notre Dame","LT|Riley Reiff|Iowa","LG|Nick Easton|Harvard","C|Pat Elflein|Ohio State","RG|Joe Berger|Michigan Tech","RT|Mike Remmers|Oregon State"],
+["GB",2020,"QB|Aaron Rodgers|California","RB|Aaron Jones|UTEP","WR|Davante Adams|Fresno State","WR|Allen Lazard|Iowa State","WR|Marquez Valdes-Scantling|South Florida","TE|Robert Tonyan|Indiana State","LT|David Bakhtiari|Colorado","LG|Elgton Jenkins|Mississippi State","C|Corey Linsley|Ohio State","RG|Lucas Patrick|Duke","RT|Billy Turner|North Dakota State"],
+["TEN",2019,"QB|Ryan Tannehill|Texas A&M","RB|Derrick Henry|Alabama","WR|A.J. Brown|Ole Miss","WR|Corey Davis|Western Michigan","WR|Adam Humphries|Clemson","TE|Jonnu Smith|FIU","LT|Taylor Lewan|Michigan","LG|Rodger Saffold|Indiana","C|Ben Jones|Georgia","RG|Nate Davis|Charlotte","RT|Jack Conklin|Michigan State"],
+["WAS",2024,"QB|Jayden Daniels|LSU","RB|Brian Robinson Jr.|Alabama","WR|Terry McLaurin|Ohio State","WR|Olamide Zaccheaus|Virginia","WR|Noah Brown|Ohio State","TE|Zach Ertz|Stanford","LT|Brandon Coleman|TCU","LG|Nick Allegretti|Illinois","C|Tyler Biadasz|Wisconsin","RG|Sam Cosmi|Texas","RT|Andrew Wylie|Eastern Michigan"],
+["BUF",2024,"QB|Josh Allen|Wyoming","RB|James Cook|Georgia","WR|Khalil Shakir|Boise State","WR|Keon Coleman|Florida State","WR|Mack Hollins|North Carolina","TE|Dalton Kincaid|Utah","LT|Dion Dawkins|Temple","LG|David Edwards|Wisconsin","C|Connor McGovern|Penn State","RG|O'Cyrus Torrence|Florida","RT|Spencer Brown|Northern Iowa"],
+["DAL",2021,"QB|Dak Prescott|Mississippi State","RB|Ezekiel Elliott|Ohio State","WR|CeeDee Lamb|Oklahoma","WR|Amari Cooper|Alabama","WR|Michael Gallup|Colorado State","TE|Dalton Schultz|Stanford","LT|Tyron Smith|USC","LG|Connor Williams|Texas","C|Tyler Biadasz|Wisconsin","RG|Zack Martin|Notre Dame","RT|Terence Steele|Texas Tech"],
+["NO",2011,"QB|Drew Brees|Purdue","RB|Pierre Thomas|Illinois","WR|Marques Colston|Hofstra","WR|Lance Moore|Toledo","WR|Devery Henderson|LSU","TE|Jimmy Graham|Miami","LT|Jermon Bushrod|Towson","LG|Carl Nicks|Nebraska","C|Brian de la Puente|California","RG|Jahri Evans|Bloomsburg","RT|Zach Strief|Northwestern"]
+].map(([team,year,...ps])=>({team,year,players:ps.map(s=>{const[pos,name,college]=s.split("|");return{pos,name,college}})}));
+
+const MAX=4;
+const OLPOS=["LT","LG","C","RG","RT"];
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+function dayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+// Puzzle No. 1 = Oct 13, 2026 (local date), shared with the other daily games
+const pNo=(()=>{const d=new Date();return Math.max(1,Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2026,9,13))/864e5)+1)})();
+function dailyIndex(){const n=pNo-1;
+  // fixed shuffle so consecutive days don't follow list order
+  const order=L.map((_,i)=>i);let s=7741;for(let i=order.length-1;i>0;i--){s=(s*16807)%2147483647;const j=s%(i+1);[order[i],order[j]]=[order[j],order[i]]}
+  return order[((n%L.length)+L.length)%L.length]}
+
+let mode="daily",cur,guesses,done,endless=store.get("am_endless",{streak:0,best:0,last:-1});
+
+function start(){
+  if(mode==="daily"){
+    cur=dailyIndex();
+    const saved=store.get("almamater-v1",null),d=saved&&saved.day;
+    guesses=d&&d.n===pNo?d.guesses.slice():[];
+  }else{
+    let i;do{i=Math.floor(Math.random()*L.length)}while(L.length>1&&i===endless.last);
+    cur=i;endless.last=i;guesses=[];
+  }
+  done=false;render();
+}
+function save(){if(mode!=="daily")return;const ans=L[cur].team,won=guesses.includes(ans),lost=!won&&guesses.length>=MAX;
+  store.set("almamater-v1",{day:{n:pNo,guesses,status:won?"won":lost?"lost":"playing"}})}
+
+// school → [code, fill, ring]
+const S={"Wisconsin":["WIS","#C5050C","#ffffff"],"California":["CAL","#003262","#FDB515"],"Penn State":["PSU","#041E42","#ffffff"],"Notre Dame":["ND","#0C2340","#C99700"],"Stanford":["STAN","#8C1515","#ffffff"],"Arizona State":["ASU","#8C1D40","#FFC627"],"Oklahoma State":["OKST","#FF7300","#000000"],"Alabama":["BAMA","#9E1B32","#ffffff"],"Oregon":["ORE","#154733","#FEE123"],"NC State":["NCST","#CC0000","#ffffff"],"Louisville":["LOU","#AD0000","#000000"],"Tennessee":["TENN","#FF8200","#ffffff"],"Georgia":["UGA","#BA0C2F","#000000"],"Georgia Tech":["GT","#003057","#B3A369"],"Minnesota":["MINN","#7A0019","#FFCC33"],"Texas Tech":["TTU","#CC0000","#000000"],"Portland State":["PRST","#154734","#ffffff"],"Southern Miss":["USM","#000000","#FFAB00"],"Utah":["UTAH","#CC0000","#ffffff"],"Miami":["MIA","#F47321","#005030"],"Auburn":["AUB","#0C2340","#E87722"],"Coastal Carolina":["CCU","#006F71","#A27752"],"Ohio State":["OSU","#BB0000","#A7B1B7"],"Ole Miss":["MISS","#CE1126","#14213D"],"USC":["USC","#990000","#FFC72C"],"LSU":["LSU","#461D7C","#FDD023"],"Oregon State":["ORST","#DC4405","#000000"],"Oklahoma":["OU","#841617","#FDF9D8"],"West Alabama":["UWA","#CC0000","#ffffff"],"Clemson":["CLEM","#F56600","#522D80"],"Cincinnati":["CIN","#E00122","#000000"],"Central Michigan":["CMU","#6A0032","#FFC82E"],"South Florida":["USF","#006747","#CFC493"],"McGill (Canada)":["MCG","#ED1B2F","#ffffff"],"Boston College":["BC","#8A100B","#BC9B6A"],"Florida State":["FSU","#782F40","#CEB888"],"Rutgers":["RU","#CC0033","#000000"],"Abilene Christian":["ACU","#4F2683","#ffffff"],"Texas A&M":["TAMU","#500000","#ffffff"],"Valdosta State":["VSU","#CC0000","#000000"],"Michigan":["MICH","#00274C","#FFCB05"],"Kent State":["KENT","#002664","#EAAB00"],"Monmouth":["MONM","#041E42","#ffffff"],"Colorado":["COLO","#000000","#CFB87C"],"TCU":["TCU","#4D1979","#ffffff"],"North Dakota State":["NDSU","#0A5640","#FFC72A"],"South Carolina":["SCAR","#73000A","#000000"],"Maryland":["MD","#E03A3E","#FFD520"],"Miami (OH)":["M-OH","#C3142D","#ffffff"],"Eastern Washington":["EWU","#A10022","#000000"],"Western Kentucky":["WKU","#C60C30","#ffffff"],"Indiana":["IND","#990000","#EEEDEB"],"Iowa":["IOWA","#000000","#FFCD00"],"Hobart":["HOB","#4B2E83","#F47C20"],"Colorado State-Pueblo":["CSUP","#CC0000","#00205B"],"Humboldt State":["HSU","#00553E","#FFD200"],"Pittsburgh":["PITT","#003594","#FFB81C"],"West Virginia":["WVU","#002855","#EAAA00"],"Texas":["TEX","#BF5700","#ffffff"],"Kansas":["KU","#0051BA","#E8000D"],"South Dakota State":["SDST","#0033A0","#FFD100"],"None (rugby)":["—","#5b6b6e","#ffffff"],"Iowa State":["ISU","#C8102E","#F1BE48"],"Harvard":["HARV","#A51C30","#ffffff"],"UCLA":["UCLA","#2D68C4","#F2A900"],"UTSA":["UTSA","#0C2340","#F15A22"],"Arkansas":["ARK","#9D2235","#ffffff"],"UCF":["UCF","#000000","#BA9B37"],"Kentucky Wesleyan":["KWC","#4F2D7F","#ffffff"],"Delaware":["DEL","#00539F","#FFD200"],"East Carolina":["ECU","#592A8A","#FDC82F"],"Florida":["FLA","#0021A5","#FA4616"],"Kentucky":["UK","#0033A0","#ffffff"],"Nebraska":["NEB","#E41C38","#ffffff"],"Western Michigan":["WMU","#6C4023","#B5A167"],"Alcorn State":["ALCN","#46166B","#E9A900"],"San Jose State":["SJSU","#0055A2","#E5A823"],"Boise State":["BSU","#0033A0","#D64309"],"Illinois":["ILL","#E84A27","#13294B"],"Virginia":["UVA","#232D4B","#F84C1E"],"BYU":["BYU","#002E5D","#ffffff"],"Michigan State":["MSU","#18453B","#ffffff"],"Marshall":["MRSH","#00B140","#ffffff"],"UMass":["MASS","#881C1C","#ffffff"],"North Carolina":["UNC","#7BAFD4","#13294B"],"Cornell":["COR","#B31B1B","#ffffff"],"Lane College":["LANE","#0F2C58","#C8102E"],"Nevada":["NEV","#003366","#807F84"],"Idaho":["IDHO","#000000","#B3A369"],"Eastern Illinois":["EIU","#004B83","#9A9A9A"],"Baylor":["BAY","#154734","#FFB81C"],"SMU":["SMU","#0033A0","#C8102E"],"Memphis":["MEM","#003087","#898D8D"],"Northern Illinois":["NIU","#BA0C2F","#000000"],"Purdue":["PUR","#000000","#CEB888"],"Arkansas-Pine Bluff":["UAPB","#000000","#FFC72C"],"Ball State":["BALL","#BA0C2F","#ffffff"],"Duke":["DUKE","#003087","#ffffff"],"Florida Atlantic":["FAU","#003366","#CC0000"],"Pittsburg State":["PITST","#CC0033","#FFCC00"],"Temple":["TEM","#9D2235","#ffffff"],"Missouri":["MIZ","#F1B82D","#000000"],"Eastern Michigan":["EMU","#006633","#ffffff"],"Minnesota State":["MNST","#4F2D7F","#FFC72C"],"Houston":["HOU","#C8102E","#ffffff"],"Fresno State":["FRES","#DB0032","#002E6D"],"UTEP":["UTEP","#FF8200","#041E42"],"Indiana State":["INST","#00669A","#ffffff"],"Mississippi State":["MSST","#660000","#ffffff"],"Michigan Tech":["MTU","#000000","#FFCD00"],"Northern Iowa":["UNI","#4B116F","#FFCC00"],"Charlotte":["CLT","#046A38","#ffffff"],"FIU":["FIU","#081E3F","#B6862C"],"Hofstra":["HOF","#003591","#FFD100"],"Toledo":["TOL","#15397F","#FFDA00"],"Towson":["TOW","#000000","#FFBB00"],"Bloomsburg":["BLOOM","#861F41","#FFC72C"],"Northwestern":["NW","#4E2A84","#ffffff"],"Colorado State":["CSU","#1E4D2B","#C8C372"],"Wyoming":["WYO","#492F24","#FFC425"],"Arizona":["ARIZ","#CC0033","#0C234B"]};
+function inkFor(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return(0.299*r+0.587*g+0.114*b)>165?"#111":"#fff"}
+function formation(q){
+  const LOS=86,R=17,by=p=>q.players.filter(x=>x.pos===p),one=p=>q.players.find(x=>x.pos===p);
+  const spots=[];const put=(p,x,y,lab)=>p&&spots.push({p,x,y,lab});
+  OLPOS.forEach((pos,i)=>put(one(pos),120+i*40,LOS,"top"));
+  const te=by("TE"),wr=by("WR"),fb=one("FB");
+  put(te[0],320,LOS,"top");put(te[1],80,LOS,"top");
+  put(wr[0],26,LOS,"top");put(wr[1],374,LOS,"top");put(wr[2],346,LOS+44,"side");
+  put(one("QB"),200,LOS+44,"side");
+  if(fb){put(fb,200,LOS+88,"side");put(one("RB"),200,LOS+132,"side")}else put(one("RB"),200,LOS+100,"side");
+  const H=LOS+(fb?160:128);
+  const xs=[60,130,200,270,340].map((x,i)=>`<g stroke="currentColor" stroke-width="2.5" opacity=".28"><line x1="${x-7}" y1="${26+(i%2)*8}" x2="${x+7}" y2="${40+(i%2)*8}"/><line x1="${x+7}" y1="${26+(i%2)*8}" x2="${x-7}" y2="${40+(i%2)*8}"/></g>`).join("");
+  const yard=[LOS-40,LOS+40,LOS+120].map(y=>`<line x1="0" x2="400" y1="${y}" y2="${y}" stroke="currentColor" opacity=".08"/>`).join("");
+  const o=spots.map(({p,x,y,lab},i)=>{const[code,fill,ring]=S[p.college]||[p.college.slice(0,4).toUpperCase(),"#5b6b6e","#ffffff"];
+    const fs=code.length>4?8.5:code.length>3?10:11.5;
+    const label=lab==="top"?`<text x="${x}" y="${y-R-6}" text-anchor="middle" font-size="10" font-weight="800" fill="var(--gold)" letter-spacing=".5">${p.pos}</text>`
+      :`<text x="${x+R+6}" y="${y+4}" font-size="10" font-weight="800" fill="var(--gold)" letter-spacing=".5">${p.pos}</text>`;
+    return`<g class="o" style="animation-delay:${i*30}ms"><circle cx="${x}" cy="${y}" r="${R}" fill="${fill}" stroke="${ring}" stroke-width="3.5"/><text x="${x}" y="${y+fs*0.36}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${inkFor(fill)}">${code}</text>${label}</g>`}).join("");
+  return`<svg viewBox="0 0 400 ${H}" role="img" aria-label="Offensive formation with each player's college colors" style="color:var(--chalk)">${yard}${xs}${o}</svg>`;
+}
+
+function render(){
+  const q=L[cur],ans=q.team,won=guesses.includes(ans),misses=guesses.filter(g=>g!==ans).length;
+  done=won||misses>=MAX;
+  $("formation").innerHTML=formation(q);
+  const ro=$("roster");ro.hidden=!done;
+  ro.innerHTML=done?q.players.map(p=>`<li><b>${p.pos}</b>${p.name} <span>· ${p.college}</span></li>`).join(""):"";
+  $("dots").innerHTML=Array.from({length:MAX},(_,i)=>`<span class="dot ${i<misses?"used":(won&&i===misses?"win":"")}"></span>`).join("");
+  $("stat").innerHTML=mode==="daily"?`Puzzle <b>No. ${pNo}</b>`:`Streak <b>${endless.streak}</b> · Best <b>${endless.best}</b>`;
+  const qb=q.players.find(p=>p.pos==="QB");
+  const clues=[["Season",q.year],["Division",DIV_OF[ans]],["QB",qb.name]];
+  $("hints").innerHTML=clues.map(([k,v],i)=>{const on=misses>i||done;return`<span class="hint ${on?"on":""}">${k}: <b>${on?v:"?"}</b></span>`}).join("");
+  const msg=$("msg");
+  if(won){msg.className="msg good";msg.textContent=misses?`Got it on guess ${misses+1}.`:"First try."}
+  else if(done){msg.className="msg bad";msg.textContent="Out of guesses."}
+  else if(misses){msg.className="msg bad";msg.textContent=`Not the ${NAMES[guesses[guesses.length-1]]}. Clue unlocked.`}
+  else{msg.className="msg";msg.textContent="Pick a team below."}
+  $("board").innerHTML=Object.entries(DIVS).map(([d,ts])=>`<div class="div"><h3>${d}</h3><div class="teams">${ts.map(t=>{
+    let c="";if(guesses.includes(t))c=t===ans?"right":"wrong";else if(done&&t===ans)c="answer";
+    return`<button class="t ${c}" data-t="${t}" ${done||guesses.includes(t)?"disabled":""} aria-label="${NAMES[t]}">${t}</button>`}).join("")}</div></div>`).join("");
+  const r=$("result");
+  if(done){
+    r.hidden=false;r.className="result";
+    const grid=guesses.map(g=>g===ans?"🟩":"🟥").join("");
+    const shareText=`Alma Mater ${mode==="daily"?"No. "+pNo:"Endless"} ${won?guesses.length:"X"}/${MAX}\n${grid}\nplaysproutle.com/almamater`;
+    r.innerHTML=`<h2>${q.year} ${NAMES[ans]}</h2>${mode==="daily"?`<pre class="share" id="share">${shareText}</pre><button class="next" id="copy">Copy result</button><div id="slb"></div>`:`<button class="next" id="again">Next lineup</button>`}`;
+    const c=$("copy");if(c)c.onclick=()=>{navigator.clipboard.writeText(shareText).then(()=>c.textContent="Copied").catch(()=>{const s=getSelection(),rg=document.createRange();rg.selectNodeContents($("share"));s.removeAllRanges();s.addRange(rg);c.textContent="Selected, copy it"})};
+    if(mode==="daily"&&window.SLB)SLB.mount($("slb"),{game:"almamater",day:pNo,score:guesses.length,eligible:won,fmt:n=>n+"/"+MAX,note:"Fewest guesses wins. Ties go to the fastest.",accent:"var(--teal)",accentInk:"#fff",detail:{team:ans,year:q.year,guesses},renderDetail:d=>d.guesses.map(g=>(g===d.team?"🟩 ":"🟥 ")+NAMES[g]).join("<br>")});
+    const a=$("again");if(a)a.onclick=()=>{start();window.scrollTo({top:0,behavior:"smooth"})};
+  }else r.hidden=true;
+}
+
+$("board").addEventListener("click",e=>{
+  const b=e.target.closest(".t");if(!b||done)return;
+  guesses.push(b.dataset.t);
+  if(mode==="daily"&&window.SLB){if(guesses.length===1)SLB.start("almamater",pNo)}
+  const ans=L[cur].team,won=b.dataset.t===ans,lost=!won&&guesses.filter(g=>g!==ans).length>=MAX;
+  if(mode==="endless"&&(won||lost)){endless.streak=won?endless.streak+1:0;endless.best=Math.max(endless.best,endless.streak)}
+  if(mode==="daily"&&(won||lost)&&window.SLB)SLB.stop("almamater",pNo);
+  store.set("am_endless",endless);save();render();
+});
+function setMode(m){mode=m;$("mDaily").setAttribute("aria-pressed",m==="daily");$("mEndless").setAttribute("aria-pressed",m==="endless");start()}
+$("mDaily").onclick=()=>setMode("daily");$("mEndless").onclick=()=>setMode("endless");
+start();
+</script>
+</body>
+</html>

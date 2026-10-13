@@ -161,6 +161,7 @@ GAMES = [
     ('ballpark', 'Ballpark', 'Daily number puzzle · 1 min', 'One question, five guesses. Get close enough to the real number and you\'re in the ballpark.', 'Play Ballpark', '/ballpark/icon-192.png', True),
     ('imposter', 'Imposter', 'Daily odd-one-out · 2 min', 'Five rows of four suspects. Three share a secret. Spot the one that doesn\'t belong.', 'Play Imposter', '/imposter/icon-192.png', True),
     ('gridiron', 'Gridiron Golf', 'Daily NFL trivia · 3 min', 'One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.', 'Play Gridiron Golf', '/gridiron/icon-192.png', True),
+    ('almamater', 'Alma Mater', 'Daily NFL puzzle · 2 min', "Eleven starters drawn up in their college colors. Name the NFL team in four guesses. Endless mode too.", 'Play Alma Mater', '/almamater/icon-192.png', True),
     ('critter-collector', 'Critter Collector', 'Zoo merge game · play anytime', "Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.", 'Play Critter Collector', '/critter-collector/icon-192.png', False),
 ]
 
@@ -206,7 +207,8 @@ HOME_JS = """<script>
     trailhead(){const s=get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
     ballpark(){const s=get("ballpark-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     imposter(){const s=get("imposter-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},
-    gridiron(){const s=get("gridiron-v2");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0}
+    gridiron(){const s=get("gridiron-v2");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},
+    almamater(){const s=get("almamater-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0}
   };
   let done=0,total=0;
   document.querySelectorAll("[data-status]").forEach(b=>{
@@ -240,7 +242,7 @@ HOME_BODY = ('''
 </main>''')
 
 home = page('Sproutle: free daily puzzle games',
-            'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, and merge animals in Critter Collector.',
+            'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, name the team from its colleges in Alma Mater, and merge animals in Critter Collector.',
             '/', HOME_BODY, button='')
 home = home.replace('</head>', HOME_CSS + '</head>', 1).replace('</body>', HOME_JS + '</body>', 1)
 
@@ -277,7 +279,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/critter-collector/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/critter-collector/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -302,8 +304,8 @@ shutil.copytree(os.path.join(D, 'ranked'), os.path.join(OUT, 'ranked'), dirs_exi
 shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), dirs_exist_ok=True)
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
-# Ballpark and Imposter are separate daily games, copied as-is from build/ballpark/ and build/imposter/
-for g in ('ballpark', 'imposter'):
+# Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
+for g in ('ballpark', 'imposter', 'almamater'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')
