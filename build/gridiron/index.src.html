@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#006778">
+<meta name="description" content="Gridiron Golf: a free daily NFL trivia game. Name five players whose career stats add up closest to the pin. Plus an endless mode.">
+<link rel="canonical" href="https://playsproutle.com/gridiron/">
+<meta property="og:title" content="Gridiron Golf">
+<meta property="og:description" content="One stat. One pin. Name five NFL players whose career totals land closest to it.">
+<meta property="og:url" content="https://playsproutle.com/gridiron/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/gridiron/icon-512.png">
+<link rel="icon" type="image/png" href="/gridiron/icon-192.png">
+<link rel="apple-touch-icon" href="/gridiron/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Gridiron Golf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one narrow column like a golf scorecard. The hole card up top (stat + pin), a yardage strip showing how far your total is from the pin, five numbered pick slots, and the entry box at the bottom. */
+:root{
+  --bg:#E8F0F1; --surface:#FBFDFD; --ink:#101820; --muted:#4D6168; --line:#C3D4D8;
+  --turf:#006778; --turf-ink:#FFFFFF; --turf-dim:#94CAD3; --sand:#D7A22A;
+  --flag:#D7A22A; --flag-ink:#101820; --pin:#101820; --err:#B8322A; --good:#1E8A5A;
+  --display:"Alfa Slab One", Rockwell, "Roboto Slab", Georgia, serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0A1317; --surface:#122127; --ink:#E7F0F1; --muted:#8EA8AE; --line:#22383F;
+  --turf:#005B6A; --turf-ink:#FFFFFF; --turf-dim:#7FBAC4; --sand:#E2B14A;
+  --flag:#E2B14A; --flag-ink:#101820; --pin:#101820; --err:#FF7A6E; --good:#3FBF82; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0A1317; --surface:#122127; --ink:#E7F0F1; --muted:#8EA8AE; --line:#22383F;
+  --turf:#005B6A; --turf-ink:#FFFFFF; --turf-dim:#7FBAC4; --sand:#E2B14A;
+  --flag:#E2B14A; --flag-ink:#101820; --pin:#101820; --err:#FF7A6E; --good:#3FBF82; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:10px 32px;display:flex;flex-direction:column;gap:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--flag);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mark{font-family:var(--display);font-size:24px;line-height:1;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.mark svg{width:26px;height:30px;flex:none}
+.hbtns{display:flex;gap:8px}
+.ibtn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--ink);text-decoration:none}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+/* Mode switch */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line)}
+.modes button{height:34px;border:none;border-radius:9px;background:transparent;font-weight:800;font-size:14px;color:var(--muted)}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.again{height:46px;border:none;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:800;font-size:16px}
+.estats{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.estats b{color:var(--ink)}
+
+/* Hole card */
+.hole{background:var(--turf);color:var(--turf-ink);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.hole::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.035) 22px 44px);pointer-events:none}
+.meta{display:flex;justify-content:space-between;gap:10px;white-space:nowrap;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--turf-dim);font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.stat{position:relative;z-index:1;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.stat b{font-size:19px;font-weight:800;line-height:1.2;text-wrap:balance}
+.pinrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.pinrow .lbl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--turf-dim)}
+.pin{font-family:var(--display);font-size:30px;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums}
+.pin small{font-family:var(--body);font-size:13px;font-weight:700;margin-left:6px;color:var(--turf-dim)}
+
+/* Yardage strip */
+.strip{position:relative;z-index:1;display:flex;flex-direction:column;gap:6px}
+.track{position:relative;height:22px;border-radius:11px;background:rgba(0,0,0,.18)}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:11px;background:var(--sand);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.flagpole{position:absolute;top:-8px;bottom:-4px;width:2px;background:var(--turf-ink)}
+.flagpole::before{content:"";position:absolute;left:2px;top:0;border-left:16px solid var(--pin);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.ballmk{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:left .5s cubic-bezier(.2,.8,.2,1)}
+.readout{display:flex;justify-content:space-between;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--turf-dim)}
+.readout b{color:var(--turf-ink)}
+
+/* Pick slots */
+.slots{display:flex;flex-direction:column;gap:5px;list-style:none;margin:0;padding:0}
+.slot{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:8px;min-height:44px;padding:4px 8px 4px 10px;border-radius:10px;background:var(--surface);border:2px solid var(--line)}
+.slot .n{font-family:var(--display);font-size:17px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slot .who{min-width:0;font-weight:700;font-size:16px;line-height:1.2}
+.slot .who span{display:block;font-size:13px;font-weight:500;color:var(--muted)}
+.slot .v{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.slot.empty{border-style:dashed;background:transparent}
+.slot.empty .who{color:var(--muted);font-weight:500;font-size:15px}
+.slot.next{border-color:var(--ink);border-style:solid}
+.slot.new{animation:land .4s ease}
+.mull{height:28px;padding:0 9px;border-radius:8px;border:1.5px solid var(--line);background:transparent;font-size:12px;font-weight:800;color:var(--muted)}
+.mull:hover{border-color:var(--ink);color:var(--ink)}
+.slot.gone{opacity:.55}
+.slot.gone .who{text-decoration:line-through}
+@keyframes land{0%{transform:translateY(-6px);opacity:0}100%{transform:none;opacity:1}}
+
+/* Entry */
+.entry{display:flex;flex-direction:column;gap:8px;position:relative}
+.inbox{display:flex;align-items:center;gap:8px;height:50px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);padding:0 8px 0 14px}
+.inbox:focus-within{border-color:var(--flag)}
+.inbox input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--ink);font:600 18px var(--body)}
+.inbox input::placeholder{color:var(--muted);font-weight:500}
+.go{height:38px;padding:0 16px;border:none;border-radius:10px;background:var(--flag);color:var(--flag-ink);font-weight:800;font-size:15px}
+.go:disabled{opacity:.45;cursor:default}
+.sugg{list-style:none;margin:0;padding:6px;border-radius:14px;background:var(--surface);border:2px solid var(--ink);display:flex;flex-direction:column;gap:2px;position:absolute;left:0;right:0;top:56px;z-index:5;box-shadow:0 12px 30px -12px rgba(0,0,0,.35)}
+.sugg li{padding:10px 12px;border-radius:9px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.sugg li>span{color:var(--muted);font-weight:500;font-size:13px;white-space:nowrap}
+.sugg li .who span{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.sugg li{align-items:center}
+.sugg li.on,.sugg li:hover{background:var(--bg)}
+.sugg li.used{opacity:.45;cursor:default}
+.help{font-size:13px;color:var(--muted);text-align:center;line-height:1.4;min-height:1.4em;margin:0}
+.listhead{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:2px 2px 0}
+.listhead:empty{display:none}
+.help.err{color:var(--err);font-weight:700}
+
+/* Result */
+.result{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:14px}
+.result .kicker{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.result h2{margin:0;font-family:var(--display);font-size:30px;line-height:1;font-weight:400}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.result p b{color:var(--ink)}
+.share{height:46px;border:none;border-radius:12px;background:var(--flag);color:var(--flag-ink);font-weight:800;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;font-variant-numeric:tabular-nums}
+.scale div{padding:6px 8px;border-radius:8px;background:var(--bg);display:flex;flex-direction:column;gap:1px}
+.scale div b{font-size:13px}
+.scale div.me{background:var(--turf);color:var(--turf-ink)}
+
+.scrim{position:fixed;inset:0;background:rgba(5,12,16,.62);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:26px}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:12px;border:none;background:var(--ink);color:var(--bg);font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums}
+.stats .sh{grid-column:1/-1;text-align:left;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-top:6px;border-top:1px solid var(--line);margin-top:4px}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.src{margin:0;font-size:12px;line-height:1.45;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="mark"><svg viewBox="0 0 26 30" aria-hidden="true"><path d="M5 2v26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M6 3l15 5-15 5z" fill="var(--flag)"/><ellipse cx="13" cy="27" rx="11" ry="2.6" fill="var(--turf)" opacity=".6"/></svg>Gridiron Golf</div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games" id="homeLink"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="modes" role="group" aria-label="Game mode">
+    <button type="button" id="mDaily" aria-pressed="true">Daily hole</button>
+    <button type="button" id="mEndless" aria-pressed="false">Endless</button>
+  </div>
+
+  <section class="hole" aria-live="polite">
+    <div class="meta"><span id="pNo">Hole 1</span><span>Any position</span></div>
+    <div class="stat"><b id="pStat"></b><span class="pin" id="pPin"></span></div>
+    <div class="strip">
+      <div class="track" id="track"><div class="fill" id="fill"></div><div class="flagpole" id="flagpole"></div><div class="ballmk" id="ball"></div></div>
+      <div class="readout"><span>Total <b id="tot">0</b></span><span id="away"></span></div>
+    </div>
+  </section>
+
+  <form class="entry" id="entry" autocomplete="off">
+    <label class="inbox"><input id="inp" placeholder="Type a player's name" aria-label="Player name" role="combobox" aria-autocomplete="list" aria-controls="sugg" aria-expanded="false" enterkeyhint="go"><button class="go" id="btnGo" type="submit">Tee off</button></label>
+    <ul class="sugg" id="sugg" role="listbox" hidden></ul>
+    <p class="help" id="helpLine">Pick five players. Get their total as close to the pin as you can.</p>
+  </form>
+
+  <section class="result" id="result" hidden></section>
+
+  <div class="listhead" id="listhead"></div>
+  <ol class="slots" id="slots" aria-label="Your picks, newest first"></ol>
+  <p class="src">Career regular-season totals. Active players through <span class="asof"></span>. Data from nflverse and Pro Football Reference.</p>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Every day there's one stat and one pin for everyone. Name five NFL players whose career totals add up as close to the pin as you can get.</p>
+    <ul>
+      <li>Each player's number is revealed when you pick them, so you can aim your later picks.</li>
+      <li>Going long counts the same as coming up short. Closest to the pin wins.</li>
+      <li>You get one mulligan: swap out a pick you regret.</li>
+      <li>Any position counts. A quarterback's handful of catches or a pass rusher's zero rushing yards can be exactly what you need.</li>
+      <li>Active players count too, using their totals through <span class="asof"></span>.</li>
+      <li>Want more? Endless mode deals a new random stat and pin every hole, as many as you like.</li>
+    </ul>
+    <button class="close" data-close>Tee it up</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your card</h3>
+    <div class="help" style="text-align:left;margin-top:-6px">Daily hole</div>
+    <div class="stats" id="statsGrid"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// Career regular-season totals for every player, any position: [name, passing TDs, rushing yds, receiving yds, sacks, active?]
+// Filled in by build_site.py from players.json, which update_stats.py refreshes every week.
+// Since 1999 from nflverse; earlier careers from Pro Football Reference (sacks include pre-1982 unofficial totals).
+// A blank means we couldn't verify that stat, so the player can't be picked for it.
+const PLAYERS = /*DATA*/;
+const ASOF = "/*ASOF*/";
+const COL = {passtd:1, rush:2, recyds:3, sacks:4};
+const STATS = {
+  rush:   {name:"Career rushing yards", short:"rushing yds", unit:"yds"},
+  passtd: {name:"Career passing touchdowns", short:"passing TDs", unit:"TD"},
+  recyds: {name:"Career receiving yards", short:"receiving yds", unit:"yds"},
+  sacks:  {name:"Career sacks", short:"sacks", unit:"sacks"},
+};
+// One hole per day. Add new ones to the end; the list repeats once it runs out.
+const HOLES = [
+  {stat:"rush", pin:45000},
+  {stat:"passtd", pin:1500},
+  {stat:"recyds", pin:55000},
+  {stat:"sacks", pin:600},
+  {stat:"rush", pin:30000},
+  {stat:"passtd", pin:1000},
+  {stat:"recyds", pin:40000},
+  {stat:"sacks", pin:450},
+  {stat:"rush", pin:55000},
+  {stat:"passtd", pin:1800},
+  {stat:"recyds", pin:62000},
+  {stat:"sacks", pin:700},
+];
+// Endless mode: random pins in these ranges, rounded to a friendly step
+const RANGES = { rush:[15000,60000,500], passtd:[300,1800,10], recyds:[15000,65000,500], sacks:[150,700,5] };
+const PICKS = 5;
+
+// ---- Daily hole number (local date, No. 1 = Oct 13, 2026, same as the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const pNo = Math.max(1, dayIndex(new Date()) - Math.floor(Date.UTC(2026,9,13)/864e5) + 1);
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
+const fame = r => Math.abs(+r[1]||0)*40 + Math.abs(+r[2]||0) + Math.abs(+r[3]||0) + Math.abs(+r[4]||0)*60;
+const BASE = PLAYERS.map(r=>({name:r[0], row:r, active:r[5]==="1", fame:fame(r), key:norm(r[0])}));
+
+// ---- Storage (optional; the game works without it)
+const KEY="gridiron-v2";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,under:0,cur:0,max:0,last:0,best:null};
+store.estats = store.estats || {played:0,under:0,aces:0,best:null,sumPct:0};
+if(!(store.day && store.day.n===pNo)) store.day = {n:pNo, picks:[], mull:null, status:"playing"};
+function newEndless(round){
+  const keys = Object.keys(RANGES), prev = store.endless && store.endless.hole.stat;
+  let stat; do { stat = keys[Math.floor(Math.random()*keys.length)]; } while(stat===prev && Math.random()<.7);
+  const [lo,hi,step] = RANGES[stat];
+  const pin = lo + Math.round(Math.random()*(hi-lo)/step)*step;
+  return {round, hole:{stat,pin}, picks:[], mull:null, status:"playing"};
+}
+if(!store.endless) store.endless = newEndless(1);
+
+// ---- Current game: the daily hole or the endless one
+let mode = store.mode==="endless" ? "endless" : "daily";
+let S, H, ST, ALL, POOL;
+function setup(){
+  S = mode==="daily" ? store.day : store.endless;
+  H = mode==="daily" ? HOLES[(pNo-1) % HOLES.length] : S.hole;
+  ST = STATS[H.stat];
+  const c = COL[H.stat];
+  ALL = BASE.map(b=>({...b, v: b.row[c]==="" ? null : +b.row[c]}));
+  POOL = ALL.filter(p=>p.v!==null);
+}
+setup();
+
+const $ = id=>document.getElementById(id);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// "Mike Williams (WR, 2017–2024)" -> name plus a small tag shown under it
+const nameHtml = n => { const m=/^(.*) \((.*)\)$/.exec(n); return m ? `${esc(m[1])}<span>${esc(m[2])}</span>` : esc(n); };
+const fmt = n => n.toLocaleString(undefined,{maximumFractionDigits:1});
+const byName = n => POOL.find(p=>p.name===n);
+const active = () => S.picks.filter((_,i)=>i!==S.mull).map(byName);
+const total = () => active().reduce((a,p)=>a+p.v,0);
+const used = () => new Set(S.picks);
+const holeLabel = () => mode==="daily" ? "Hole " + pNo : "Endless · Hole " + S.round;
+
+// Golf names by how far off you are, as a share of the pin
+const CARD = [
+  [0,"Hole in one","⛳"],[.01,"Eagle","🦅"],[.03,"Birdie","🐦"],[.06,"Par","🟢"],[.10,"Bogey","🟡"],[.20,"Double bogey","🟠"],[Infinity,"In the water","🌊"]
+];
+function grade(d){ const r=d/H.pin; return CARD.find(([lim])=>r<=lim); }
+
+function render(isNew){
+  $("mDaily").setAttribute("aria-pressed", mode==="daily");
+  $("mEndless").setAttribute("aria-pressed", mode==="endless");
+  $("pNo").textContent = holeLabel();
+  $("pStat").textContent = ST.name;
+  $("pPin").innerHTML = `${fmt(H.pin)}<small>${ST.unit}</small>`;
+
+  const t = total(), done = S.status!=="playing", scaleMax = H.pin*1.3;
+  const pct = x => Math.max(0, Math.min(100, x/scaleMax*100));
+  $("fill").style.width = pct(t)+"%";
+  $("ball").style.left = `calc(${pct(t)}% ${t>0? "" : "+ 8px"})`;
+  $("flagpole").style.left = pct(H.pin)+"%";
+  $("tot").textContent = fmt(t);
+  const d = H.pin - t;
+  $("away").innerHTML = d>0 ? `<b>${fmt(d)}</b> to the pin` : d<0 ? `<b>${fmt(-d)}</b> past the pin` : `<b>In the cup</b>`;
+
+  const live = active().length;
+  $("listhead").innerHTML = S.picks.length ? `<span>Your picks</span><span>${live} of ${PICKS}</span>` : "";
+  const slots = $("slots"); slots.innerHTML = "";
+  let n = 0;
+  const numbered = S.picks.map((name,i)=>({name,i,gone:i===S.mull,num: i===S.mull ? null : ++n}));
+  numbered.slice().reverse().forEach(({name,i,gone,num})=>{
+    const p = byName(name); if(!p) return;
+    const li = document.createElement("li");
+    li.className = "slot" + (gone?" gone":"") + (isNew && i===S.picks.length-1 ? " new":"");
+    const canMull = !done && S.mull===null && !gone;
+    li.innerHTML = `<span class="n">${gone?"✕":num}</span><div class="who">${gone ? esc(p.name.replace(/ \(.*\)$/,""))+"<span>Mulligan</span>" : nameHtml(p.name)}</div>`
+      + `<div style="display:flex;align-items:center;gap:8px">`
+      + (canMull ? `<button class="mull" data-i="${i}" type="button" aria-label="Use your mulligan on ${esc(p.name)}">Mulligan</button>` : "")
+      + `<span class="v">${fmt(p.v)}</span></div>`;
+    slots.appendChild(li);
+  });
+  slots.querySelectorAll(".mull").forEach(b=>b.onclick=()=>mulligan(+b.dataset.i));
+
+  $("entry").hidden = done;
+  if(!done){
+    const left = PICKS - live;
+    setHelp(live===0 ? "Pick five players. Get their total as close to the pin as you can."
+      : (left===1 ? "Last pick. " : left+" picks left. ") + (d>0 ? `You need about ${fmt(d)} more.` : "You're past the pin already."));
+  }
+  renderResult();
+}
+function setHelp(t,err){ const h=$("helpLine"); h.textContent=t; h.classList.toggle("err",!!err); }
+
+// ---- Autocomplete
+let matches = [], hi = 0;
+function search(q){
+  q = norm(q); if(q.length<2) return [];
+  const u = used();
+  const scored = ALL.map(p=>{
+    const words = p.key.split(" ");
+    let s = p.key===q ? 0 : p.key.startsWith(q) ? 1 : words.some(w=>w.startsWith(q)) ? 2 : p.key.includes(q) ? 3 : 9;
+    return {p, s: s + (u.has(p.name)||p.v===null?5:0)};
+  }).filter(x=>x.s<9).sort((a,b)=>a.s-b.s || b.p.fame-a.p.fame);
+  return scored.slice(0,6).map(x=>x.p);
+}
+function showSugg(){
+  const ul=$("sugg"), u=used();
+  if(!matches.length){ ul.hidden=true; $("inp").setAttribute("aria-expanded","false"); return; }
+  ul.innerHTML = matches.map((p,i)=>{
+    const note = u.has(p.name) ? "Already picked" : p.v===null ? "Not available" : p.active ? "Active" : "";
+    return `<li role="option" id="sg${i}" class="${i===hi?"on":""} ${u.has(p.name)||p.v===null?"used":""}" data-i="${i}" aria-selected="${i===hi}"><div class="who">${nameHtml(p.name)}</div>${note?`<span>${note}</span>`:""}</li>`;
+  }).join("");
+  ul.hidden=false; $("inp").setAttribute("aria-expanded","true"); $("inp").setAttribute("aria-activedescendant","sg"+hi);
+  ul.querySelectorAll("li").forEach(li=>{ li.onmousedown=e=>{ e.preventDefault(); choose(matches[+li.dataset.i]); }; });
+}
+$("inp").addEventListener("input", e=>{ matches=search(e.target.value); hi=0; showSugg(); if($("helpLine").classList.contains("err")) render(); });
+$("inp").addEventListener("keydown", e=>{
+  if(matches.length && (e.key==="ArrowDown"||e.key==="ArrowUp")){ e.preventDefault(); hi=(hi+(e.key==="ArrowDown"?1:-1)+matches.length)%matches.length; showSugg(); }
+  else if(e.key==="Escape"){ matches=[]; showSugg(); }
+});
+$("inp").addEventListener("blur", ()=>setTimeout(()=>{ matches=[]; showSugg(); },120));
+$("entry").addEventListener("submit", e=>{
+  e.preventDefault();
+  const q=$("inp").value;
+  if(!norm(q)) return;
+  const pick = matches[hi] || search(q)[0];
+  if(!pick){ setHelp("We couldn't find that player. Check the spelling or try someone else.", true); return; }
+  choose(pick);
+});
+
+function choose(p){
+  if(S.status!=="playing") return;
+  if(used().has(p.name)){ setHelp(p.name+" is already on your card.", true); return; }
+  if(p.v===null){ setHelp(`We don't have ${p.name}'s full career ${ST.short}, so he can't be picked for this hole.`, true); return; }
+  if(mode==="daily") window.SLB && SLB.start("gridiron", pNo);
+  S.picks.push(p.name);
+  $("inp").value=""; matches=[]; showSugg();
+  if(active().length>=PICKS) finish();
+  save(); render(true);
+  if(S.status==="playing") $("inp").focus();
+}
+
+function mulligan(i){
+  if(S.status!=="playing" || S.mull!==null) return;
+  S.mull = i; save(); render();
+  toast("Mulligan used. Pick a replacement.");
+  $("inp").focus();
+}
+
+function finish(){
+  S.status="done";
+  const d=Math.abs(H.pin-total()), r=d/H.pin;
+  if(mode==="daily"){
+    window.SLB && SLB.stop("gridiron", pNo);
+    const st=store.stats;
+    st.played++; if(r<=.03) st.under++;
+    st.cur = (st.last===pNo-1) ? st.cur+1 : 1; st.last=pNo; st.max=Math.max(st.max,st.cur);
+    st.best = st.best===null ? r : Math.min(st.best,r);
+  } else {
+    const st=store.estats;
+    st.played++; if(r<=.03) st.under++; if(d===0) st.aces++;
+    st.sumPct += r; st.best = st.best===null ? r : Math.min(st.best,r);
+  }
+}
+
+function shareText(){
+  const t=total(), d=H.pin-t, g=grade(Math.abs(d));
+  const where = d===0 ? "In the cup!" : `${fmt(Math.abs(d))} ${d>0?"short":"long"}`;
+  return `Gridiron Golf · ${holeLabel()} ${g[2]}\n${ST.name} · Pin ${fmt(H.pin)}\n${g[1]}: ${where}${S.mull!==null?" (mulligan)":""}\nplaysproutle.com/gridiron`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const t=total(), d=H.pin-t, ad=Math.abs(d), g=grade(ad);
+  const where = d===0 ? "Right in the cup." : `<b>${fmt(ad)} ${ST.unit}</b> ${d>0?"short of":"past"} the pin.`;
+  const scale = CARD.slice(1,4).map(([lim,name])=>`<div class="${g[1]===name?"me":""}"><b>${name}</b>within ${fmt(Math.round(H.pin*lim))}</div>`).join("");
+  let tail;
+  if(mode==="daily"){
+    tail = `<button class="share" id="btnShare">Share result</button>
+      <div class="next"><span>Next daily hole in</span><b id="cd">--:--:--</b></div>
+      <button class="again" id="btnToEndless" type="button">Keep playing in Endless</button><div id="slb"></div>`;
+  } else {
+    const st=store.estats;
+    tail = `<button class="again" id="btnNext" type="button">Next hole</button>
+      <div class="estats"><span>Holes <b>${st.played}</b></span><span>Birdie or better <b>${st.under}</b></span><span>Avg off <b>${st.played?(st.sumPct/st.played*100).toFixed(1)+"%":"—"}</b></span></div>
+      <button class="share" id="btnShare">Share this hole</button>`;
+  }
+  r.innerHTML = `<div class="kicker">${esc(holeLabel())} · ${esc(ST.name)}</div><h2>${g[1]}</h2>
+    <p>Your five totaled <b>${fmt(t)}</b>. ${where}</p>
+    <div class="scale">${scale}</div>${tail}`;
+  // Leaderboard ranks low to high: distance from the pin, in tenths so half sacks count
+  if(mode==="daily" && window.SLB) SLB.mount($("slb"), {game:"gridiron", day:pNo, score:Math.round(ad*10), eligible:true, fmt:x=>fmt(x/10)+" off", note:"Closest to the pin wins. Ties go to the fastest.", accent:"var(--turf)", accentInk:"var(--turf-ink)"});
+  $("btnShare").onclick=()=>{
+    const txt=shareText();
+    const ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  if($("btnNext")) $("btnNext").onclick = nextEndless;
+  if($("btnToEndless")) $("btnToEndless").onclick = ()=>switchMode("endless");
+  tick();
+}
+
+function nextEndless(){
+  store.endless = newEndless((store.endless.round||0)+1);
+  save(); setup(); render();
+  window.scrollTo({top:0,behavior:"smooth"});
+  $("inp").focus({preventScroll:true});
+}
+function switchMode(m){
+  if(m===mode) return;
+  mode = m; store.mode = m; save(); setup();
+  $("inp").value=""; matches=[]; showSugg(); render();
+}
+$("mDaily").onclick = ()=>switchMode("daily");
+$("mEndless").onclick = ()=>switchMode("endless");
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const s=Math.max(0,Math.floor((mid-now)/1000));
+  el.textContent=[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(x=>String(x).padStart(2,"0")).join(":");
+}
+setInterval(tick,1000);
+
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+
+function openStats(){
+  const st=store.stats, es=store.estats;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[st.under,"Birdie+"],[st.cur,"Streak"],[st.best===null?"—":(st.best*100).toFixed(1)+"%","Closest"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("")
+    + `<div class="sh">Endless</div>`
+    + [[es.played,"Holes"],[es.under,"Birdie+"],[es.aces,"Aces"],[es.played?(es.sumPct/es.played*100).toFixed(1)+"%":"—","Avg off"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; }));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); });
+
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+document.querySelectorAll(".asof").forEach(e=>e.textContent=ASOF);
+save();
+render();
+</script>
+
+</body>
+</html>

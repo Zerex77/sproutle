@@ -1,0 +1,42 @@
+# Every Tuesday, refresh Gridiron Golf's player stats from nflverse and republish the site.
+# You can also run it by hand from the Actions tab ("Run workflow").
+name: Update Gridiron Golf stats
+
+on:
+  schedule:
+    - cron: '0 15 * * 2'   # Tuesdays 15:00 UTC (11am Eastern in season), after Monday Night Football
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pull fresh stats
+        run: python build/gridiron/update_stats.py
+
+      - name: Rebuild and publish if anything changed
+        run: |
+          if git diff --quiet build/gridiron/players.json; then
+            echo "No new stats this week."
+            exit 0
+          fi
+          python build/build_site.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build/gridiron/players.json docs
+          git commit -m "Update Gridiron Golf stats ($(python -c "import json;print(json.load(open('build/gridiron/players.json'))['asof'])"))"
+          git push
+          # Pushes made by this workflow don't always kick off a Pages rebuild, so ask for one
+          curl -sS -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true

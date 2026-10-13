@@ -303,8 +303,19 @@ shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), di
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
 # Ballpark and Imposter are separate daily games, copied as-is from build/ballpark/ and build/imposter/
-for g in ('ballpark', 'imposter', 'gridiron'):
+for g in ('ballpark', 'imposter'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
+# Gridiron Golf: fill the page template with the player stats (refreshed weekly by gridiron/update_stats.py)
+G = os.path.join(D, 'gridiron')
+gdata = json.load(open(os.path.join(G, 'players.json')))
+grows = [[r[1]] + ['' if x is None else x for x in r[2:6]] + ['1' if r[6] else ''] for r in gdata['players']]
+gpage = (open(os.path.join(G, 'index.src.html')).read()
+         .replace('/*DATA*/', json.dumps([[str(c) for c in r] for r in grows], separators=(',', ':'), ensure_ascii=False))
+         .replace('/*ASOF*/', gdata['asof']))
+os.makedirs(os.path.join(OUT, 'gridiron'), exist_ok=True)
+open(os.path.join(OUT, 'gridiron', 'index.html'), 'w').write(gpage)
+for f in ('icon-192.png', 'icon-512.png', 'apple-touch-icon.png'):
+    shutil.copy(os.path.join(G, f), os.path.join(OUT, 'gridiron', f))
 # Critter Collector is a separate game, copied as-is from build/critter/
 shutil.copytree(os.path.join(D, 'critter'), os.path.join(OUT, 'critter-collector'), dirs_exist_ok=True)
 print('built', sorted(os.listdir(OUT)))
