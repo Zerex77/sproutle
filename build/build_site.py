@@ -149,7 +149,7 @@ notfound = page('Page not found | Sproutle', 'This page does not exist.', '/404'
 <p><a class="play" href="/">Play today's Sproutle</a></p>
 </main>''')
 
-games = page('More games | Sproutle', 'Free games from the maker of Sproutle: the daily word game and Critter Collector, an endless zoo merge game.', '/games', '''
+games = page('More games | Sproutle', 'Free games from the maker of Sproutle: the daily word game, Ranked, a daily ordering puzzle, and Critter Collector, an endless zoo merge game.', '/games', '''
 <main style="display:flex;flex-direction:column;gap:16px">
 <h1>More games</h1>
 <p>Free games from the maker of Sproutle. No accounts, no ads, and your progress stays on your device.</p>
@@ -158,6 +158,11 @@ games = page('More games | Sproutle', 'Free games from the maker of Sproutle: th
 <div class="game-head"><img src="/icon-192.png" alt=""><div><h2>Sproutle</h2><div class="tag">Daily word puzzle · 2 minutes</div></div></div>
 <p>Grow today's seed into a long word one letter at a time, without rearranging. A new puzzle every day.</p>
 <a class="play" href="/">Play today's puzzle</a>
+</article>
+<article class="game">
+<div class="game-head"><img src="/ranked/icon-192.png" alt=""><div><h2>Ranked</h2><div class="tag">Daily ordering puzzle · 3 minutes</div></div></div>
+<p>Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries. A new puzzle every day.</p>
+<a class="play" href="/ranked/">Play today's Ranked</a>
 </article>
 <article class="game">
 <div class="game-head"><img src="/critter-collector/icon-192.png" alt=""><div><h2>Critter Collector</h2><div class="tag">Zoo merge game · play anytime</div></div></div>
@@ -194,7 +199,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/about', '/games', '/privacy', '/critter-collector/'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/about', '/games', '/privacy', '/ranked/', '/critter-collector/'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -211,6 +216,8 @@ files = {'index.html': index, 'about.html': about, 'games.html': games, 'privacy
          'sitemap.xml': sitemap, '_headers': headers}
 for name, text in files.items():
     open(os.path.join(OUT, name), 'w').write(text)
+# Ranked is a separate daily game, copied as-is from build/ranked/
+shutil.copytree(os.path.join(D, 'ranked'), os.path.join(OUT, 'ranked'), dirs_exist_ok=True)
 # Critter Collector is a separate game, copied as-is from build/critter/
 shutil.copytree(os.path.join(D, 'critter'), os.path.join(OUT, 'critter-collector'), dirs_exist_ok=True)
 print('built', sorted(os.listdir(OUT)))

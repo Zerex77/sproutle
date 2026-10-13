@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121A2B">
+<meta name="description" content="Ranked: a free daily puzzle. Put six things in order by one rule in four tries, then share your result.">
+<link rel="canonical" href="https://playsproutle.com/ranked/">
+<meta property="og:title" content="Ranked">
+<meta property="og:description" content="Six items. One rule. Put them in order in four tries. A new puzzle every day.">
+<meta property="og:url" content="https://playsproutle.com/ranked/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/ranked/icon-512.png">
+<link rel="icon" type="image/png" href="/ranked/icon-192.png">
+<link rel="apple-touch-icon" href="/ranked/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Ranked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column — a standings board. Big condensed rank numerals on a rail, item tiles you tap to swap, feedback chips at the right edge. */
+:root{
+  --bg:#E8ECF2; --surface:#FFFFFF; --ink:#121A2B; --muted:#5B6780; --line:#CBD3E0;
+  --accent:#F2561D; --accent-ink:#FFFFFF; --good:#1E9452; --good-ink:#FFFFFF; --gold:#B8871A; --chip:#DDE3EC;
+  --display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1220; --surface:#161F33; --ink:#E7ECF6; --muted:#8F9CB5; --line:#28334D;
+  --accent:#FF7442; --accent-ink:#1A0A03; --good:#2DB672; --good-ink:#06180E; --gold:#E0B044; --chip:#222C44; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0D1220; --surface:#161F33; --ink:#E7ECF6; --muted:#8F9CB5; --line:#28334D;
+  --accent:#FF7442; --accent-ink:#1A0A03; --good:#2DB672; --good-ink:#06180E; --gold:#E0B044; --chip:#222C44; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:440px;margin:0 auto;padding-inline:16px;padding-block:12px 32px;display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-block:4px 10px}
+.mark{font-family:var(--display);font-weight:900;font-size:40px;letter-spacing:.02em;line-height:.9;text-transform:uppercase}
+.mark span{color:var(--accent)}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.brief{display:flex;flex-direction:column;gap:4px}
+.meta{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.q{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;text-wrap:balance;text-transform:uppercase}
+
+.board{display:flex;flex-direction:column;gap:6px}
+.end{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;padding-left:48px}
+.end::after{content:"";flex:1;height:1px;background:var(--line)}
+.slot{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:stretch}
+.num{font-family:var(--display);font-weight:900;font-size:40px;line-height:1;display:grid;place-items:center;color:var(--muted);font-variant-numeric:tabular-nums}
+.slot:first-of-type .num{color:var(--gold)}
+.tile{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:54px;padding:8px 10px 8px 14px;border-radius:10px;background:var(--surface);border:2px solid var(--line);text-align:left;width:100%;transition:transform .14s ease,border-color .14s,background .14s}
+.tile .name{font-weight:600;font-size:17px;min-width:0}
+.tile .val{display:block;font-size:13px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.tile.sel{border-color:var(--accent);transform:scale(1.02);box-shadow:0 6px 18px -8px var(--accent)}
+.tile.ok{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.tile.ok .val{color:var(--good-ink);opacity:.85}
+.tile.locked{cursor:default}
+.tile.pop{animation:pop .22s ease}
+.tile.flip{animation:flip .45s ease both}
+@keyframes pop{50%{transform:scale(.96)}}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.hint{flex:none;min-width:34px;height:30px;border-radius:7px;background:var(--chip);color:var(--ink);display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:.04em}
+.hint:empty{display:none}
+.tile.ok .hint{background:rgba(255,255,255,.22);color:var(--good-ink)}
+
+.foot{display:flex;flex-direction:column;gap:12px}
+.tries{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink)}
+.dot.used{background:var(--ink)}
+.go{height:54px;border:none;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;font-size:17px;letter-spacing:.02em}
+.go:disabled{opacity:.4;cursor:default}
+.help{font-size:14px;color:var(--muted);text-align:center;line-height:1.4}
+
+.history{display:flex;flex-direction:column;gap:4px;align-items:center}
+.hrow{display:flex;gap:4px}
+.sq{width:16px;height:16px;border-radius:3px;background:var(--chip)}
+.sq.g{background:var(--good)}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-weight:900;font-size:34px;text-transform:uppercase;line-height:1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.share{height:50px;border:none;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(8,12,22,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:16px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:900;font-size:30px;text-transform:uppercase}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:900;font-size:34px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--chip);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--good);color:var(--good-ink)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:20}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Rank<span>ed</span></div>
+    <div class="hbtns">
+      <a class="ibtn" href="/games" aria-label="More games" title="More games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <section class="brief">
+    <div class="meta"><span id="pNo">#1</span><span id="pCat">Category</span></div>
+    <div class="q" id="pQ">Loading</div>
+  </section>
+
+  <section class="board" id="board" aria-label="Your ranking"></section>
+
+  <section class="foot" id="foot">
+    <div class="tries"><span id="triesTxt">4 tries left</span><div class="dots" id="dots"></div></div>
+    <button class="go" id="btnGo">Lock in ranking</button>
+    <div class="help" id="helpLine">Tap two items to swap them.</div>
+  </section>
+
+  <section class="history" id="history"></section>
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Six items. One rule. Put them in order in 4 tries.</p>
+    <ul>
+      <li>Tap an item, then tap another to swap them.</li>
+      <li>Lock in your ranking. Items in the right spot turn green and stay put.</li>
+      <li>A new puzzle drops every day at midnight.</li>
+    </ul>
+    <button class="close" data-close>Play</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script>
+// Each puzzle lists items in the CORRECT order, top to bottom.
+const PUZZLES = [
+  {cat:"Space", q:"Planets, largest to smallest", top:"Largest", bot:"Smallest", items:[
+    ["Jupiter","139,820 km wide"],["Saturn","116,460 km"],["Uranus","50,724 km"],["Neptune","49,244 km"],["Earth","12,742 km"],["Mars","6,779 km"]]},
+  {cat:"Gaming", q:"First released, oldest to newest", top:"Oldest", bot:"Newest", items:[
+    ["Pac-Man","1980"],["Tetris","1984"],["Super Mario Bros.","1985"],["The Legend of Zelda","1986"],["Pokémon Red & Green","1996"],["Minecraft","2009"]]},
+  {cat:"Animals", q:"Heaviest to lightest adult", top:"Heaviest", bot:"Lightest", items:[
+    ["Blue whale","~150,000 kg"],["African elephant","~6,000 kg"],["Polar bear","~450 kg"],["Gorilla","~160 kg"],["Emperor penguin","~30 kg"],["House cat","~4 kg"]]},
+  {cat:"Skylines", q:"Tallest to shortest building", top:"Tallest", bot:"Shortest", items:[
+    ["Burj Khalifa","828 m"],["Merdeka 118","679 m"],["Shanghai Tower","632 m"],["Makkah Clock Royal Tower","601 m"],["One World Trade Center","541 m"],["Empire State Building","381 m"]]},
+  {cat:"People", q:"Most populous to least", top:"Most people", bot:"Fewest", items:[
+    ["India","~1.44 billion"],["China","~1.41 billion"],["United States","~340 million"],["Indonesia","~280 million"],["Brazil","~212 million"],["Japan","~124 million"]]},
+  {cat:"Geography", q:"US states, biggest to smallest", top:"Biggest", bot:"Smallest", items:[
+    ["Alaska","665,384 sq mi"],["Texas","268,596 sq mi"],["California","163,695 sq mi"],["Montana","147,040 sq mi"],["Florida","65,758 sq mi"],["Rhode Island","1,545 sq mi"]]},
+  {cat:"History", q:"Invented, oldest to newest", top:"Oldest", bot:"Newest", items:[
+    ["Printing press","c. 1440"],["Telescope","1608"],["Steam engine","1712"],["Telephone","1876"],["Airplane","1903"],["World Wide Web","1989"]]},
+  {cat:"Speed", q:"Top running speed, fastest to slowest", top:"Fastest", bot:"Slowest", items:[
+    ["Cheetah","~70 mph"],["Pronghorn","~55 mph"],["Greyhound","~45 mph"],["Grizzly bear","~35 mph"],["Usain Bolt","27.8 mph"],["African elephant","~25 mph"]]},
+  {cat:"Peaks", q:"Highest to lowest summit", top:"Highest", bot:"Lowest", items:[
+    ["Mount Everest","8,849 m"],["K2","8,611 m"],["Denali","6,190 m"],["Kilimanjaro","5,895 m"],["Mont Blanc","4,806 m"],["Mount Fuji","3,776 m"]]},
+  {cat:"Business", q:"Founded, oldest to newest", top:"Oldest", bot:"Newest", items:[
+    ["Nintendo","1889"],["Ford","1903"],["Disney","1923"],["Apple","1976"],["Amazon","1994"],["Google","1998"]]},
+  {cat:"Water", q:"Largest to smallest by area", top:"Largest", bot:"Smallest", items:[
+    ["Pacific Ocean","~165M km²"],["Atlantic Ocean","~106M km²"],["Indian Ocean","~70M km²"],["Southern Ocean","~22M km²"],["Arctic Ocean","~16M km²"],["Mediterranean Sea","~2.5M km²"]]},
+  {cat:"Science", q:"Melting point, highest to lowest", top:"Hottest", bot:"Coldest", items:[
+    ["Tungsten","3,422 °C"],["Iron","1,538 °C"],["Gold","1,064 °C"],["Aluminum","660 °C"],["Lead","327 °C"],["Mercury","−39 °C"]]},
+  {cat:"History", q:"Happened first to most recent", top:"First", bot:"Latest", items:[
+    ["Great Pyramid of Giza built","c. 2560 BC"],["Columbus reaches the Americas","1492"],["Titanic sinks","1912"],["Moon landing","1969"],["Berlin Wall falls","1989"],["First iPhone","2007"]]},
+  {cat:"Sports", q:"Heaviest ball to lightest", top:"Heaviest", bot:"Lightest", items:[
+    ["Bowling ball","up to 7.3 kg"],["Basketball","~620 g"],["Soccer ball","~430 g"],["Volleyball","~270 g"],["Tennis ball","~58 g"],["Ping pong ball","2.7 g"]]},
+];
+const MAX = 4, N = 6;
+
+// ---- Daily puzzle number (local date, puzzle #1 = Oct 13, 2026)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH = Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo = Math.max(1, dayIndex(new Date()) - EPOCH + 1);
+const P = PUZZLES[(pNo-1) % PUZZLES.length];
+
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function startOrder(){
+  const r = rng(pNo*9973+17); let o;
+  do { o=[...Array(N).keys()]; for(let i=N-1;i>0;i--){const j=Math.floor(r()*(i+1));[o[i],o[j]]=[o[j],o[i]];} }
+  while (o.some((v,i)=>v===i));
+  return o;
+}
+
+// ---- Storage (optional; game works without it)
+const KEY="ranked-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,wins:0,cur:0,max:0,dist:[0,0,0,0],lastWon:0};
+let S = (store.day && store.day.n===pNo) ? store.day : {n:pNo, order:startOrder(), guesses:[], status:"playing"};
+store.day = S;
+
+let sel = null;
+const $ = id=>document.getElementById(id);
+
+function lockedSet(){
+  const last = S.guesses[S.guesses.length-1];
+  return new Set(last ? last.map((g,i)=>g?i:-1).filter(i=>i>=0) : []);
+}
+
+function render(flip){
+  $("pNo").textContent = "No. " + pNo;
+  $("pCat").textContent = P.cat;
+  $("pQ").textContent = P.q;
+  const done = S.status!=="playing";
+  const order = done ? [...Array(N).keys()] : S.order;
+  const locked = lockedSet();
+  const last = S.guesses[S.guesses.length-1];
+  const b = $("board"); b.innerHTML="";
+  const top = document.createElement("div"); top.className="end"; top.textContent="▲ "+P.top; b.appendChild(top);
+  order.forEach((item,slot)=>{
+    const row=document.createElement("div"); row.className="slot";
+    const num=document.createElement("div"); num.className="num"; num.textContent=slot+1;
+    const t=document.createElement("button"); t.className="tile"; t.dataset.slot=slot;
+    const ok = done ? (S.status==="won" || (last && last[slot] && S.order[slot]===item)) : locked.has(slot);
+    if(ok) t.classList.add("ok");
+    if(done || locked.has(slot)) { t.classList.add("locked"); t.tabIndex = done? -1 : 0; }
+    if(sel===slot) t.classList.add("sel");
+    if(flip){ t.classList.add("flip"); t.style.animationDelay=(slot*70)+"ms"; }
+    const nm=document.createElement("span"); nm.className="name"; nm.textContent=P.items[item][0];
+    if(done){ const v=document.createElement("span"); v.className="val"; v.textContent=P.items[item][1]; nm.appendChild(v); }
+    const h=document.createElement("span"); h.className="hint";
+    t.append(nm,h);
+    t.setAttribute("aria-pressed", sel===slot ? "true":"false");
+    t.addEventListener("click",()=>tap(slot));
+    row.append(num,t); b.appendChild(row);
+  });
+  const bot=document.createElement("div"); bot.className="end"; bot.textContent="▼ "+P.bot; b.appendChild(bot);
+
+  const left = MAX - S.guesses.length;
+  $("foot").hidden = done;
+  $("triesTxt").textContent = left===1 ? "Last try" : left+" tries left";
+  $("dots").innerHTML = Array.from({length:MAX},(_,i)=>`<span class="dot${i<S.guesses.length?" used":""}"></span>`).join("");
+  $("helpLine").textContent = sel===null ? "Tap two items to swap them." : "Now tap where it should go.";
+
+  $("history").innerHTML = S.guesses.map(g=>`<div class="hrow">${g.map(x=>`<span class="sq${x?" g":""}"></span>`).join("")}</div>`).join("");
+  $("history").hidden = !done;
+  renderResult();
+}
+
+function tap(slot){
+  if(S.status!=="playing" || lockedSet().has(slot)) return;
+  if(sel===null){ sel=slot; render(); return; }
+  if(sel===slot){ sel=null; render(); return; }
+  const o=S.order; [o[sel],o[slot]]=[o[slot],o[sel]];
+  const a=sel; sel=null; save(); render();
+  [a,slot].forEach(s=>{ const el=document.querySelector(`.tile[data-slot="${s}"]`); if(el) el.classList.add("pop"); });
+}
+
+function submit(){
+  if(S.status!=="playing") return;
+  sel=null;
+  const g = S.order.map((item,slot)=>item===slot);
+  S.guesses.push(g);
+  if(g.every(Boolean)) finish(true);
+  else if(S.guesses.length>=MAX) finish(false);
+  save(); render(true);
+}
+
+function finish(won){
+  S.status = won?"won":"lost";
+  const st=store.stats;
+  st.played++;
+  if(won){ st.wins++; st.dist[S.guesses.length-1]++; st.cur = (st.lastWon===pNo-1) ? st.cur+1 : 1; st.lastWon=pNo; st.max=Math.max(st.max,st.cur); }
+  else st.cur=0;
+}
+
+function shareText(){
+  const score = S.status==="won" ? S.guesses.length : "X";
+  return `Ranked No. ${pNo} · ${score}/${MAX}\n${P.q}\n` + S.guesses.map(g=>g.map(x=>x?"🟩":"⬜").join("")).join("\n");
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const won=S.status==="won", n=S.guesses.length;
+  const head = won ? ["Perfect ranking!","Nailed it.","Got there.","Clutch."][n-1] : "Not quite";
+  const sub = won ? `Solved in ${n} of ${MAX}. Here's how they stack up.` : "Here's the real order, with the numbers.";
+  r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>`;
+  $("btnShare").onclick = ()=>{
+    const txt=shareText();
+    const done=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(done,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  let s=Math.max(0,Math.floor((mid-now)/1000));
+  const h=String(Math.floor(s/3600)).padStart(2,"0"), m=String(Math.floor(s%3600/60)).padStart(2,"0"), x=String(s%60).padStart(2,"0");
+  el.textContent=`${h}:${m}:${x}`;
+}
+setInterval(tick,1000);
+
+function toast(msg){
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+function openStats(){
+  const st=store.stats, pct=st.played?Math.round(st.wins/st.played*100):0;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[pct,"Win %"],[st.cur,"Streak"],[st.max,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const mx=Math.max(1,...st.dist);
+  $("dist").innerHTML=st.dist.map((v,i)=>`<div class="bar">${i+1}<i class="${S.status==="won"&&S.guesses.length===i+1?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+$("btnGo").onclick=submit;
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); });
+
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+render();
+</script>
+
+</body>
+</html>

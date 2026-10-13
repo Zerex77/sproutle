@@ -8,5 +8,6 @@ Live at https://playsproutle.com
   Run `python3 build/build_site.py` to rebuild `docs/`.
   Settings such as the launch date and Sproutle+ live at the top of `build_site.py`.
 - `build/critter/` holds Critter Collector, which the build copies to `docs/critter-collector/`. The More games page is in `build_site.py`.
+- `build/ranked/` holds Ranked, the daily ordering puzzle, which the build copies to `docs/ranked/`.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).
