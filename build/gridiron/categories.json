@@ -1,66 +1,552 @@
 {
-  "_note": "Every Gridiron Golf category. cols = nflverse stats_player columns added together (agg 'max' takes the best single season instead, for longest kicks). name is what the hole card shows; unit is the short label after numbers. Pins are filled in by bootstrap and kept in players.json.",
-  "categories": [
-    {"key": "pass_yds", "group": "Passing", "name": "Career passing yards", "unit": "yds", "cols": ["passing_yards"]},
-    {"key": "passtd", "group": "Passing", "name": "Career passing touchdowns", "unit": "TD", "cols": ["passing_tds"]},
-    {"key": "pass_cmp", "group": "Passing", "name": "Career completions", "unit": "cmp", "cols": ["completions"]},
-    {"key": "pass_att", "group": "Passing", "name": "Career pass attempts", "unit": "att", "cols": ["attempts"]},
-    {"key": "pass_int", "group": "Passing", "name": "Career interceptions thrown", "unit": "INT", "cols": ["passing_interceptions"]},
-    {"key": "sacked", "group": "Passing", "name": "Career times sacked", "unit": "sacks", "cols": ["sacks_suffered"]},
-    {"key": "pass_1d", "group": "Passing", "name": "Career passing first downs", "unit": "1st downs", "cols": ["passing_first_downs"]},
-    {"key": "pass_40", "group": "Passing", "name": "Career 40-yard completions", "unit": "passes", "cols": ["passing_40"]},
-    {"key": "pass_2pt", "group": "Passing", "name": "Career two-point conversion passes", "unit": "2-pt", "cols": ["passing_2pt_conversions"]},
-
-    {"key": "rush", "group": "Rushing", "name": "Career rushing yards", "unit": "yds", "cols": ["rushing_yards"]},
-    {"key": "rush_td", "group": "Rushing", "name": "Career rushing touchdowns", "unit": "TD", "cols": ["rushing_tds"]},
-    {"key": "rush_att", "group": "Rushing", "name": "Career carries", "unit": "carries", "cols": ["carries"]},
-    {"key": "rush_1d", "group": "Rushing", "name": "Career rushing first downs", "unit": "1st downs", "cols": ["rushing_first_downs"]},
-    {"key": "rush_40", "group": "Rushing", "name": "Career 40-yard runs", "unit": "runs", "cols": ["rushing_40"]},
-    {"key": "rush_2pt", "group": "Rushing", "name": "Career two-point conversion runs", "unit": "2-pt", "cols": ["rushing_2pt_conversions"]},
-
-    {"key": "recyds", "group": "Receiving", "name": "Career receiving yards", "unit": "yds", "cols": ["receiving_yards"]},
-    {"key": "rec", "group": "Receiving", "name": "Career receptions", "unit": "catches", "cols": ["receptions"]},
-    {"key": "rec_td", "group": "Receiving", "name": "Career receiving touchdowns", "unit": "TD", "cols": ["receiving_tds"]},
-    {"key": "rec_1d", "group": "Receiving", "name": "Career receiving first downs", "unit": "1st downs", "cols": ["receiving_first_downs"]},
-    {"key": "rec_40", "group": "Receiving", "name": "Career 40-yard catches", "unit": "catches", "cols": ["receiving_40"]},
-    {"key": "rec_2pt", "group": "Receiving", "name": "Career two-point conversion catches", "unit": "2-pt", "cols": ["receiving_2pt_conversions"]},
-
-    {"key": "scrim", "group": "All-purpose", "name": "Career scrimmage yards (rushing + receiving)", "unit": "yds", "cols": ["rushing_yards", "receiving_yards"]},
-    {"key": "apy", "group": "All-purpose", "name": "Career all-purpose yards", "unit": "yds", "cols": ["rushing_yards", "receiving_yards", "kickoff_return_yards", "punt_return_yards"]},
-    {"key": "fpts", "group": "All-purpose", "name": "Career fantasy points (PPR)", "unit": "pts", "cols": ["fantasy_points_ppr"]},
-
-    {"key": "sacks", "group": "Defense", "name": "Career sacks", "unit": "sacks", "cols": ["def_sacks"]},
-    {"key": "def_int", "group": "Defense", "name": "Career interceptions", "unit": "INT", "cols": ["def_interceptions"]},
-    {"key": "int_yds", "group": "Defense", "name": "Career interception return yards", "unit": "yds", "cols": ["def_interception_yards"]},
-    {"key": "solo", "group": "Defense", "name": "Career solo tackles", "unit": "tackles", "cols": ["def_tackles_solo"]},
-    {"key": "ff", "group": "Defense", "name": "Career forced fumbles", "unit": "FF", "cols": ["def_fumbles_forced"]},
-    {"key": "fr", "group": "Defense", "name": "Career fumble recoveries", "unit": "recoveries", "cols": ["fumble_recovery_opp"]},
-    {"key": "pd", "group": "Defense", "name": "Career passes defended", "unit": "PD", "cols": ["def_pass_defended"]},
-    {"key": "def_td", "group": "Defense", "name": "Career defensive touchdowns", "unit": "TD", "cols": ["def_tds"]},
-    {"key": "safety", "group": "Defense", "name": "Career safeties", "unit": "safeties", "cols": ["def_safeties"]},
-    {"key": "blocks", "group": "Defense", "name": "Career blocked kicks and punts", "unit": "blocks", "cols": ["def_punt_blocks", "def_fg_blocks", "def_pat_blocks"]},
-
-    {"key": "kr", "group": "Special teams", "name": "Career kickoff returns", "unit": "returns", "cols": ["kickoff_returns"]},
-    {"key": "kr_yds", "group": "Special teams", "name": "Career kickoff return yards", "unit": "yds", "cols": ["kickoff_return_yards"]},
-    {"key": "pr", "group": "Special teams", "name": "Career punt returns", "unit": "returns", "cols": ["punt_returns"]},
-    {"key": "pr_yds", "group": "Special teams", "name": "Career punt return yards", "unit": "yds", "cols": ["punt_return_yards"]},
-    {"key": "st_td", "group": "Special teams", "name": "Career special teams touchdowns", "unit": "TD", "cols": ["special_teams_tds"]},
-    {"key": "fg_made", "group": "Special teams", "name": "Career field goals made", "unit": "FG", "cols": ["fg_made"]},
-    {"key": "fg_att", "group": "Special teams", "name": "Career field goal attempts", "unit": "att", "cols": ["fg_att"]},
-    {"key": "fg_miss", "group": "Special teams", "name": "Career missed field goals", "unit": "misses", "cols": ["fg_missed"]},
-    {"key": "fg_50", "group": "Special teams", "name": "Career 50-yard field goals", "unit": "FG", "cols": ["fg_made_50_59", "fg_made_60_"]},
-    {"key": "fg_long", "group": "Special teams", "name": "Longest field goal made (in a career)", "unit": "yds", "cols": ["fg_long"], "agg": "max"},
-    {"key": "gwfg", "group": "Special teams", "name": "Career game-winning field goals", "unit": "FG", "cols": ["gwfg_made"]},
-    {"key": "pat", "group": "Special teams", "name": "Career extra points made", "unit": "XP", "cols": ["pat_made"]},
-    {"key": "punts", "group": "Special teams", "name": "Career punts", "unit": "punts", "cols": ["pt_att"]},
-    {"key": "punt_yds", "group": "Special teams", "name": "Career punting yards", "unit": "yds", "cols": ["pt_yards"]},
-    {"key": "punt_i20", "group": "Special teams", "name": "Career punts inside the 20", "unit": "punts", "cols": ["pt_inside_20"]},
-    {"key": "punt_long", "group": "Special teams", "name": "Longest punt (in a career)", "unit": "yds", "cols": ["pt_long"], "agg": "max"},
-
-    {"key": "games", "group": "Odds and ends", "name": "Career games played", "unit": "games", "cols": ["games"]},
-    {"key": "fumbles", "group": "Odds and ends", "name": "Career fumbles", "unit": "fumbles", "cols": ["fumbles_total"]},
-    {"key": "fum_lost", "group": "Odds and ends", "name": "Career fumbles lost", "unit": "lost", "cols": ["fumbles_lost_total"]},
-    {"key": "pen", "group": "Odds and ends", "name": "Career penalties", "unit": "flags", "cols": ["penalties"]},
-    {"key": "pen_yds", "group": "Odds and ends", "name": "Career penalty yards", "unit": "yds", "cols": ["penalty_yards"]}
-  ]
+ "_note": "Every Gridiron Golf category. cols = nflverse stats_player columns added together (agg 'max' takes the best single season instead, for longest kicks). name is what the hole card shows; unit is the short label after numbers. Pins are filled in by bootstrap and kept in players.json. since: 1999 marks categories with no numbers before 1999; players whose careers started earlier count only their 1999-on stats there.",
+ "categories": [
+  {
+   "key": "pass_yds",
+   "group": "Passing",
+   "name": "Career passing yards",
+   "unit": "yds",
+   "cols": [
+    "passing_yards"
+   ]
+  },
+  {
+   "key": "passtd",
+   "group": "Passing",
+   "name": "Career passing touchdowns",
+   "unit": "TD",
+   "cols": [
+    "passing_tds"
+   ]
+  },
+  {
+   "key": "pass_cmp",
+   "group": "Passing",
+   "name": "Career completions",
+   "unit": "cmp",
+   "cols": [
+    "completions"
+   ]
+  },
+  {
+   "key": "pass_att",
+   "group": "Passing",
+   "name": "Career pass attempts",
+   "unit": "att",
+   "cols": [
+    "attempts"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pass_int",
+   "group": "Passing",
+   "name": "Career interceptions thrown",
+   "unit": "INT",
+   "cols": [
+    "passing_interceptions"
+   ]
+  },
+  {
+   "key": "sacked",
+   "group": "Passing",
+   "name": "Career times sacked",
+   "unit": "sacks",
+   "cols": [
+    "sacks_suffered"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pass_1d",
+   "group": "Passing",
+   "name": "Career passing first downs",
+   "unit": "1st downs",
+   "cols": [
+    "passing_first_downs"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pass_40",
+   "group": "Passing",
+   "name": "Career 40‑yard completions",
+   "unit": "passes",
+   "cols": [
+    "passing_40"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pass_2pt",
+   "group": "Passing",
+   "name": "Career two‑point conversion passes",
+   "unit": "2-pt",
+   "cols": [
+    "passing_2pt_conversions"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rush",
+   "group": "Rushing",
+   "name": "Career rushing yards",
+   "unit": "yds",
+   "cols": [
+    "rushing_yards"
+   ]
+  },
+  {
+   "key": "rush_td",
+   "group": "Rushing",
+   "name": "Career rushing touchdowns",
+   "unit": "TD",
+   "cols": [
+    "rushing_tds"
+   ]
+  },
+  {
+   "key": "rush_att",
+   "group": "Rushing",
+   "name": "Career carries",
+   "unit": "carries",
+   "cols": [
+    "carries"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rush_1d",
+   "group": "Rushing",
+   "name": "Career rushing first downs",
+   "unit": "1st downs",
+   "cols": [
+    "rushing_first_downs"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rush_40",
+   "group": "Rushing",
+   "name": "Career 40‑yard runs",
+   "unit": "runs",
+   "cols": [
+    "rushing_40"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rush_2pt",
+   "group": "Rushing",
+   "name": "Career two‑point conversion runs",
+   "unit": "2-pt",
+   "cols": [
+    "rushing_2pt_conversions"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "recyds",
+   "group": "Receiving",
+   "name": "Career receiving yards",
+   "unit": "yds",
+   "cols": [
+    "receiving_yards"
+   ]
+  },
+  {
+   "key": "rec",
+   "group": "Receiving",
+   "name": "Career receptions",
+   "unit": "catches",
+   "cols": [
+    "receptions"
+   ]
+  },
+  {
+   "key": "rec_td",
+   "group": "Receiving",
+   "name": "Career receiving touchdowns",
+   "unit": "TD",
+   "cols": [
+    "receiving_tds"
+   ]
+  },
+  {
+   "key": "rec_1d",
+   "group": "Receiving",
+   "name": "Career receiving first downs",
+   "unit": "1st downs",
+   "cols": [
+    "receiving_first_downs"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rec_40",
+   "group": "Receiving",
+   "name": "Career 40‑yard catches",
+   "unit": "catches",
+   "cols": [
+    "receiving_40"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "rec_2pt",
+   "group": "Receiving",
+   "name": "Career two‑point conversion catches",
+   "unit": "2-pt",
+   "cols": [
+    "receiving_2pt_conversions"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "scrim",
+   "group": "All-purpose",
+   "name": "Career scrimmage yards (rushing + receiving)",
+   "unit": "yds",
+   "cols": [
+    "rushing_yards",
+    "receiving_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "apy",
+   "group": "All-purpose",
+   "name": "Career all-purpose yards",
+   "unit": "yds",
+   "cols": [
+    "rushing_yards",
+    "receiving_yards",
+    "kickoff_return_yards",
+    "punt_return_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fpts",
+   "group": "All-purpose",
+   "name": "Career fantasy points (PPR)",
+   "unit": "pts",
+   "cols": [
+    "fantasy_points_ppr"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "sacks",
+   "group": "Defense",
+   "name": "Career sacks",
+   "unit": "sacks",
+   "cols": [
+    "def_sacks"
+   ]
+  },
+  {
+   "key": "def_int",
+   "group": "Defense",
+   "name": "Career interceptions",
+   "unit": "INT",
+   "cols": [
+    "def_interceptions"
+   ]
+  },
+  {
+   "key": "int_yds",
+   "group": "Defense",
+   "name": "Career interception return yards",
+   "unit": "yds",
+   "cols": [
+    "def_interception_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "solo",
+   "group": "Defense",
+   "name": "Career solo tackles",
+   "unit": "tackles",
+   "cols": [
+    "def_tackles_solo"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "ff",
+   "group": "Defense",
+   "name": "Career forced fumbles",
+   "unit": "FF",
+   "cols": [
+    "def_fumbles_forced"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fr",
+   "group": "Defense",
+   "name": "Career fumble recoveries",
+   "unit": "recoveries",
+   "cols": [
+    "fumble_recovery_opp"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pd",
+   "group": "Defense",
+   "name": "Career passes defended",
+   "unit": "PD",
+   "cols": [
+    "def_pass_defended"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "def_td",
+   "group": "Defense",
+   "name": "Career defensive touchdowns",
+   "unit": "TD",
+   "cols": [
+    "def_tds"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "safety",
+   "group": "Defense",
+   "name": "Career safeties",
+   "unit": "safeties",
+   "cols": [
+    "def_safeties"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "blocks",
+   "group": "Defense",
+   "name": "Career blocked kicks and punts",
+   "unit": "blocks",
+   "cols": [
+    "def_punt_blocks",
+    "def_fg_blocks",
+    "def_pat_blocks"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "kr",
+   "group": "Special teams",
+   "name": "Career kickoff returns",
+   "unit": "returns",
+   "cols": [
+    "kickoff_returns"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "kr_yds",
+   "group": "Special teams",
+   "name": "Career kickoff return yards",
+   "unit": "yds",
+   "cols": [
+    "kickoff_return_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pr",
+   "group": "Special teams",
+   "name": "Career punt returns",
+   "unit": "returns",
+   "cols": [
+    "punt_returns"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pr_yds",
+   "group": "Special teams",
+   "name": "Career punt return yards",
+   "unit": "yds",
+   "cols": [
+    "punt_return_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "st_td",
+   "group": "Special teams",
+   "name": "Career special teams touchdowns",
+   "unit": "TD",
+   "cols": [
+    "special_teams_tds"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fg_made",
+   "group": "Special teams",
+   "name": "Career field goals made",
+   "unit": "FG",
+   "cols": [
+    "fg_made"
+   ]
+  },
+  {
+   "key": "fg_att",
+   "group": "Special teams",
+   "name": "Career field goal attempts",
+   "unit": "att",
+   "cols": [
+    "fg_att"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fg_miss",
+   "group": "Special teams",
+   "name": "Career missed field goals",
+   "unit": "misses",
+   "cols": [
+    "fg_missed"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fg_50",
+   "group": "Special teams",
+   "name": "Career 50‑yard field goals",
+   "unit": "FG",
+   "cols": [
+    "fg_made_50_59",
+    "fg_made_60_"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fg_long",
+   "group": "Special teams",
+   "name": "Longest field goal made (in a career)",
+   "unit": "yds",
+   "cols": [
+    "fg_long"
+   ],
+   "agg": "max",
+   "since": 1999
+  },
+  {
+   "key": "gwfg",
+   "group": "Special teams",
+   "name": "Career game-winning field goals",
+   "unit": "FG",
+   "cols": [
+    "gwfg_made"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pat",
+   "group": "Special teams",
+   "name": "Career extra points made",
+   "unit": "XP",
+   "cols": [
+    "pat_made"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "punts",
+   "group": "Special teams",
+   "name": "Career punts",
+   "unit": "punts",
+   "cols": [
+    "pt_att"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "punt_yds",
+   "group": "Special teams",
+   "name": "Career punting yards",
+   "unit": "yds",
+   "cols": [
+    "pt_yards"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "punt_i20",
+   "group": "Special teams",
+   "name": "Career punts inside the 20",
+   "unit": "punts",
+   "cols": [
+    "pt_inside_20"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "punt_long",
+   "group": "Special teams",
+   "name": "Longest punt (in a career)",
+   "unit": "yds",
+   "cols": [
+    "pt_long"
+   ],
+   "agg": "max",
+   "since": 1999
+  },
+  {
+   "key": "games",
+   "group": "Odds and ends",
+   "name": "Career games played",
+   "unit": "games",
+   "cols": [
+    "games"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fumbles",
+   "group": "Odds and ends",
+   "name": "Career fumbles",
+   "unit": "fumbles",
+   "cols": [
+    "fumbles_total"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "fum_lost",
+   "group": "Odds and ends",
+   "name": "Career fumbles lost",
+   "unit": "lost",
+   "cols": [
+    "fumbles_lost_total"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pen",
+   "group": "Odds and ends",
+   "name": "Career penalties",
+   "unit": "flags",
+   "cols": [
+    "penalties"
+   ],
+   "since": 1999
+  },
+  {
+   "key": "pen_yds",
+   "group": "Odds and ends",
+   "name": "Career penalty yards",
+   "unit": "yds",
+   "cols": [
+    "penalty_yards"
+   ],
+   "since": 1999
+  }
+ ]
 }

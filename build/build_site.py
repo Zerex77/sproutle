@@ -322,11 +322,11 @@ grows = []
 for r in gdata['players']:
     vals = r[3:]
     fame = int(sum(abs(vals[gidx[k]] or 0) * w for k, w in FAME.items()))
-    grows.append(f"{r[1]}|{1 if r[2] else 0}|{fame}|" + ','.join(gnum(vals[gidx[c['key']]]) for c in gcats))
-# Categories with no verified pre-1999 numbers are marked so the hole card can say "since 1999"
-gold = [r for r in gdata['players'] if r[0].startswith('L:')]
+    flag = '1' if r[2] else ('p' if r[0][:2] in ('L:', 'P:') else '0')   # active, or a career that began before 1999
+    grows.append(f"{r[1]}|{flag}|{fame}|" + ','.join(gnum(vals[gidx[c['key']]]) for c in gcats))
+# "since" (from categories.json) lets the hole card say "since 1999"
 gmeta = [{'key': c['key'], 'name': c['name'], 'unit': c['unit'], 'group': c['group'], 'pin': gdata['pins'][c['key']],
-          'since': 0 if any(r[3 + gidx[c['key']]] is not None for r in gold) else 1999} for c in gcats]
+          'since': c.get('since', 0)} for c in gcats]
 gpage = (open(os.path.join(G, 'index.src.html')).read()
          .replace('/*CATS*/', json.dumps(gmeta, separators=(',', ':'), ensure_ascii=False))
          .replace('/*DATA*/', json.dumps(grows, separators=(',', ':'), ensure_ascii=False))

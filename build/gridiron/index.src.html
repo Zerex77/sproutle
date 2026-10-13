@@ -210,7 +210,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
       <li>You get one mulligan: swap out a pick you regret.</li>
       <li>Any position counts, as long as the player has at least some of the stat. A quarterback's handful of catches can be exactly what you need.</li>
       <li>Active players count too, using their totals through <span class="asof"></span>.</li>
-      <li>Some categories, like penalties or passes defended, only have numbers from 1999 on. The hole card says "since 1999" when that's the case.</li>
+      <li>Some categories, like penalties or 40-yard catches, only have numbers from 1999 on. The hole card says "since 1999", and players whose careers began earlier count their 1999-on numbers.</li>
       <li>Want more? Endless mode deals a new random stat and pin every hole, as many as you like.</li>
     </ul>
     <button class="close" data-close>Tee it up</button>
@@ -253,7 +253,9 @@ const PICKS = 5;
 function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
 const pNo = Math.max(1, dayIndex(new Date()) - Math.floor(Date.UTC(2026,9,13)/864e5) + 1);
 const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
-const BASE = ROWS.map(s=>{ const [name,act,fame,vals]=s.split("|"); return {name, active:act==="1", fame:+fame, vals:vals.split(","), key:norm(name)}; });
+const BASE = ROWS.map(s=>{ const [name,act,fame,vals]=s.split("|"); return {name, active:act==="1", pre:act==="p", fame:+fame, vals:vals.split(","), key:norm(name)}; });
+// In "since 1999" holes, players whose careers began earlier count their 1999-on numbers, tagged like this
+const partial = p => !!(ST && ST.since && p.pre);
 
 // ---- Storage (optional; the game works without it)
 const KEY="gridiron-v2";
@@ -327,7 +329,7 @@ function render(isNew){
     const li = document.createElement("li");
     li.className = "slot" + (gone?" gone":"") + (isNew && i===S.picks.length-1 ? " new":"");
     const canMull = !done && S.mull===null && !gone;
-    li.innerHTML = `<span class="n">${gone?"✕":num}</span><div class="who">${gone ? esc(p.name.replace(/ \(.*\)$/,""))+"<span>Mulligan</span>" : nameHtml(p.name)}</div>`
+    li.innerHTML = `<span class="n">${gone?"✕":num}</span><div class="who">${gone ? esc(p.name.replace(/ \(.*\)$/,""))+"<span>Mulligan</span>" : nameHtml(p.name)+(partial(p)?"<span>Stats from 1999 on</span>":"")}</div>`
       + `<div style="display:flex;align-items:center;gap:8px">`
       + (canMull ? `<button class="mull" data-i="${i}" type="button" aria-label="Use your mulligan on ${esc(p.name)}">Mulligan</button>` : "")
       + `<span class="v">${fmt(p.v)}</span></div>`;
@@ -361,7 +363,7 @@ function showSugg(){
   const ul=$("sugg"), u=used();
   if(!matches.length){ ul.hidden=true; $("inp").setAttribute("aria-expanded","false"); return; }
   ul.innerHTML = matches.map((p,i)=>{
-    const note = u.has(p.name) ? "Already picked" : p.v===null ? "Not available" : p.v===0 ? "Has 0" : p.active ? "Active" : "";
+    const note = u.has(p.name) ? "Already picked" : p.v===null ? "Not available" : p.v===0 ? "Has 0" : partial(p) ? "1999 on" : p.active ? "Active" : "";
     return `<li role="option" id="sg${i}" class="${i===hi?"on":""} ${u.has(p.name)||p.v===null||p.v===0?"used":""}" data-i="${i}" aria-selected="${i===hi}"><div class="who">${nameHtml(p.name)}</div>${note?`<span>${note}</span>`:""}</li>`;
   }).join("");
   ul.hidden=false; $("inp").setAttribute("aria-expanded","true"); $("inp").setAttribute("aria-activedescendant","sg"+hi);
@@ -516,7 +518,7 @@ function showBest(){
   const head = off===0 ? "A hole in one was possible" : `The closest possible was ${fmt(off)} ${ST.unit} off`;
   const cmp = mine===off ? "You matched the best possible round." : `You were ${fmt(mine - off)} ${ST.unit} further away.`;
   el.innerHTML = `<div class="best-h"><b>${head}</b><span>${cmp}</span></div>`
-    + b.picks.map(p=>`<div class="rd-row"><span>${nameHtml(p.name)}</span><b>${fmt(p.v)}</b></div>`).join("")
+    + b.picks.map(p=>`<div class="rd-row"><span>${nameHtml(p.name)}${partial(p)?"<span>1999 on</span>":""}</span><b>${fmt(p.v)}</b></div>`).join("")
     + `<div class="rd-row rd-tot"><span>Total</span><b>${fmt(t)} ${esc(ST.unit)}</b></div>`;
 }
 
