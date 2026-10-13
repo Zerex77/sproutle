@@ -139,7 +139,7 @@ GAMES = [
     ('imposter', 'Imposter', 'Daily odd-one-out · 2 min', 'Five rows of four suspects. Three share a secret. Spot the one that doesn\'t belong.', 'Play Imposter', '/imposter/icon-192.png', True),
     ('gridiron', 'Gridiron Golf', 'Daily NFL trivia · 3 min', 'One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.', 'Play Gridiron Golf', '/gridiron/icon-192.png', True),
     ('almamater', 'Alma Mater', 'Daily NFL puzzle · 2 min', "Eleven starters drawn up in their college colors. Name the NFL team in four guesses. Endless mode too.", 'Play Alma Mater', '/almamater/icon-192.png', True),
-    ('groupchat', 'Group Chat Disaster', 'Party game · 2–10 players', "Put it on the TV, join on your phones, and reply to a group chat that's falling apart. Funniest text gets sent.", 'Play Group Chat Disaster', '/groupchat/icon-192.png', False),
+    ('zachbox', 'Zach Box Games', 'Party games · 2–10 players', "Loud, messy party games for the TV and your phones, hosted by Wobbles. Starring Group Chat Disaster.", 'Open Zach Box', '/zachbox/icon-192.png', False),
     ('critter-collector', 'Critter Collector', 'Zoo merge game · play anytime', "Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.", 'Play Critter Collector', '/critter-collector/icon-192.png', False),
 ]
 
@@ -301,7 +301,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/groupchat/', '/critter-collector/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/zachbox/', '/groupchat/', '/critter-collector/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -327,7 +327,7 @@ shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), di
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
 # Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
-for g in ('ballpark', 'imposter', 'almamater', 'groupchat'):
+for g in ('ballpark', 'imposter', 'almamater', 'groupchat', 'zachbox'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')

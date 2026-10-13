@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120a24">
+<meta name="description" content="Zach Box Games: loud, messy party games for your friends. Put it on the TV, play on your phones. Hosted by Wobbles.">
+<link rel="canonical" href="https://playsproutle.com/zachbox/">
+<meta property="og:title" content="Zach Box Games">
+<meta property="og:description" content="Party games for the TV and your phones. No accounts, no downloads, zero chill.">
+<meta property="og:url" content="https://playsproutle.com/zachbox/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/zachbox/icon-512.png">
+<link rel="icon" type="image/png" href="/zachbox/icon-192.png">
+<link rel="apple-touch-icon" href="/zachbox/apple-touch-icon.png">
+<title>Zach Box Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: a messy toy shelf. Tilted wordmark, the host Wobbles yelling from a speech bubble, a ticker tape, then game boxes stacked crooked like a closet of board games. Single committed dark theme. */
+:root{
+  --void:#120a24; --shelf:#1f1240; --ink:#fff8ec; --muted:#c9bde6;
+  --zap:#ff6b2c; --zap-deep:#c8420c; --lime:#c6ff3d; --pink:#ff3d9a; --cyan:#33e1ff; --grape:#8c5cff;
+  --f-display:"Bowlby One", "Arial Black", Impact, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{min-height:100%}
+html{overflow-x:clip}
+body{margin:0;background:var(--void);color:var(--ink);font:17px/1.45 var(--f-body);overflow-x:hidden;
+  background-image:
+    radial-gradient(circle at 12% 18%,rgba(255,61,154,.28) 0 120px,transparent 260px),
+    radial-gradient(circle at 92% 8%,rgba(51,225,255,.22) 0 90px,transparent 240px),
+    radial-gradient(circle at 70% 85%,rgba(198,255,61,.14) 0 120px,transparent 300px),
+    repeating-linear-gradient(-35deg,transparent 0 38px,rgba(255,255,255,.025) 38px 40px)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:14px 48px;display:flex;flex-direction:column;gap:28px;position:relative}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:800;font-size:.9rem}
+.top a{text-decoration:none;color:var(--muted);border:2px solid currentColor;border-radius:999px;padding:6px 14px;transform:rotate(2deg);display:inline-block}
+.top a:hover{color:var(--lime)}
+.badge{background:var(--lime);color:var(--void);padding:4px 10px;border-radius:6px;transform:rotate(-3deg);font-weight:900;letter-spacing:.06em;text-transform:uppercase;font-size:.75rem}
+
+/* wordmark */
+.mark{font-family:var(--f-display);line-height:.82;margin:0;display:flex;flex-wrap:wrap;gap:0 .25em;align-items:flex-end;font-weight:400}
+.mark span{display:inline-block;font-size:clamp(3.4rem,13vw,9rem);color:var(--ink);text-shadow:4px 4px 0 var(--pink),8px 8px 0 var(--grape)}
+.mark .w1{transform:rotate(-6deg);color:var(--zap)}
+.mark .w2{transform:rotate(3deg) translateY(6px);color:var(--lime);text-shadow:4px 4px 0 var(--grape),8px 8px 0 var(--pink)}
+.mark .w3{font-size:clamp(1.6rem,5vw,3rem);transform:rotate(-2deg);background:var(--cyan);color:var(--void);text-shadow:none;padding:.15em .35em .05em;border-radius:6px;margin-bottom:.3em}
+@media (prefers-reduced-motion:no-preference){.mark .w1{animation:jolt 3.5s infinite}.mark .w2{animation:jolt 3.5s .4s infinite}}
+@keyframes jolt{0%,92%,100%{translate:0 0}94%{translate:-3px 2px}96%{translate:3px -2px}98%{translate:-1px 1px}}
+
+/* host */
+.host{display:grid;grid-template-columns:minmax(150px,240px) 1fr;gap:10px 24px;align-items:center}
+@media (max-width:620px){.host{grid-template-columns:120px 1fr}}
+.wob{width:100%;max-width:240px;cursor:pointer;background:none;border:none;padding:0;filter:drop-shadow(6px 8px 0 rgba(0,0,0,.45))}
+.wob svg{width:100%;height:auto;display:block;overflow:visible}
+@media (prefers-reduced-motion:no-preference){
+  .wob .body{animation:wobble 2.6s ease-in-out infinite;transform-origin:100px 190px}
+  .wob .armL{animation:wave 1.1s ease-in-out infinite;transform-origin:42px 120px}
+  .wob .armR{animation:wave 1.4s ease-in-out infinite reverse;transform-origin:158px 120px}
+  .wob .hat{animation:hat 2.6s ease-in-out infinite;transform-origin:100px 40px}
+  .wob.boing .body{animation:boing .5s cubic-bezier(.3,1.8,.4,1)}
+}
+@keyframes wobble{0%,100%{transform:skewX(0) scaleY(1)}25%{transform:skewX(4deg) scaleY(.97)}75%{transform:skewX(-4deg) scaleY(1.03)}}
+@keyframes wave{0%,100%{rotate:0deg}50%{rotate:-22deg}}
+@keyframes hat{0%,100%{rotate:-8deg}50%{rotate:10deg}}
+@keyframes boing{0%{transform:scale(1)}30%{transform:scale(1.18,.8)}60%{transform:scale(.9,1.15)}100%{transform:scale(1)}}
+.bubble{position:relative;background:var(--ink);color:var(--void);border-radius:28px 28px 28px 6px;padding:18px 22px;transform:rotate(-1.5deg);box-shadow:6px 6px 0 var(--zap);max-width:560px}
+.bubble::before{content:"";position:absolute;left:-14px;bottom:18px;border:14px solid transparent;border-right-color:var(--ink);border-left:0}
+@media (max-width:620px){.bubble::before{display:none}}
+.bubble .who{font:900 .75rem var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--zap-deep)}
+.bubble p{margin:4px 0 0;font:800 clamp(1.15rem,2.6vw,1.6rem)/1.2 var(--f-body);text-wrap:balance;min-height:2.4em}
+.bubble .poke{margin-top:10px;font-size:.8rem;font-weight:700;color:#6b5d86}
+
+/* ticker */
+.tick{overflow:hidden;background:var(--pink);color:var(--void);transform:rotate(-1.2deg);margin-inline:-16px;border-block:3px solid var(--void);box-shadow:0 0 0 3px var(--pink)}
+.tick div{display:flex;width:max-content;font:400 1.2rem/1 var(--f-display);padding:10px 0;white-space:nowrap}
+.tick span{padding-right:2rem}
+@media (prefers-reduced-motion:no-preference){.tick div{animation:roll 22s linear infinite}}
+@keyframes roll{to{transform:translateX(-50%)}}
+
+/* game boxes */
+.shelf{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:26px;align-items:start}
+.box{position:relative;display:flex;flex-direction:column;gap:12px;padding:22px;border-radius:20px;text-decoration:none;color:var(--ink);background:var(--shelf);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--grape);transition:transform .15s,box-shadow .15s}
+.box:nth-child(1){transform:rotate(-1.6deg)}
+.box:nth-child(2){transform:rotate(1.4deg);margin-top:22px}
+.box:nth-child(3){transform:rotate(-.6deg)}
+a.box:hover{transform:rotate(0) translateY(-6px) scale(1.02);box-shadow:12px 14px 0 var(--pink)}
+.box .art{display:flex;align-items:center;gap:14px}
+.box img{width:76px;height:76px;border-radius:18px;border:3px solid var(--ink);flex:none}
+.box h2{font:400 clamp(1.5rem,3vw,2rem)/1 var(--f-display);margin:0;letter-spacing:.01em}
+.box .meta{display:flex;flex-wrap:wrap;gap:6px}
+.box .meta span{font-size:.75rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:6px;background:var(--void);color:var(--lime)}
+.box p{margin:0;color:var(--muted)}
+.box .go{align-self:flex-start;font:400 1.1rem var(--f-display);background:var(--zap);color:var(--void);padding:10px 18px 8px;border-radius:12px;box-shadow:0 5px 0 var(--zap-deep)}
+.sticker{position:absolute;top:-16px;right:-12px;background:var(--lime);color:var(--void);font:900 .8rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-radius:50%;width:76px;height:76px;display:grid;place-items:center;text-align:center;line-height:1.05;transform:rotate(14deg);border:3px solid var(--void)}
+.box.soon{border-style:dashed;background:transparent;box-shadow:none;color:var(--muted)}
+.box.soon .q{font:400 4rem/1 var(--f-display);color:var(--grape)}
+
+/* how */
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin:0;padding:0;list-style:none}
+.how li{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:rgba(255,255,255,.05)}
+.how b{font:400 1.8rem/1 var(--f-display);color:var(--cyan);flex:none;width:1.2em}
+.how strong{display:block}
+.how span{color:var(--muted);font-size:.95rem}
+h3.sect{font:400 1.4rem var(--f-display);margin:0;transform:rotate(-1deg);color:var(--cyan)}
+.foot{font-size:.85rem;color:var(--muted);text-align:center}
+.foot a{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="badge">Party games</span><a href="/">← Daily puzzles</a></div>
+
+  <h1 class="mark" aria-label="Zach Box Games"><span class="w1">Zach</span><span class="w2">Box</span><span class="w3">Games</span></h1>
+
+  <section class="host">
+    <button class="wob" id="wob" type="button" aria-label="Poke Wobbles">
+      <svg viewBox="0 0 200 220" aria-hidden="true">
+        <g class="armL"><path d="M44 120 C20 110 14 86 22 70" fill="none" stroke="#ff6b2c" stroke-width="10" stroke-linecap="round"/><circle cx="22" cy="68" r="10" fill="#fff8ec"/></g>
+        <g class="armR"><path d="M156 120 C182 128 190 150 184 168" fill="none" stroke="#ff6b2c" stroke-width="10" stroke-linecap="round"/><circle cx="184" cy="170" r="10" fill="#fff8ec"/></g>
+        <g class="body">
+          <path d="M100 48 C150 46 172 92 168 138 C164 182 132 200 100 200 C64 200 34 184 32 140 C30 96 52 50 100 48 Z" fill="#ff6b2c"/>
+          <path d="M60 176 C78 192 124 194 146 172" fill="none" stroke="#c8420c" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+          <ellipse cx="74" cy="160" rx="11" ry="6" fill="#ff3d9a" opacity=".55"/>
+          <ellipse cx="134" cy="160" rx="11" ry="6" fill="#ff3d9a" opacity=".55"/>
+          <circle cx="102" cy="112" r="38" fill="#fff8ec" stroke="#120a24" stroke-width="5"/>
+          <g id="pupil"><circle cx="102" cy="112" r="17" fill="#120a24"/><circle cx="109" cy="104" r="6" fill="#fff8ec"/></g>
+          <path d="M66 74 L88 82" stroke="#120a24" stroke-width="6" stroke-linecap="round"/>
+          <path id="mouth" d="M84 166 Q102 184 122 164" fill="#120a24" stroke="#120a24" stroke-width="5" stroke-linejoin="round"/>
+          <rect x="96" y="166" width="10" height="8" rx="2" fill="#fff8ec"/>
+          <g class="hat"><path d="M100 4 L124 52 L78 54 Z" fill="#8c5cff" stroke="#120a24" stroke-width="4" stroke-linejoin="round"/><path d="M88 34 L114 32 M83 45 L120 43" stroke="#c6ff3d" stroke-width="5"/><circle cx="100" cy="6" r="8" fill="#33e1ff" stroke="#120a24" stroke-width="3"/></g>
+        </g>
+      </svg>
+    </button>
+    <div class="bubble" aria-live="polite">
+      <div class="who">Wobbles, your host</div>
+      <p id="quip">WELCOME, WELCOME! Grab a phone, grab a friend, grab a snack. Possibly in that order.</p>
+      <div class="poke">Tap Wobbles. He likes it. Probably.</div>
+    </div>
+  </section>
+
+  <div class="tick" aria-hidden="true"><div id="tickRow"></div></div>
+
+  <section class="shelf">
+    <a class="box" href="/groupchat/">
+      <span class="sticker">New!</span>
+      <div class="art"><img src="/groupchat/icon-192.png" alt=""><h2>Group Chat Disaster</h2></div>
+      <div class="meta"><span>2–10 players</span><span>15 min</span><span>Writing &amp; voting</span></div>
+      <p>Mom texts the group. Everyone replies. Everyone votes. The funniest text gets sent, and eight rounds later the chat is a crime scene.</p>
+      <span class="go">Play now</span>
+    </a>
+    <div class="box soon" aria-label="Next game coming soon">
+      <div class="q">?</div>
+      <h2>Next game</h2>
+      <p>Wobbles is building it in the garage. He won't say what it is. There was a loud noise earlier.</p>
+    </div>
+  </section>
+
+  <h3 class="sect">How a Zach Box game works</h3>
+  <ol class="how">
+    <li><b>1</b><div><strong>Open it on the big screen</strong><span>A TV, laptop or tablet everyone can see hosts the room.</span></div></li>
+    <li><b>2</b><div><strong>Phones are the controllers</strong><span>Scan the QR code or type the 4-letter room code. No app, no account.</span></div></li>
+    <li><b>3</b><div><strong>Cause chaos</strong><span>Write, vote, laugh, and blame the person who wrote it.</span></div></li>
+  </ol>
+
+  <p class="foot">Zach Box Games are made by the maker of <a href="/">Sproutle</a>. · <a href="/privacy">Privacy</a></p>
+</div>
+<script>
+(function(){
+  const Q=[
+    "WELCOME, WELCOME! Grab a phone, grab a friend, grab a snack. Possibly in that order.",
+    "I have one eye and it is ALWAYS watching the scoreboard.",
+    "Rule one: the TV is the boss. Rule two: I am the TV's boss. Rule three: there is no rule three.",
+    "Fun fact: I was assembled from a beanbag and a party popper. I'm doing great.",
+    "Please stop poking me. Okay, one more. Okay, two more.",
+    "If you lose, that's character development.",
+    "I asked for a bigger hat. They said no. I'm still upset.",
+    "Remember, it's only a game. A game that will be talked about at every family dinner forever.",
+    "Phones out! Dignity optional!",
+    "Did you know the average group chat contains 40% chaos and 60% unread messages?",
+    "I don't have elbows. I have vibes.",
+    "Whoever wins tonight gets my respect. Whoever loses gets my other respect.",
+    "AAAAAAA. Sorry. I get excited when people show up."
+  ];
+  const q=document.getElementById("quip"), w=document.getElementById("wob"), pupil=document.getElementById("pupil"), mouth=document.getElementById("mouth");
+  let i=0;
+  w.addEventListener("click",()=>{
+    i=(i+1+Math.floor(Math.random()*(Q.length-1)))%Q.length; q.textContent=Q[i];
+    w.classList.remove("boing"); void w.offsetWidth; w.classList.add("boing");
+    mouth.setAttribute("d","M82 162 Q102 196 124 160");
+    clearTimeout(w.t); w.t=setTimeout(()=>mouth.setAttribute("d","M84 166 Q102 184 122 164"),600);
+  });
+  // the eye follows you around the room
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce) window.addEventListener("pointermove",e=>{
+    const r=w.getBoundingClientRect(), cx=r.left+r.width*.51, cy=r.top+r.height*.51;
+    const dx=e.clientX-cx, dy=e.clientY-cy, d=Math.hypot(dx,dy)||1, m=Math.min(14,d/18);
+    pupil.setAttribute("transform","translate("+(dx/d*m).toFixed(1)+" "+(dy/d*m).toFixed(1)+")");
+  });
+  const T=["Phones out","No accounts","2 to 10 players","One TV","Zero chill","Hosted by Wobbles","Blame your friends","Free forever"];
+  const row=T.concat(T).map(t=>"<span>★ "+t+"</span>").join("");
+  document.getElementById("tickRow").innerHTML=row+row;
+})();
+</script>
+</body>
+</html>
