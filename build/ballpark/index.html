@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1F4A36">
+<meta name="description" content="Ballpark: a free daily number puzzle. One question, five guesses. Get within range to win, then share your result.">
+<link rel="canonical" href="https://playsproutle.com/ballpark/">
+<meta property="og:title" content="Ballpark">
+<meta property="og:description" content="One question. Five guesses. How close can you get? A new puzzle every day.">
+<meta property="og:url" content="https://playsproutle.com/ballpark/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/ballpark/icon-512.png">
+<link rel="icon" type="image/png" href="/ballpark/icon-192.png">
+<link rel="apple-touch-icon" href="/ballpark/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Ballpark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+/* Layout: one narrow column styled like a ballpark scoreboard. Question on top, five guess rows, input dock at the bottom. */
+:root{
+  --bg:#F3EEE2; --surface:#FFFDF8; --ink:#17271F; --muted:#5E6B63; --line:#D8D0BE;
+  --board:#1F4A36; --board-ink:#F3EEE2; --board-dim:#7FA28F; --lamp:#FFC23D;
+  --accent:#D9472B; --accent-ink:#FFFFFF;
+  --hot:#2E9E57; --warm:#E9B530; --cool:#E77B32; --cold:#9AA7B0;
+  --display:"Anton", Impact, "Arial Narrow", sans-serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1813; --surface:#16231C; --ink:#EAF0EA; --muted:#93A69A; --line:#29392F;
+  --board:#0A2219; --board-ink:#EAF0EA; --board-dim:#5F8572; --lamp:#FFC23D;
+  --accent:#FF6A4A; --accent-ink:#1E0904; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0E1813; --surface:#16231C; --ink:#EAF0EA; --muted:#93A69A; --line:#29392F;
+  --board:#0A2219; --board-ink:#EAF0EA; --board-dim:#5F8572; --lamp:#FFC23D;
+  --accent:#FF6A4A; --accent-ink:#1E0904; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:440px;margin:0 auto;padding-inline:16px;padding-block:12px 32px;display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:4px 0}
+.mark{font-family:var(--display);font-size:36px;letter-spacing:.03em;line-height:1;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.ball{width:28px;height:28px;flex:none}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.board{background:var(--board);color:var(--board-ink);border-radius:18px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 24px -14px rgba(10,30,20,.6)}
+.meta{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--board-dim);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.q{font-size:22px;line-height:1.25;font-weight:700;text-wrap:balance}
+.range{display:flex;align-items:center;gap:10px;font-variant-numeric:tabular-nums}
+.range .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
+.range .lo,.range .hi{font-family:var(--display);font-size:22px;letter-spacing:.02em;color:var(--lamp);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.range .track{flex:1;height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--board-dim) 0 6px,transparent 6px 10px);opacity:.7;min-width:24px}
+
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;min-height:52px;padding:6px 8px 6px 12px;border-radius:12px;background:var(--surface);border:2px solid var(--line);font-variant-numeric:tabular-nums}
+.row .n{font-family:var(--display);font-size:20px;color:var(--muted)}
+.row .g{font-family:var(--display);font-size:26px;letter-spacing:.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .g small{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px}
+.row.empty{border-style:dashed;background:transparent}
+.row.empty .g{color:var(--line)}
+.chip{display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:700;color:#14201A;white-space:nowrap}
+.chip.hot{background:var(--hot);color:#fff}.chip.warm{background:var(--warm)}.chip.cool{background:var(--cool)}.chip.cold{background:var(--cold)}
+.chip.win{background:var(--lamp);color:#14201A}
+.chip svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.row.new{animation:drop .35s ease}
+@keyframes drop{0%{transform:translateY(-6px);opacity:0}100%{transform:none;opacity:1}}
+
+.dock{display:flex;flex-direction:column;gap:8px}
+.field{display:flex;gap:8px}
+.inbox{flex:1;display:flex;align-items:center;gap:8px;height:56px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);padding:0 14px;min-width:0}
+.inbox:focus-within{border-color:var(--accent)}
+.inbox input{flex:1;min-width:0;border:none;background:transparent;color:var(--ink);font-family:var(--display);font-size:28px;letter-spacing:.02em;outline:none;font-variant-numeric:tabular-nums}
+.inbox input::placeholder{color:var(--line)}
+.inbox .unit{font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
+.go{height:56px;padding:0 22px;border:none;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px}
+.go:disabled{opacity:.45;cursor:default}
+.help{font-size:14px;color:var(--muted);text-align:center;line-height:1.4;min-height:1.4em}
+.help.err{color:var(--accent);font-weight:700}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-size:34px;text-transform:uppercase;letter-spacing:.02em;line-height:1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.answer{font-family:var(--display);font-size:44px;line-height:1;color:var(--ink);letter-spacing:.02em}
+.answer small{font-family:var(--body);font-size:16px;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:6px}
+.share{height:50px;border:none;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(8,16,12,.6);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:.02em}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:12px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-size:32px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--line);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--hot);color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
+.shake{animation:shake .3s ease}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><svg class="ball" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#FFFDF8" stroke="currentColor" stroke-width="2"/><path d="M8 6c4 6 4 14 0 20M24 6c-4 6-4 14 0 20" fill="none" stroke="#D9472B" stroke-width="2" stroke-dasharray="2.5 2"/></svg>Ballpark</div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <section class="board" aria-live="polite">
+    <div class="meta"><span id="pNo">No. 1</span><span id="pCat">Category</span></div>
+    <div class="q" id="pQ">Loading</div>
+    <div class="range" id="range"><span class="lbl">Between</span><span class="lo" id="lo">?</span><span class="track"></span><span class="hi" id="hi">?</span></div>
+  </section>
+
+  <section class="rows" id="rows" aria-label="Your guesses"></section>
+
+  <form class="dock" id="dock" autocomplete="off">
+    <div class="field">
+      <label class="inbox"><input id="inp" inputmode="decimal" enterkeyhint="go" placeholder="Your guess" aria-label="Your guess"><span class="unit" id="unit"></span></label>
+      <button class="go" id="btnGo" type="submit">Guess</button>
+    </div>
+    <div class="help" id="helpLine">Five guesses. Get in the ballpark to win.</div>
+  </form>
+
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>One question with a number for an answer. You get five guesses.</p>
+    <ul>
+      <li>After each guess you'll see whether to go higher or lower, and how close you are.</li>
+      <li>Land close enough and you're in the ballpark. That's a win.</li>
+      <li>A new question drops every day at midnight.</li>
+    </ul>
+    <div class="legend">
+      <span class="chip win">In the ballpark</span><span class="chip hot">Hot</span><span class="chip warm">Warm</span><span class="chip cool">Cool</span><span class="chip cold">Cold</span>
+    </div>
+    <button class="close" data-close>Play ball</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// One question per day. a = answer, tol = how close counts as "in the ballpark".
+// Add new questions to the end; the list repeats once it runs out.
+const PUZZLES = [
+  {cat:"Body", q:"How many bones are in the adult human body?", a:206, unit:"bones", tol:6, fact:"Babies are born with around 270. Many of them fuse together as we grow."},
+  {cat:"Music", q:"How many keys are on a standard piano?", a:88, unit:"keys", tol:3, fact:"52 white keys and 36 black ones."},
+  {cat:"Space", q:"How many Earth days does it take Mars to orbit the Sun?", a:687, unit:"days", tol:25, fact:"A year on Mars is almost twice as long as a year on Earth."},
+  {cat:"Time", q:"How many minutes are in one week?", a:10080, unit:"minutes", tol:300, fact:"7 days × 24 hours × 60 minutes."},
+  {cat:"Peaks", q:"How tall is Mount Everest, in feet?", a:29032, unit:"feet", tol:900, fact:"That's 8,849 meters, from a joint China–Nepal survey in 2020."},
+  {cat:"Science", q:"How many elements are on the periodic table?", a:118, unit:"elements", tol:4, fact:"The newest four got their names in 2016."},
+  {cat:"Sports", q:"How long is an American football field, end zones included, in yards?", a:120, unit:"yards", tol:4, fact:"100 yards of field plus two 10-yard end zones."},
+  {cat:"Space", q:"On average, how far away is the Moon, in miles?", a:238855, unit:"miles", tol:8000, fact:"About 384,400 km. It drifts about 3.8 cm farther away every year."},
+  {cat:"World", q:"How many member states are in the United Nations?", a:193, unit:"countries", tol:7, fact:"South Sudan was the most recent to join, in 2011."},
+  {cat:"Math", q:"Counting squares of every size, how many squares are on a chessboard?", a:204, unit:"squares", tol:8, fact:"64 small ones, 49 that are 2×2, 36 that are 3×3, and so on up to one 8×8."},
+  {cat:"Measures", q:"How many feet are in a mile?", a:5280, unit:"feet", tol:180, fact:"It's eight furlongs of 660 feet each."},
+  {cat:"Kitchen", q:"How many teaspoons are in one US cup?", a:48, unit:"tsp", tol:2, fact:"3 teaspoons per tablespoon, 16 tablespoons per cup."},
+  {cat:"Running", q:"How long is a marathon, in miles?", a:26.2, unit:"miles", tol:0.8, fact:"Exactly 26 miles 385 yards, or 42.195 km."},
+  {cat:"Geography", q:"How many countries are in Africa?", a:54, unit:"countries", tol:2, fact:"More than on any other continent."},
+  {cat:"Physics", q:"How fast does sound travel through air at sea level, in mph?", a:767, unit:"mph", tol:25, fact:"That's at about 20 °C. Sound moves a little faster in warmer air."},
+  {cat:"Earth", q:"How far is it around Earth at the equator, in miles?", a:24901, unit:"miles", tol:800, fact:"About 40,075 km."},
+  {cat:"Skylines", q:"How tall is the Burj Khalifa, in feet?", a:2717, unit:"feet", tol:90, fact:"828 meters. It has been the world's tallest building since 2010."},
+  {cat:"Time", q:"How many seconds are in one day?", a:86400, unit:"seconds", tol:2500, fact:"24 hours × 60 minutes × 60 seconds."},
+  {cat:"Games", q:"How many dots are there on a pair of standard dice, in total?", a:42, unit:"dots", tol:2, fact:"Each die has 1+2+3+4+5+6 = 21."},
+  {cat:"Space", q:"How many minutes does sunlight take to reach Earth?", a:8.3, unit:"minutes", tol:0.4, fact:"About 8 minutes and 20 seconds, on average."},
+  {cat:"Kitchen", q:"How much does a US gallon of water weigh, in pounds?", a:8.34, unit:"lb", tol:0.35, fact:"That's about 3.8 kg."},
+  {cat:"Animals", q:"How many months does an African elephant pregnancy last?", a:22, unit:"months", tol:1, fact:"The longest of any land mammal."},
+  {cat:"Sports", q:"How long is a tennis court, in feet?", a:78, unit:"feet", tol:3, fact:"Singles and doubles courts are the same length. Doubles is just wider."},
+  {cat:"Civics", q:"How many voting members are in the US House of Representatives?", a:435, unit:"members", tol:15, fact:"The number has stayed at 435 for more than a century."},
+  {cat:"Measures", q:"How many fluid ounces are in a US gallon?", a:128, unit:"fl oz", tol:5, fact:"8 ounces per cup, 16 cups per gallon."},
+  {cat:"Time", q:"How many hours are in a regular, non-leap year?", a:8760, unit:"hours", tol:300, fact:"365 days × 24 hours."},
+  {cat:"Sports", q:"How wide is a basketball hoop, in inches?", a:18, unit:"inches", tol:1, fact:"A basketball is about 9.5 inches wide, so the rim is almost twice that."},
+  {cat:"Flight", q:"What's the wingspan of a Boeing 747-400, in feet?", a:211, unit:"feet", tol:8, fact:"About 64 meters from tip to tip. The Wright brothers' first flight, 120 feet, was shorter than that."},
+  {cat:"Running", q:"How long is a 10K race, in miles?", a:6.2, unit:"miles", tol:0.25, fact:"10 km is about 6.21 miles."},
+  {cat:"Science", q:"At what temperature does water boil at sea level, in °F?", a:212, unit:"°F", tol:6, fact:"That's 100 °C."},
+  {cat:"Body", q:"How many teeth does an adult usually have, wisdom teeth included?", a:32, unit:"teeth", tol:1, fact:"Kids have just 20 baby teeth."},
+  {cat:"Space", q:"How many hours long is one day on Jupiter?", a:9.9, unit:"hours", tol:0.5, fact:"About 9 hours 56 minutes. No planet spins faster."},
+];
+const MAX = 5;
+
+// ---- Daily puzzle number (local date, No. 1 = Oct 13, 2026, same as the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH = Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo = Math.max(1, dayIndex(new Date()) - EPOCH + 1);
+const P = PUZZLES[(pNo-1) % PUZZLES.length];
+
+// ---- Storage (optional; the game works without it)
+const KEY="ballpark-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,wins:0,cur:0,max:0,dist:[0,0,0,0,0],lastWon:0};
+let S = (store.day && store.day.n===pNo) ? store.day : {n:pNo, guesses:[], status:"playing"};
+store.day = S;
+
+const $ = id=>document.getElementById(id);
+const fmt = n => n.toLocaleString(undefined,{maximumFractionDigits:2});
+
+// How close a guess is, in steps of the puzzle's tolerance
+function judge(g){
+  const d = Math.abs(g - P.a) / P.tol;
+  const dir = g < P.a ? "up" : g > P.a ? "down" : "";
+  if(d <= 1) return {k:"win", label:"In the ballpark", emoji:"🎯", dir:""};
+  if(d <= 3) return {k:"hot", label:"Hot", emoji:"🟩", dir};
+  if(d <= 10) return {k:"warm", label:"Warm", emoji:"🟨", dir};
+  if(d <= 30) return {k:"cool", label:"Cool", emoji:"🟧", dir};
+  return {k:"cold", label:"Cold", emoji:"⬜", dir};
+}
+const ARROW = {
+  up:'<svg viewBox="0 0 16 16" aria-label="Go higher"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>',
+  down:'<svg viewBox="0 0 16 16" aria-label="Go lower"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg>'
+};
+
+function bounds(){
+  let lo=null, hi=null;
+  S.guesses.forEach(g=>{ const j=judge(g); if(j.k==="win") return; if(g<P.a) lo = lo===null?g:Math.max(lo,g); else hi = hi===null?g:Math.min(hi,g); });
+  return {lo,hi};
+}
+
+function render(isNew){
+  $("pNo").textContent = "No. " + pNo;
+  $("pCat").textContent = P.cat;
+  $("pQ").textContent = P.q;
+  $("unit").textContent = P.unit;
+  const done = S.status!=="playing";
+  const b = bounds();
+  $("lo").textContent = b.lo===null ? "?" : fmt(b.lo);
+  $("hi").textContent = b.hi===null ? "?" : fmt(b.hi);
+  $("range").hidden = done || !S.guesses.length;
+
+  const rows = $("rows"); rows.innerHTML = "";
+  for(let i=0;i<MAX;i++){
+    const g = S.guesses[i], row = document.createElement("div");
+    row.className = "row" + (g===undefined ? " empty" : "") + (isNew && i===S.guesses.length-1 ? " new" : "");
+    if(g===undefined){
+      row.innerHTML = `<span class="n">${i+1}</span><span class="g">—</span><span></span>`;
+    } else {
+      const j = judge(g);
+      row.innerHTML = `<span class="n">${i+1}</span><span class="g">${fmt(g)}<small>${P.unit}</small></span>`
+        + `<span class="chip ${j.k}">${j.label}${j.dir?ARROW[j.dir]:""}</span>`;
+    }
+    rows.appendChild(row);
+  }
+
+  $("dock").hidden = done;
+  if(!done){
+    const left = MAX - S.guesses.length;
+    if(S.guesses.length){
+      const j = judge(S.guesses[S.guesses.length-1]);
+      setHelp((j.dir==="up" ? "Go higher." : "Go lower.") + " " + (left===1 ? "Last guess." : left+" guesses left."));
+    } else setHelp("Five guesses. Get in the ballpark to win.");
+  }
+  renderResult();
+}
+
+function setHelp(t, err){ const h=$("helpLine"); h.textContent=t; h.classList.toggle("err", !!err); }
+
+function parse(v){
+  v = String(v).trim().replace(/[,\s]/g,"").replace(/^\$/,"");
+  let m = 1;
+  if(/k$/i.test(v)){ m=1e3; v=v.slice(0,-1); } else if(/m$/i.test(v)){ m=1e6; v=v.slice(0,-1); }
+  if(!/^-?\d*\.?\d+$/.test(v)) return null;
+  const n = parseFloat(v) * m;
+  return isFinite(n) ? Math.round(n*100)/100 : null;
+}
+
+function submit(e){
+  e && e.preventDefault();
+  if(S.status!=="playing") return;
+  const inp=$("inp"), g=parse(inp.value);
+  if(g===null){ setHelp("Type a number, like 250 or 1,500.", true); inp.parentElement.classList.remove("shake"); void inp.offsetWidth; inp.parentElement.classList.add("shake"); return; }
+  if(S.guesses.includes(g)){ setHelp("You already guessed "+fmt(g)+".", true); return; }
+  window.SLB && SLB.start("ballpark", pNo);
+  S.guesses.push(g);
+  inp.value = "";
+  if(judge(g).k==="win") finish(true);
+  else if(S.guesses.length>=MAX) finish(false);
+  save(); render(true);
+  if(S.status==="playing") inp.focus();
+}
+
+function finish(won){
+  S.status = won?"won":"lost";
+  window.SLB && SLB.stop("ballpark", pNo);
+  const st=store.stats;
+  st.played++;
+  if(won){ st.wins++; st.dist[S.guesses.length-1]++; st.cur = (st.lastWon===pNo-1) ? st.cur+1 : 1; st.lastWon=pNo; st.max=Math.max(st.max,st.cur); }
+  else st.cur=0;
+}
+
+function shareText(){
+  const score = S.status==="won" ? S.guesses.length : "X";
+  const line = S.guesses.map(g=>{ const j=judge(g); return j.emoji + (j.dir==="up"?"⬆️":j.dir==="down"?"⬇️":""); }).join(" ");
+  return `Ballpark No. ${pNo} · ${score}/${MAX}\n${P.cat}\n${line}\nplaysproutle.com/ballpark`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const won=S.status==="won", n=S.guesses.length;
+  const head = won ? ["Home run!","Triple!","Double!","Base hit.","Safe at home."][n-1] : "Struck out";
+  const sub = won ? `In the ballpark in ${n} of ${MAX}.` : "Not this time. Here's the answer.";
+  r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
+    <div class="answer">${fmt(P.a)}<small>${P.unit}</small></div>
+    <p>${P.fact}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <div class="next"><span>Next question in</span><b id="cd">--:--:--</b></div><div id="slb"></div>`;
+  if(window.SLB) SLB.mount($("slb"), {game:"ballpark", day:pNo, score:n, eligible:won, fmt:x=>x+"/"+MAX, note:"Fewest guesses wins. Ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
+  $("btnShare").onclick = ()=>{
+    const txt=shareText();
+    const ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const s=Math.max(0,Math.floor((mid-now)/1000));
+  el.textContent=[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(x=>String(x).padStart(2,"0")).join(":");
+}
+setInterval(tick,1000);
+
+function toast(msg){
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+function openStats(){
+  const st=store.stats, pct=st.played?Math.round(st.wins/st.played*100):0;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[pct,"Win %"],[st.cur,"Streak"],[st.max,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const mx=Math.max(1,...st.dist);
+  $("dist").innerHTML=st.dist.map((v,i)=>`<div class="bar">${i+1}<i class="${S.status==="won"&&S.guesses.length===i+1?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+$("dock").addEventListener("submit", submit);
+$("inp").addEventListener("input", ()=>{ if($("helpLine").classList.contains("err")) render(); });
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); });
+
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+render();
+</script>
+</body>
+</html>

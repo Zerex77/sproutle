@@ -15,10 +15,10 @@
 <meta name="twitter:image" content="https://playsproutle.com/og-image.png">
 <!-- Visitor stats: paste your Plausible or GoatCounter snippet on the next line -->
 <title>Sproutle: free daily puzzle games</title>
-<meta name="description" content="Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, and merge animals in Critter Collector.">
+<meta name="description" content="Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, and merge animals in Critter Collector.">
 <link rel="canonical" href="https://playsproutle.com/">
 <meta property="og:title" content="Sproutle: free daily puzzle games">
-<meta property="og:description" content="Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, and merge animals in Critter Collector.">
+<meta property="og:description" content="Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, and merge animals in Critter Collector.">
 <meta property="og:url" content="https://playsproutle.com/">
 <meta property="og:type" content="website">
 <style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -123,6 +123,8 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
 <a class="game" href="/ranked/"><div class="game-head"><img src="/ranked/icon-192.png" alt="" width="64" height="64"><div><h2>Ranked</h2><div class="tag">Daily ordering puzzle · 3 min</div></div></div><p>Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries.</p><div class="game-foot"><span class="badge" data-status="ranked">New today</span><span class="play">Play Ranked</span></div></a>
 <a class="game" href="/trailhead/"><div class="game-head"><img src="/trailhead/icon-192.png" alt="" width="64" height="64"><div><h2>Trailhead</h2><div class="tag">Daily word climb · 3 min</div></div></div><p>Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.</p><div class="game-foot"><span class="badge" data-status="trailhead">New today</span><span class="play">Play Trailhead</span></div></a>
 <a class="game" href="/keystone/"><div class="game-head"><img src="/keystone/icon-192.png" alt="" width="64" height="64"><div><h2>Keystone</h2><div class="tag">Daily missing-word puzzle · 3 min</div></div></div><p>Find the word that joins both sides of six bridges. Their first letters spell the keystone.</p><div class="game-foot"><span class="badge" data-status="keystone">New today</span><span class="play">Play Keystone</span></div></a>
+<a class="game" href="/ballpark/"><div class="game-head"><img src="/ballpark/icon-192.png" alt="" width="64" height="64"><div><h2>Ballpark</h2><div class="tag">Daily number puzzle · 1 min</div></div></div><p>One question, five guesses. Get close enough to the real number and you're in the ballpark.</p><div class="game-foot"><span class="badge" data-status="ballpark">New today</span><span class="play">Play Ballpark</span></div></a>
+<a class="game" href="/imposter/"><div class="game-head"><img src="/imposter/icon-192.png" alt="" width="64" height="64"><div><h2>Imposter</h2><div class="tag">Daily odd-one-out · 2 min</div></div></div><p>Five rows of four suspects. Three share a secret. Spot the one that doesn't belong.</p><div class="game-foot"><span class="badge" data-status="imposter">New today</span><span class="play">Play Imposter</span></div></a>
 </div>
 <h2 class="sect">Play anytime</h2>
 <div class="games">
@@ -144,7 +146,9 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
     sproutle(){const s=get("sproutle-day-"+spNo);return !s?0:s.done?2:(s.hist&&s.hist.length>1)?1:0},
     ranked(){const s=get("ranked-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     keystone(){const s=get("keystone-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.cracks||d.solved.some(Boolean)||d.rev.some(Boolean))?1:0},
-    trailhead(){const s=get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0}
+    trailhead(){const s=get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
+    ballpark(){const s=get("ballpark-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
+    imposter(){const s=get("imposter-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0}
   };
   let done=0,total=0;
   document.querySelectorAll("[data-status]").forEach(b=>{

@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1C1626">
+<meta name="description" content="Imposter: a free daily puzzle. Five rows of four. One in each row doesn't belong. Find all five imposters, then share your result.">
+<link rel="canonical" href="https://playsproutle.com/imposter/">
+<meta property="og:title" content="Imposter">
+<meta property="og:description" content="Five rows. Four suspects each. One imposter in every row. A new case every day.">
+<meta property="og:url" content="https://playsproutle.com/imposter/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/imposter/icon-512.png">
+<link rel="icon" type="image/png" href="/imposter/icon-192.png">
+<link rel="apple-touch-icon" href="/imposter/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Imposter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a case file. One row of four suspects at a time, a stack of solved rows above it, a verdict card at the end. */
+:root{
+  --bg:#EFEBE4; --surface:#FFFFFF; --ink:#1C1626; --muted:#665E72; --line:#D6CFC4; --paper:#F8F4EC;
+  --accent:#D7263D; --accent-ink:#FFFFFF; --good:#1F8A5B; --good-ink:#FFFFFF; --bad:#D7263D; --tape:#F2C14E;
+  --display:"Archivo Black", Impact, sans-serif;
+  --body:"Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#120E18; --surface:#1E1828; --ink:#EDE8F3; --muted:#9D93AC; --line:#332A40; --paper:#191321;
+  --accent:#FF4D63; --accent-ink:#22040A; --good:#33B37A; --good-ink:#06180F; --bad:#FF4D63; --tape:#E8B63E; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#120E18; --surface:#1E1828; --ink:#EDE8F3; --muted:#9D93AC; --line:#332A40; --paper:#191321;
+  --accent:#FF4D63; --accent-ink:#22040A; --good:#33B37A; --good-ink:#06180F; --bad:#FF4D63; --tape:#E8B63E; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:440px;margin:0 auto;padding-inline:16px;padding-block:12px 32px;display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:4px 0}
+.mark{font-family:var(--display);font-size:30px;letter-spacing:.01em;line-height:1;text-transform:uppercase}
+.mark i{font-style:normal;color:var(--accent)}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.meta{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:5px}
+.pip{width:22px;height:8px;border-radius:4px;background:var(--line)}
+.pip.cur{background:var(--ink)}
+.pip.g{background:var(--good)}.pip.b{background:var(--bad)}
+
+.solved{display:flex;flex-direction:column;gap:6px}
+.srow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);font-size:14px}
+.srow .mk{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.srow.g .mk{background:var(--good);color:var(--good-ink)}
+.srow.b .mk{background:var(--bad);color:var(--accent-ink)}
+.srow .t{min-width:0;line-height:1.3}
+.srow .t b{display:block;font-weight:700}
+.srow .t span{color:var(--muted)}
+
+.case{position:relative;background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:18px 14px 14px;display:flex;flex-direction:column;gap:12px}
+.case::before{content:"";position:absolute;top:-10px;left:50%;width:90px;height:20px;margin-left:-45px;background:var(--tape);opacity:.85;transform:rotate(-2deg);border-radius:2px}
+.prompt{font-family:var(--display);font-size:22px;line-height:1.1;text-transform:uppercase;text-align:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sus{min-height:78px;padding:10px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:18px;line-height:1.15;text-align:center;display:grid;place-items:center;transition:transform .12s ease,border-color .12s,background .12s;overflow-wrap:anywhere}
+.sus:not(:disabled):hover{border-color:var(--ink);transform:translateY(-2px)}
+.sus:not(:disabled):active{transform:scale(.97)}
+.sus:disabled{cursor:default}
+.sus.pick{border-color:var(--bad);background:var(--bad);color:var(--accent-ink)}
+.sus.imp{border-color:var(--good);background:var(--good);color:var(--good-ink)}
+.sus.fade{opacity:.5}
+.sus.stamp{animation:stamp .3s ease}
+@keyframes stamp{0%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.reveal{display:flex;flex-direction:column;gap:10px;border-top:2px dashed var(--line);padding-top:12px}
+.reveal .verdict{font-family:var(--display);font-size:20px;text-transform:uppercase}
+.reveal .verdict.g{color:var(--good)}.reveal .verdict.b{color:var(--bad)}
+.reveal p{margin:0;line-height:1.45}
+.reveal p b{font-weight:700}
+.nextrow{height:52px;border:none;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;font-size:17px}
+.help{font-size:14px;color:var(--muted);text-align:center;line-height:1.4}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-size:30px;text-transform:uppercase;line-height:1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.score{font-family:var(--display);font-size:46px;line-height:1}
+.score small{font-family:var(--body);font-size:16px;font-weight:700;color:var(--muted);margin-left:6px}
+.share{height:50px;border:none;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(10,6,14,.6);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-size:26px;text-transform:uppercase}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.example{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.example span{padding:8px 4px;border-radius:10px;border:1.5px solid var(--line);text-align:center;font-weight:700;font-size:13px}
+.example span.x{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:12px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--line);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--good);color:var(--good-ink)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Impos<i>t</i>er</div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="meta"><span id="pNo">Case No. 1</span><div class="pips" id="pips"></div></div>
+  <section class="solved" id="solved" aria-label="Rows so far"></section>
+  <section class="case" id="case" aria-live="polite"></section>
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Each case has five rows of four suspects. Three of them share something. One is the imposter.</p>
+    <div class="example"><span>Apple</span><span>Cherry</span><span class="x">Carrot</span><span>Mango</span></div>
+    <p class="help" style="text-align:left">Apples, cherries and mangoes are fruits. A carrot is a vegetable.</p>
+    <ul>
+      <li>You get one pick per row, so think before you tap.</li>
+      <li>Rows get trickier as you go.</li>
+      <li>A new case opens every day at midnight.</li>
+    </ul>
+    <button class="close" data-close>Open the case</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your record</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// Each case is five rows, easiest first. A row is [what the three share, [the three], the imposter, why it doesn't fit].
+// Add new cases to the end; the list repeats once it runs out.
+const CASES = [
+  [
+    ["Mammals", ["Dolphin","Bat","Whale"], "Shark", "A shark is a fish."],
+    ["Capital cities", ["Canberra","Ottawa","Brasília"], "Sydney", "Australia's capital is Canberra, not Sydney."],
+    ["Things with a trunk", ["Elephant","Tree","Car"], "Giraffe", "Giraffes have long necks, but no trunk."],
+    ["Silent first letter", ["Knee","Wrist","Psalm"], "Kite", "You say the K in kite."],
+    ["Leap years", ["2000","2024","1996"], "1900", "Years ending in 00 skip leap day unless they divide by 400. 1900 doesn't."],
+  ],
+  [
+    ["Insects", ["Ant","Beetle","Bee"], "Spider", "Spiders have eight legs. They're arachnids."],
+    ["Romance languages", ["Spanish","Portuguese","Italian"], "German", "German is a Germanic language."],
+    ["___fly", ["Butter","Dragon","Fire"], "Rain", "Butterfly, dragonfly, firefly. No rainfly."],
+    ["Fish", ["Salmon","Tuna","Seahorse"], "Starfish", "Seahorses really are fish. Starfish aren't: they're echinoderms."],
+    ["Symbols from Latin names", ["Iron","Gold","Lead"], "Zinc", "Fe, Au and Pb come from Latin. Zinc is just Zn."],
+  ],
+  [
+    ["Card suits", ["Hearts","Spades","Clubs"], "Stars", "The fourth suit is Diamonds."],
+    ["Greek gods", ["Zeus","Apollo","Athena"], "Jupiter", "Jupiter is the Roman version of Zeus."],
+    ["Things with teeth", ["Comb","Saw","Zipper"], "Ladder", "A ladder has rungs, not teeth."],
+    ["Hidden animals", ["Scatter","Beard","Crater"], "Window", "sCATter, BEARd, cRATer. No animal hides in window."],
+    ["Typed with only the top letter row", ["Typewriter","Property","Pottery"], "Printer", "The N in printer sits on the bottom row."],
+  ],
+  [
+    ["Flightless birds", ["Penguin","Ostrich","Emu"], "Pelican", "Pelicans fly just fine."],
+    ["Noble gases", ["Neon","Argon","Helium"], "Nitrogen", "Nitrogen isn't a noble gas."],
+    ["Things that bark", ["Dog","Tree","Seal"], "Cat", "Cats meow. Trees have bark and seals bark."],
+    ["Months with 31 days", ["January","July","August"], "September", "Thirty days hath September."],
+    ["Add S to the front", ["Pear","Hop","Tar"], "Dog", "Spear, shop, star. Sdog isn't a word."],
+  ],
+  [
+    ["Four-sided shapes", ["Square","Rhombus","Trapezoid"], "Pentagon", "A pentagon has five sides."],
+    ["Marsupials", ["Kangaroo","Koala","Wombat"], "Panda", "Pandas are bears, with no pouch."],
+    ["Kitchen tools", ["Whisk","Ladle","Spatula"], "Trowel", "A trowel belongs in the garden."],
+    ["Rhymes with blue", ["Shoe","Through","Few"], "Bough", "Bough rhymes with cow."],
+    ["Hidden body parts", ["China","Shipment","Army"], "Garden", "CHINa, sHIPment, ARMy. Garden has no body part."],
+  ],
+  [
+    ["Metals", ["Iron","Copper","Zinc"], "Quartz", "Quartz is a mineral, not a metal."],
+    ["Impressionist painters", ["Monet","Renoir","Degas"], "Rembrandt", "Rembrandt painted two centuries before Impressionism."],
+    ["Coffee drinks", ["Latte","Mocha","Cortado"], "Matcha", "Matcha is green tea."],
+    ["Bears", ["Grizzly","Panda","Polar"], "Koala", "Koalas are marsupials, not bears."],
+    ["Prime numbers", ["7","13","29"], "21", "21 is 3 × 7."],
+  ],
+  [
+    ["Chess pieces", ["Bishop","Rook","Knight"], "Duke", "The others are King, Queen and Pawn. No Duke."],
+    ["South American countries", ["Chile","Peru","Ecuador"], "Panama", "Panama is in Central America."],
+    ["Units of length", ["Meter","Furlong","Fathom"], "Hectare", "A hectare measures area."],
+    ["Things with keys", ["Piano","Map","Computer"], "Drum", "Maps have a key. Drums don't."],
+    ["Drop the first letter, get a word", ["Bread","Plate","Swing"], "Desk", "Read, late, wing. Esk isn't a word."],
+  ],
+  [
+    ["String instruments", ["Violin","Cello","Harp"], "Trumpet", "A trumpet is brass."],
+    ["Shakespeare plays", ["Hamlet","Macbeth","Othello"], "Faust", "Faust is Goethe's, and Doctor Faustus is Marlowe's."],
+    ["Breads", ["Naan","Focaccia","Baguette"], "Polenta", "Polenta is cooked cornmeal, not bread."],
+    ["Landlocked countries", ["Bolivia","Nepal","Switzerland"], "Peru", "Peru has a long Pacific coast."],
+    ["Perfect squares", ["16","49","81"], "72", "72 isn't a whole number squared."],
+  ],
+  [
+    ["Oceans", ["Pacific","Atlantic","Indian"], "Caspian", "The Caspian is a sea, surrounded by land."],
+    ["Dog breeds", ["Beagle","Poodle","Dachshund"], "Siamese", "Siamese is a cat breed."],
+    ["Cloud types", ["Cumulus","Stratus","Cirrus"], "Calculus", "Calculus is math, not weather."],
+    ["Constellations", ["Orion","Cassiopeia","Lyra"], "Aurora", "An aurora is a light show, not a constellation."],
+    ["Valid Roman numerals", ["XIV","MCM","XC"], "VX", "V is never placed before a larger numeral. Five is just V."],
+  ],
+  [
+    ["Continents", ["Asia","Africa","Europe"], "Scandinavia", "Scandinavia is a region of Europe."],
+    ["Card games", ["Poker","Rummy","Solitaire"], "Checkers", "Checkers is a board game."],
+    ["Planets with rings", ["Saturn","Uranus","Neptune"], "Mars", "Mars has no rings."],
+    ["US state capitals", ["Austin","Denver","Boise"], "Portland", "Oregon's capital is Salem, and Maine's is Augusta."],
+    ["___ship", ["Friend","Leader","Hard"], "Snow", "Friendship, leadership, hardship. No snowship."],
+  ],
+  [
+    ["Pasta", ["Penne","Fusilli","Rigatoni"], "Risotto", "Risotto is made with rice."],
+    ["Dances", ["Tango","Salsa","Waltz"], "Sonata", "A sonata is a piece of music."],
+    ["Bones", ["Femur","Tibia","Ulna"], "Biceps", "The biceps is a muscle."],
+    ["Island nations", ["Iceland","Madagascar","Japan"], "Greenland", "Greenland is part of the Kingdom of Denmark, not its own country."],
+    ["___board", ["Key","Skate","Card"], "Pillow", "Keyboard, skateboard, cardboard. No pillowboard."],
+  ],
+  [
+    ["Planets", ["Mars","Venus","Saturn"], "Pluto", "Pluto has been a dwarf planet since 2006."],
+    ["Cheeses", ["Brie","Gouda","Feta"], "Tahini", "Tahini is sesame paste."],
+    ["Shades of red", ["Crimson","Scarlet","Maroon"], "Indigo", "Indigo is a deep blue-violet."],
+    ["Things with spines", ["Book","Cactus","Hedgehog"], "Jellyfish", "Jellyfish have no spine of any kind."],
+    ["Woodwinds", ["Flute","Clarinet","Saxophone"], "Trombone", "The sax is brass-bodied but uses a reed, so it's a woodwind. The trombone is brass."],
+  ],
+];
+const ROWS = 5;
+
+// ---- Daily case number (local date, No. 1 = Oct 13, 2026, same as the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH = Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo = Math.max(1, dayIndex(new Date()) - EPOCH + 1);
+const C = CASES[(pNo-1) % CASES.length];
+
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+// Same shuffled order for everyone on a given day
+const r = rng(pNo*7919+3);
+const BOARD = C.map(([theme, three, imp, why])=>{
+  const items = [...three, imp];
+  for(let i=items.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [items[i],items[j]]=[items[j],items[i]]; }
+  return {theme, items, imp:items.indexOf(imp), why};
+});
+
+// ---- Storage (optional; the game works without it)
+const KEY="imposter-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,perfect:0,cur:0,max:0,last:0,dist:[0,0,0,0,0,0]};
+let S = (store.day && store.day.n===pNo) ? store.day : {n:pNo, picks:[], status:"playing"};
+store.day = S;
+
+const $ = id=>document.getElementById(id);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const correct = ()=>S.picks.filter((p,i)=>p===BOARD[i].imp).length;
+const misses = ()=>S.picks.length - correct();
+
+// The row on screen: the next unanswered one, or the last answered one while its reveal is showing
+let view = S.status==="playing" ? S.picks.length : null;
+
+function render(stampIdx){
+  $("pNo").textContent = "Case No. " + pNo;
+  $("pips").innerHTML = BOARD.map((b,i)=>{
+    const p=S.picks[i]; const cls = p===undefined ? (i===view?"cur":"") : (p===b.imp?"g":"b");
+    return `<span class="pip ${cls}"></span>`;
+  }).join("");
+
+  // Solved rows (everything already answered, except the one being revealed right now)
+  const shown = S.picks.map((p,i)=>i).filter(i=>i!==view);
+  $("solved").innerHTML = shown.map(i=>{
+    const b=BOARD[i], ok=S.picks[i]===b.imp;
+    return `<div class="srow ${ok?"g":"b"}"><span class="mk">${ok?"✓":"✕"}</span><div class="t"><b>${esc(b.items[b.imp])}</b><span>${esc(b.theme)}: ${esc(b.items.filter((_,k)=>k!==b.imp).join(", "))}</span></div></div>`;
+  }).join("");
+
+  const cs = $("case");
+  if(view===null){ cs.hidden = true; renderResult(); return; }
+  cs.hidden = false;
+  const b = BOARD[view], pick = S.picks[view], answered = pick!==undefined;
+  let html = `<div class="prompt">Row ${view+1}: who's the imposter?</div><div class="grid">`;
+  b.items.forEach((it,k)=>{
+    let cls = "sus";
+    if(answered){
+      if(k===b.imp) cls+=" imp"; else if(k===pick) cls+=" pick"; else cls+=" fade";
+      if(k===stampIdx || (stampIdx!==undefined && k===b.imp)) cls+=" stamp";
+    }
+    html += `<button class="${cls}" data-k="${k}" ${answered?"disabled":""}>${esc(it)}</button>`;
+  });
+  html += `</div>`;
+  if(answered){
+    const ok = pick===b.imp, last = view===ROWS-1;
+    html += `<div class="reveal"><div class="verdict ${ok?"g":"b"}">${ok?"Caught them!":"Wrong suspect"}</div>
+      <p><b>${esc(b.theme)}:</b> ${esc(b.items.filter((_,k)=>k!==b.imp).join(", "))}.</p>
+      <p>${esc(b.why)}</p>
+      <button class="nextrow" id="btnNext">${last?"See your verdict":"Next row"}</button></div>`;
+  } else {
+    html += `<div class="help">One pick. Tap the one that doesn't belong.</div>`;
+  }
+  cs.innerHTML = html;
+  cs.querySelectorAll(".sus:not(:disabled)").forEach(el=>el.onclick=()=>pickItem(+el.dataset.k));
+  const nb = $("btnNext"); if(nb){ nb.onclick = advance; nb.focus({preventScroll:true}); }
+  renderResult();
+}
+
+function pickItem(k){
+  if(S.status!=="playing" || S.picks[view]!==undefined) return;
+  window.SLB && SLB.start("imposter", pNo);
+  S.picks[view] = k;
+  if(S.picks.length>=ROWS) finish();
+  save(); render(k);
+}
+
+function advance(){
+  view = S.picks.length < ROWS ? S.picks.length : null;
+  render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function finish(){
+  S.status = "done";
+  window.SLB && SLB.stop("imposter", pNo);
+  const st=store.stats, c=correct();
+  st.played++; st.dist[c]++;
+  if(c===ROWS) st.perfect++;
+  st.cur = (st.last===pNo-1) ? st.cur+1 : 1; st.last=pNo; st.max=Math.max(st.max,st.cur);
+}
+
+function shareText(){
+  const line = BOARD.map((b,i)=>S.picks[i]===b.imp?"🟩":"🟥").join("");
+  return `Imposter No. ${pNo} · ${correct()}/${ROWS}\n${line}\nplaysproutle.com/imposter`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing" || view!==null){ r.hidden=true; return; }
+  r.hidden=false;
+  const c=correct();
+  const head = ["Case gone cold","Rough day","Some leads","Good instincts","Sharp eye","Case closed!"][c];
+  const sub = c===ROWS ? "You caught every imposter." : `You caught ${c} of ${ROWS} imposters.`;
+  r.innerHTML = `<h2>${head}</h2><div class="score">${c}<small>of ${ROWS}</small></div><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <div class="next"><span>Next case in</span><b id="cd">--:--:--</b></div><div id="slb"></div>`;
+  // The leaderboard sorts low to high, so we post misses and show them as a score out of 5
+  if(window.SLB) SLB.mount($("slb"), {game:"imposter", day:pNo, score:misses(), eligible:true, fmt:m=>(ROWS-m)+"/"+ROWS, note:"Most imposters caught wins. Ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
+  $("btnShare").onclick = ()=>{
+    const txt=shareText();
+    const ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const s=Math.max(0,Math.floor((mid-now)/1000));
+  el.textContent=[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(x=>String(x).padStart(2,"0")).join(":");
+}
+setInterval(tick,1000);
+
+function toast(msg){
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+function openStats(){
+  const st=store.stats;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[st.perfect,"Perfect"],[st.cur,"Streak"],[st.max,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const mx=Math.max(1,...st.dist), mine = S.status==="done" ? correct() : -1;
+  $("dist").innerHTML=st.dist.map((v,i)=>({v,i})).reverse().map(({v,i})=>`<div class="bar">${i}/5<i class="${i===mine?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); });
+
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+render();
+</script>
+</body>
+</html>

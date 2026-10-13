@@ -11,5 +11,7 @@ Live at https://playsproutle.com
 - `build/ranked/` holds Ranked, the daily ordering puzzle, which the build copies to `docs/ranked/`.
 - `build/lb.js` is the shared leaderboard script (Supabase). The build copies it to `docs/lb.js`; every game loads it.
 - `build/keystone/` holds Keystone, the daily missing-word puzzle, which the build copies to `docs/keystone/`. Add puzzles to the `PUZZLES` list at the top of its script.
+- `build/ballpark/` holds Ballpark, the daily number-guess puzzle (`PUZZLES` list: question, answer, unit, and `tol`, how close counts as a win). Copied to `docs/ballpark/`.
+- `build/imposter/` holds Imposter, the daily odd-one-out puzzle (`CASES` list, five rows per day, easiest first). Copied to `docs/imposter/`.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).
