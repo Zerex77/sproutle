@@ -199,7 +199,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
       <li>Each player's number is revealed when you pick them, so you can aim your later picks.</li>
       <li>Going long counts the same as coming up short. Closest to the pin wins.</li>
       <li>You get one mulligan: swap out a pick you regret.</li>
-      <li>Any position counts. A quarterback's handful of catches or a pass rusher's zero rushing yards can be exactly what you need.</li>
+      <li>Any position counts, as long as the player has at least some of the stat. A quarterback's handful of catches can be exactly what you need.</li>
       <li>Active players count too, using their totals through <span class="asof"></span>.</li>
       <li>Some categories, like penalties or passes defended, only have numbers from 1999 on. The hole card says "since 1999" when that's the case.</li>
       <li>Want more? Endless mode deals a new random stat and pin every hole, as many as you like.</li>
@@ -344,7 +344,7 @@ function search(q){
   const scored = ALL.map(p=>{
     const words = p.key.split(" ");
     let s = p.key===q ? 0 : p.key.startsWith(q) ? 1 : words.some(w=>w.startsWith(q)) ? 2 : p.key.includes(q) ? 3 : 9;
-    return {p, s: s + (u.has(p.name)||p.v===null?5:0)};
+    return {p, s: s + (u.has(p.name)||p.v===null||p.v===0?5:0)};
   }).filter(x=>x.s<9).sort((a,b)=>a.s-b.s || b.p.fame-a.p.fame);
   return scored.slice(0,6).map(x=>x.p);
 }
@@ -352,8 +352,8 @@ function showSugg(){
   const ul=$("sugg"), u=used();
   if(!matches.length){ ul.hidden=true; $("inp").setAttribute("aria-expanded","false"); return; }
   ul.innerHTML = matches.map((p,i)=>{
-    const note = u.has(p.name) ? "Already picked" : p.v===null ? "Not available" : p.active ? "Active" : "";
-    return `<li role="option" id="sg${i}" class="${i===hi?"on":""} ${u.has(p.name)||p.v===null?"used":""}" data-i="${i}" aria-selected="${i===hi}"><div class="who">${nameHtml(p.name)}</div>${note?`<span>${note}</span>`:""}</li>`;
+    const note = u.has(p.name) ? "Already picked" : p.v===null ? "Not available" : p.v===0 ? "Has 0" : p.active ? "Active" : "";
+    return `<li role="option" id="sg${i}" class="${i===hi?"on":""} ${u.has(p.name)||p.v===null||p.v===0?"used":""}" data-i="${i}" aria-selected="${i===hi}"><div class="who">${nameHtml(p.name)}</div>${note?`<span>${note}</span>`:""}</li>`;
   }).join("");
   ul.hidden=false; $("inp").setAttribute("aria-expanded","true"); $("inp").setAttribute("aria-activedescendant","sg"+hi);
   ul.querySelectorAll("li").forEach(li=>{ li.onmousedown=e=>{ e.preventDefault(); choose(matches[+li.dataset.i]); }; });
@@ -377,6 +377,7 @@ function choose(p){
   if(S.status!=="playing") return;
   if(used().has(p.name)){ setHelp(p.name+" is already on your card.", true); return; }
   if(p.v===null){ setHelp(`We don't have ${p.name.replace(/ \(.*\)$/,"")}'s ${ST.short}, so he can't be picked for this hole.`, true); return; }
+  if(p.v===0){ setHelp(`${p.name.replace(/ \(.*\)$/,"")} has 0 ${ST.short}. Pick someone with at least one.`, true); return; }
   if(mode==="daily") window.SLB && SLB.start("gridiron", pNo);
   S.picks.push(p.name);
   $("inp").value=""; matches=[]; showSugg();
