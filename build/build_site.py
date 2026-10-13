@@ -314,7 +314,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/critter-collector/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -340,7 +340,7 @@ shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), di
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
 # Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
-for g in ('ballpark', 'imposter', 'almamater', 'groupchat', 'zachbox', 'blendin', 'badtranslation'):
+for g in ('ballpark', 'imposter', 'almamater', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')

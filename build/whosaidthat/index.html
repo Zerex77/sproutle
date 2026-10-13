@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2a0f1a">
+<meta name="description" content="Who Said That? A free party game for 3 to 10 players. Everyone answers a question anonymously, and the Guesser has to figure out who said what.">
+<link rel="canonical" href="https://playsproutle.com/whosaidthat/">
+<meta property="og:title" content="Who Said That?">
+<meta property="og:description" content="Answer anonymously. Then watch your friend try to guess who said what. A Zach Box party game.">
+<meta property="og:url" content="https://playsproutle.com/whosaidthat/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/whosaidthat/icon-512.png">
+<link rel="icon" type="image/png" href="/whosaidthat/icon-192.png">
+<link rel="apple-touch-icon" href="/whosaidthat/apple-touch-icon.png">
+<title>Who Said That?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: a late-night game show set. The TV puts the question on a big marquee card with giant quote marks, answers pinned below like quote cards; phones get one card at a time. Single committed theme in the Zach Box family: velvet plum stage, gold lights, coral and teal. */
+:root{
+  --stage:#2a0f1a; --stage-hi:#3d1727; --card:#fff4e0; --card-ink:#2a0f1a; --line:#5a2438;
+  --ink:#fff4e0; --muted:#e0b9c4; --gold:#ffc93c; --gold-deep:#c4911a; --coral:#ff5a5f; --coral-deep:#b8343a; --teal:#2ec4b6; --teal-deep:#1a8a80;
+  --f-display:"Bowlby One", "Arial Black", Impact, sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{min-height:100%}
+html{overflow-x:clip}
+body{margin:0;background:var(--stage);color:var(--ink);font:16px/1.45 var(--f-body);padding-inline:16px;
+  background-image:radial-gradient(ellipse at 50% -10%,rgba(255,201,60,.25),transparent 55%),radial-gradient(circle at 0% 100%,rgba(46,196,182,.15) 0 100px,transparent 300px),
+  repeating-linear-gradient(90deg,transparent 0 60px,rgba(255,255,255,.025) 60px 62px);background-attachment:fixed}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+p{margin:0}
+h1,h2,h3{margin:0;font-family:var(--f-display);font-weight:400;text-wrap:balance}
+.wrap{max-width:1280px;margin:0 auto;padding-block:14px 32px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font:400 clamp(1.4rem,3.4vw,2.2rem)/1 var(--f-display);color:var(--gold);text-decoration:none;display:flex;align-items:center;gap:8px;text-shadow:3px 3px 0 var(--coral)}
+.logo .q{font-size:1.6em;line-height:.6;color:var(--teal);text-shadow:3px 3px 0 var(--coral)}
+.home{font-weight:800;font-size:.85rem;color:var(--muted);text-decoration:none;border:2px solid currentColor;border-radius:999px;padding:5px 12px;transform:rotate(2deg)}
+.btn{border:none;border-radius:14px;padding:14px 22px;font:400 1.05rem var(--f-display);background:var(--gold);color:var(--card-ink);box-shadow:0 5px 0 var(--gold-deep);transition:transform .1s}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--gold-deep)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{background:var(--stage-hi);color:var(--ink);box-shadow:0 5px 0 #14070c}
+.panel{background:var(--stage-hi);border:2px solid var(--line);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.label{font-size:.75rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+
+/* landing */
+.landing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
+.hero{display:flex;flex-direction:column;gap:14px}
+.hero h1{font-size:clamp(2.4rem,7vw,4.6rem);line-height:.92}
+.hero h1 span{color:var(--gold);text-shadow:4px 4px 0 var(--coral)}
+.hero p{color:var(--muted);font-size:1.05rem;max-width:48ch}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rules li{display:grid;grid-template-columns:30px 1fr;gap:10px}
+.rules b{font:400 1.3rem/1.1 var(--f-display);color:var(--teal)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input{height:54px;border-radius:14px;border:2px solid var(--line);background:var(--stage);padding:0 14px;font-size:1.2rem;font-weight:800}
+.field input:focus{outline:none;border-color:var(--gold)}
+#joinCode{text-transform:uppercase;letter-spacing:.3em;font-family:ui-monospace,Menlo,monospace}
+.err{color:var(--coral);font-weight:800;min-height:1.2em;font-size:.9rem}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* TV */
+.tv{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:880px){.tv{grid-template-columns:1fr}}
+.stagecol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.marquee{position:relative;background:var(--card);color:var(--card-ink);border-radius:22px;padding:28px 30px 24px;box-shadow:0 0 0 6px var(--gold),0 0 0 9px var(--stage),0 0 40px 10px rgba(255,201,60,.35)}
+.marquee::before{content:"“";position:absolute;left:12px;top:-30px;font:400 7rem/1 var(--f-display);color:var(--coral)}
+.marquee .who{font-weight:900;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-deep)}
+.marquee h2{font-size:clamp(1.6rem,3.2vw,2.6rem);line-height:1.1}
+.quotes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:14px}
+.quote{background:var(--card);color:var(--card-ink);border-radius:16px;padding:14px 16px;font-weight:800;font-size:clamp(1rem,1.6vw,1.25rem);line-height:1.25;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:8px;animation:flip .5s cubic-bezier(.2,1.4,.4,1) both}
+.quote:nth-child(odd){transform:rotate(-1.2deg)}
+.quote:nth-child(even){transform:rotate(1deg)}
+.quote .tag{display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:900;flex-wrap:wrap}
+.quote .tag .x{color:var(--coral-deep)}
+.quote .tag .ok{color:var(--teal-deep)}
+.quote.right{box-shadow:0 0 0 4px var(--teal)}
+.quote.wrong{box-shadow:0 0 0 4px var(--coral)}
+@keyframes flip{from{opacity:0;transform:rotateY(80deg)}}
+.code{display:flex;flex-direction:column;gap:2px}
+.code .big{font:800 clamp(3rem,7vw,5.5rem)/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;color:var(--gold)}
+.joinrow{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#qr{background:#fff;padding:8px;border-radius:12px;line-height:0}
+#qr img,#qr canvas{width:120px;height:120px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 5px;border-radius:999px;background:var(--stage);font-weight:800}
+.dotc{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-weight:900;color:var(--card-ink);flex:none}
+.chip.done{outline:2px solid var(--teal)}
+.chip.done::after{content:"✓";color:var(--teal)}
+.chip.guesser{outline:2px dashed var(--gold)}
+.timer{display:flex;align-items:center;gap:12px}
+.timer .t{font:400 2.4rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2.2ch}
+.bar{flex:1;height:10px;border-radius:99px;background:var(--stage);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);transition:width 1s linear}
+.say{font:400 clamp(1.4rem,2.6vw,2rem)/1.1 var(--f-display)}
+.say em{font-style:normal;color:var(--gold)}
+.score{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.score li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:8px 12px;border-radius:12px;background:var(--stage);font-weight:800;font-variant-numeric:tabular-nums}
+.score li:first-child{background:var(--gold);color:var(--card-ink)}
+.hostbar{display:flex;gap:10px;flex-wrap:wrap}
+.status{font-size:.8rem;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+/* phone */
+.pad{max-width:480px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.me{display:flex;align-items:center;gap:10px;font-weight:900}
+.me .pts{margin-left:auto;color:var(--gold);font-variant-numeric:tabular-nums}
+.qcard{background:var(--card);color:var(--card-ink);border-radius:18px;padding:16px 18px;font:400 1.3rem/1.2 var(--f-display)}
+.qcard small{display:block;font:900 .72rem var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--teal-deep);margin-bottom:4px}
+textarea{width:100%;min-height:100px;resize:none;border-radius:14px;border:2px solid var(--line);background:var(--stage);padding:12px 14px;font-size:1.15rem;line-height:1.35}
+textarea:focus{outline:none;border-color:var(--gold)}
+.count{font-size:.8rem;color:var(--muted);text-align:right}
+.ptimer{font:400 1.1rem var(--f-display);color:var(--gold);font-variant-numeric:tabular-nums}
+.mcard{background:var(--card);color:var(--card-ink);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.mcard .txt{font-weight:800;font-size:1.05rem;overflow-wrap:anywhere}
+.mcard .txt::before{content:"“";color:var(--coral)}
+.mcard .txt::after{content:"”";color:var(--coral)}
+.who-pick{display:flex;flex-wrap:wrap;gap:6px}
+.who-pick button{display:inline-flex;align-items:center;gap:5px;border:2px solid #e5cfb0;background:#fff;color:var(--card-ink);border-radius:999px;padding:4px 10px 4px 4px;font-weight:800;font-size:.9rem}
+.who-pick button.on{border-color:var(--card-ink);background:var(--gold)}
+.who-pick button.used{opacity:.35}
+.wait{text-align:center;padding:22px 6px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.wait .emoji{font-size:3rem;line-height:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--stage);padding:10px 16px;border-radius:12px;font-weight:800;z-index:9}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <a class="logo" href="/whosaidthat/"><span class="q">“</span>Who Said That?</a>
+    <a class="home" href="/zachbox/">← Zach Box</a>
+  </header>
+
+  <section id="vLanding" class="landing">
+    <div class="hero">
+      <h1>How well do you <span>really</span> know them?</h1>
+      <p>A party game for 3 to 10 people who think they know each other. Everyone answers a question in secret. One player has to figure out who said what.</p>
+      <ol class="rules">
+        <li><b>1</b><span>Each round one player is the <strong>Guesser</strong>. Everyone else answers the question on their phone. Nobody sees names.</span></li>
+        <li><b>2</b><span>The Guesser reads the answers out loud and <strong>matches each one to a person</strong>.</span></li>
+        <li><b>3</b><span>The Guesser scores for every correct match. Everyone they get wrong scores for <strong>fooling them</strong>.</span></li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h2>Join a game</h2>
+      <form id="joinForm" class="pad" style="margin:0;max-width:none" autocomplete="off">
+        <label class="field"><span class="label">Room code</span><input id="joinCode" maxlength="4" autocapitalize="characters" placeholder="ABCD" required></label>
+        <label class="field"><span class="label">Your name</span><input id="joinName" maxlength="12" placeholder="Name" required></label>
+        <div class="err" id="joinErr"></div>
+        <button class="btn" type="submit" id="joinBtn">Join</button>
+      </form>
+      <div class="or">or</div>
+      <button class="btn ghost" id="hostBtn" type="button">Host a game on this screen</button>
+    </div>
+  </section>
+
+  <section id="vTV" class="tv" hidden>
+    <div class="stagecol" id="stage"></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel" id="panel"></div>
+      <div class="status" id="hostStatus"></div>
+    </div>
+  </section>
+
+  <section id="vPad" class="pad" hidden>
+    <div class="me" id="meBar"></div>
+    <div class="panel" id="padCard"></div>
+    <div class="status" id="padStatus"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.100.0/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+const SB_URL="https://eiftinbzwcuxalnnmjra.supabase.co", SB_KEY="sb_publishable_w64F-Z-J_Gx0rwIPMl-V3w_e5BJmUE0";
+const MAXROUNDS=8, ANSWER_S=60, MATCH_S=90, MAXP=10, MINP=3, MAXLEN=80;
+const PT_RIGHT=100, PT_ALL=100, PT_FOOL=50;
+const COLORS=["#ffc93c","#ff8a8f","#5ee6d6","#7cb8ff","#ffb36b","#c9a6ff","#b6f26a","#ff9ed8","#9ff0ff","#f5d0a0"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function toast(m,ms){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms||2000)}
+const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const initial=n=>esc((n||"?").trim().charAt(0).toUpperCase());
+const dot=p=>'<span class="dotc" style="background:'+p.color+'">'+initial(p.name)+'</span>';
+
+const QUESTIONS=["What's your most useless talent?","What would your wrestling entrance song be?","What's the worst thing you've ever eaten?","What's your most irrational fear?","If you were a kitchen appliance, which one would you be?","What's a hill you will die on?","What would you name a boat?","What's the pettiest thing you've ever done?","What's your go-to karaoke song?","What's your guilty pleasure TV show?","What would be the title of your autobiography?","What's the weirdest thing in your car right now?","What's the first thing you'd buy if you won the lottery?","What celebrity would play you in a movie?","What's your most-used emoji?","What's a food you refuse to eat?","What's the dumbest way you've ever been injured?","What job would you be terrible at?","What's your secret skill nobody here knows about?","If you could only eat one restaurant's food forever, which one?","What would you do with a free day and no responsibilities?","What's the worst gift you've ever received?","What's your weirdest habit?","What's something you're unreasonably competitive about?","What fictional world would you live in?","What's your Starbucks order? (Or what would it be?)","What's the last thing you googled that you'd be embarrassed by?","What would get you kicked off a reality show first?","If you were a ghost, how would you haunt people?","What's the most money you've wasted on one thing?","What's your favorite smell?","What would you be famous for?","What's the worst haircut you've ever had?","What's your dream vacation?","Who in this room would survive a zombie apocalypse the longest?","Who in this room is most likely to become famous?","Who in this room would be the worst roommate?","What's a word you always misspell or mispronounce?","What's your hot take about pizza?","What's the most overrated thing ever?","If animals could talk, which would be the rudest?","What's your most embarrassing childhood memory?","What was your first car?","What's something you pretend to understand but don't?","What's your morning routine in three words?","What's your go-to excuse to leave a party?","If you had a warning label, what would it say?","What's the best nap you've ever taken?","What's your toxic trait?","What is your spirit animal and why?","What's a song you know every word to?","What's the weirdest thing you believed as a kid?","If you had to wrestle any animal, which would you pick?","What's your signature dance move?","What would you name a pet rock?","What's the most Florida thing you've ever seen?","What's your useless superpower?","What's your favorite thing to complain about?","What would your last meal be?","What would you rename yourself if you had to pick a new name?"];
+
+// ---------- transport ----------
+const LOCAL=new URLSearchParams(location.search).has("local");
+let sb=null;
+function connect(code,onMsg,onStatus){
+  if(LOCAL||!window.supabase){
+    if(!LOCAL){onStatus("error");return null}
+    const bc=new BroadcastChannel("ws-"+code);bc.onmessage=e=>onMsg(e.data);setTimeout(()=>onStatus("SUBSCRIBED"),10);
+    return {send:m=>bc.postMessage(m),close:()=>bc.close()};
+  }
+  sb=sb||window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:20}}});
+  const ch=sb.channel("ws-"+code,{config:{broadcast:{self:false,ack:false}}});
+  ch.on("broadcast",{event:"m"},({payload})=>onMsg(payload)).subscribe(s=>onStatus(s));
+  return {send:m=>ch.send({type:"broadcast",event:"m",payload:m}),close:()=>sb.removeChannel(ch)};
+}
+const LETTERS="BCDFGHJKLMNPQRSTVWXZ";
+const newCode=()=>Array.from({length:4},()=>LETTERS[Math.floor(Math.random()*LETTERS.length)]).join("");
+
+// ======================================================================
+// HOST (the TV)
+// ======================================================================
+let H=null, link=null, tick=null;
+function hostStart(code,resume){
+  history.replaceState(null,"","?host="+code+(LOCAL?"&local":""));
+  H=resume||{code,phase:"lobby",players:[],usedQ:[]};
+  showView("vTV");
+  link=connect(code,hostRecv,s=>{$("hostStatus").textContent=s==="SUBSCRIBED"?"Connected · room "+code:s==="error"?"Couldn't load the connection. Check your internet and reload.":"Connecting…";if(s==="SUBSCRIBED")push()});
+  clearInterval(tick);tick=setInterval(hostTick,1000);
+  renderTV();
+}
+const P_=id=>H.players.find(p=>p.id===id);
+const isVip=id=>H.players[0]&&H.players[0].id===id;
+function hostRecv(m){
+  if(!m||!m.t||!m.id)return;
+  const p=P_(m.id);
+  if(m.t==="join"){
+    if(p){push();return}
+    if(H.players.length>=MAXP){link.send({t:"full",to:m.id});return}
+    let name=String(m.name||"Player").replace(/\s+/g," ").trim().slice(0,12)||"Player";const base=name;let k=2;
+    while(H.players.some(x=>x.name.toLowerCase()===name.toLowerCase()))name=base.slice(0,10)+" "+(k++);
+    const used=new Set(H.players.map(x=>x.color));
+    H.players.push({id:m.id,name,color:COLORS.find(c=>!used.has(c))||COLORS[H.players.length%COLORS.length],score:0});
+    push();renderTV();return;
+  }
+  if(!p)return;
+  if(m.t==="start"&&isVip(p.id)&&H.phase==="lobby"){startGame();return}
+  if(m.t==="next"&&isVip(p.id)){if(H.phase==="reveal")nextRound();else if(H.phase==="final")startGame();return}
+  if(m.t==="answer"&&H.phase==="answer"&&m.r===H.round&&p.id!==H.guesser&&H.inRound.includes(p.id)){
+    const t=String(m.text||"").replace(/\s+/g," ").trim().slice(0,MAXLEN);if(!t)return;
+    H.answers[p.id]=t;push();renderTV();
+    if(H.inRound.filter(id=>id!==H.guesser).every(id=>H.answers[id]))setTimeout(()=>{if(H.phase==="answer")toMatch()},600);return;
+  }
+  if(m.t==="match"&&H.phase==="match"&&m.r===H.round&&p.id===H.guesser&&m.m&&typeof m.m==="object"){
+    const ok={},used=new Set();
+    H.opts.forEach(o=>{const who=m.m[o.oid];if(who&&H.opts.some(x=>x.by===who)&&!used.has(who)){ok[o.oid]=who;used.add(who)}});
+    H.match=ok;toReveal();
+  }
+}
+function secs(){return Math.max(0,Math.ceil((H.ends-Date.now())/1000))}
+function hostTick(){
+  if(!H)return;
+  if(H.ends&&Date.now()>=H.ends){if(H.phase==="answer")toMatch();else if(H.phase==="match"){H.match=H.match||{};toReveal()}}
+  const t=$("tT");if(t){const s=secs();t.textContent=s;$("tBar").style.width=(s/(H.dur||1)*100)+"%"}
+  if(Date.now()-(H.lastPush||0)>3000)push();
+}
+function setTimer(s){H.dur=s;H.ends=Date.now()+s*1000}
+function startGame(){
+  if(H.players.length<MINP)return;
+  H.players.forEach(p=>p.score=0);H.rot=shuffle(H.players.map(p=>p.id));H.rounds=Math.min(MAXROUNDS,H.rot.length);H.round=0;nextRound();
+}
+function nextRound(){
+  if(H.round>=H.rounds){H.phase="final";H.ends=0;push();renderTV();return}
+  H.round++;H.guesser=H.rot[(H.round-1)%H.rot.length];
+  if(!P_(H.guesser))H.guesser=H.players[0].id;
+  let left=QUESTIONS.map((_,i)=>i).filter(i=>!H.usedQ.includes(i));if(!left.length){H.usedQ=[];left=QUESTIONS.map((_,i)=>i)}
+  H.qi=shuffle(left)[0];H.usedQ.push(H.qi);
+  H.inRound=H.players.map(p=>p.id);H.answers={};H.opts=[];H.match=null;H.res=null;
+  H.phase="answer";setTimer(ANSWER_S);push();renderTV();
+}
+function toMatch(){
+  const entries=Object.entries(H.answers);
+  H.opts=shuffle(entries.map(([by,text],i)=>({oid:"a"+i+Math.random().toString(36).slice(2,6),by,text})));
+  if(H.opts.length<2){H.match={};if(H.opts.length===1)H.match[H.opts[0].oid]=H.opts[0].by;toReveal();return}
+  H.phase="match";setTimer(MATCH_S);push();renderTV();
+}
+function toReveal(){
+  const g=P_(H.guesser);let right=0;
+  H.res=H.opts.map(o=>{const pick=H.match[o.oid]||null, ok=pick===o.by;if(ok)right++;else{const a=P_(o.by);if(a&&H.opts.length>1)a.score+=PT_FOOL}return {oid:o.oid,by:o.by,text:o.text,pick,ok}});
+  if(g){g.score+=right*PT_RIGHT+(right===H.opts.length&&H.opts.length>1?PT_ALL:0)}
+  H.right=right;H.phase="reveal";H.ends=0;push();renderTV();
+}
+function pub(){
+  const s={code:H.code,phase:H.phase,round:H.round,rounds:H.rounds,left:H.ends?Math.max(0,H.ends-Date.now()):0,
+    players:H.players.map(p=>({id:p.id,name:p.name,color:p.color,score:p.score})),guesser:H.guesser,inRound:H.inRound};
+  if(H.phase==="answer"||H.phase==="match"||H.phase==="reveal")s.q=QUESTIONS[H.qi];
+  if(H.phase==="answer")s.done=Object.keys(H.answers);
+  if(H.phase==="match"){s.opts=H.opts.map(o=>({oid:o.oid,text:o.text}));s.cand=H.players.map(x=>x.id).filter(id=>H.opts.some(o=>o.by===id))}
+  if(H.phase==="reveal"){s.res=H.res;s.right=H.right}
+  return s;
+}
+function push(){if(!link)return;H.lastPush=Date.now();link.send({t:"state",s:pub()});ls.set("ws-host",H)}
+
+// ---------- TV ----------
+function renderTV(){
+  const ST=$("stage"), P=$("panel"), ppl=H.players, g=P_(H.guesser);
+  const chips=(done,mark)=>'<div class="chips">'+ppl.map(p=>'<span class="chip'+(done&&done.includes(p.id)?' done':'')+(mark&&p.id===mark?' guesser':'')+'">'+dot(p)+esc(p.name)+(mark&&p.id===mark?' 🔍':'')+'</span>').join("")+'</div>';
+  const timer=()=>{const s=secs();return '<div class="timer"><span class="t" id="tT">'+s+'</span><div class="bar"><i id="tBar" style="width:'+(s/(H.dur||1)*100)+'%"></i></div></div>'};
+  const marquee=(who,q)=>'<div class="marquee"><div class="who">'+who+'</div><h2>'+esc(q)+'</h2></div>';
+  if(H.phase==="lobby"){
+    ST.innerHTML=marquee('Tonight\'s first question','How well do you really know each other?')+'<div class="quotes">'+['“I would never.”','“That was obviously Dave.”','“Wait, who wrote THAT?”'].map(t=>'<div class="quote">'+t+'</div>').join("")+'</div>';
+    const url=location.origin+"/whosaidthat/?code="+H.code+(LOCAL?"&local":"");
+    P.innerHTML='<div class="joinrow"><div class="code"><span class="label">Room code</span><span class="big">'+H.code+'</span><span class="muted">Join at <b>'+esc(location.host)+'/whosaidthat</b></span></div><div id="qr"></div></div>'
+      +'<span class="label">Players ('+ppl.length+')</span>'+(ppl.length?chips():'<p class="muted">Nobody yet. Scan the code or type it in.</p>')
+      +'<div class="hostbar"><button class="btn" id="startBtn" type="button"'+(ppl.length<MINP?' disabled':'')+'>Start</button></div><p class="muted">'+(ppl.length<MINP?'Needs at least '+MINP+' players.':'The first player to join can also start from their phone.')+'</p>';
+    $("startBtn").onclick=startGame;
+    try{if(window.QRCode)new QRCode($("qr"),{text:url,width:240,height:240,colorDark:"#2a0f1a",colorLight:"#ffffff"});else $("qr").hidden=true}catch(e){$("qr").hidden=true}
+  } else if(H.phase==="answer"){
+    ST.innerHTML=marquee('Round '+H.round+' of '+H.rounds+' · '+esc(g?g.name:"?")+' is the Guesser',QUESTIONS[H.qi]);
+    P.innerHTML='<div class="say">Answer on your phone. <em>'+esc(g?g.name:"?")+'</em>, no peeking.</div>'+timer()+chips(Object.keys(H.answers),H.guesser);
+  } else if(H.phase==="match"){
+    ST.innerHTML=marquee('Round '+H.round+' · Who said what?',QUESTIONS[H.qi])+'<div class="quotes">'+H.opts.map(o=>'<div class="quote">“'+esc(o.text)+'”</div>').join("")+'</div>';
+    P.innerHTML='<div class="say"><em>'+esc(g?g.name:"?")+'</em>, read them out loud and match each answer on your phone.</div>'+timer()+'<p class="muted">Everyone else: poker faces.</p>';
+  } else if(H.phase==="reveal"){
+    ST.innerHTML=marquee('Round '+H.round+' · The truth',QUESTIONS[H.qi])+'<div class="quotes">'+H.res.map((r,i)=>{const a=P_(r.by)||{name:"?",color:"#ccc"},pk=r.pick?P_(r.pick):null;
+      return '<div class="quote '+(r.ok?'right':'wrong')+'" style="animation-delay:'+(i*.35)+'s">“'+esc(r.text)+'”<div class="tag">'+dot(a)+esc(a.name)+(r.ok?' <span class="ok">✓ got it</span>':' <span class="x">✗ guessed '+(pk?esc(pk.name):'nobody')+'</span>')+'</div></div>'}).join("")+'</div>';
+    const n=H.res.length;
+    P.innerHTML='<div class="say"><em>'+esc(g?g.name:"?")+'</em> got '+H.right+' of '+n+(H.right===n&&n>1?'. Perfect read! 🔮':H.right===0&&n>1?'. Do you even know these people?':'.')+'</div>'
+      +'<p class="muted">+'+PT_RIGHT+' per correct match'+(n>1?', +'+PT_ALL+' bonus for all of them':'')+'. Everyone who fooled the Guesser gets +'+PT_FOOL+'.</p>'+scoreHTML(5)
+      +'<div class="hostbar"><button class="btn" id="nextBtn" type="button">'+(H.round>=H.rounds?'Final scores':'Next round')+'</button></div>';
+    $("nextBtn").onclick=nextRound;
+  } else if(H.phase==="final"){
+    const top=ppl.slice().sort((a,b)=>b.score-a.score)[0];
+    ST.innerHTML=marquee('Game over','Who knows this group best?')+'<div class="quotes"><div class="quote" style="font:400 1.6rem/1.1 var(--f-display)">🏆 '+esc(top?top.name:"Nobody")+'</div></div>';
+    P.innerHTML='<span class="label">Final scores</span>'+scoreHTML(MAXP)+'<div class="hostbar"><button class="btn" id="againBtn" type="button">Play again</button><button class="btn ghost" id="lobbyBtn" type="button">Back to lobby</button></div>';
+    $("againBtn").onclick=startGame;$("lobbyBtn").onclick=()=>{H.phase="lobby";H.players.forEach(p=>p.score=0);push();renderTV()};
+  }
+}
+function scoreHTML(n){return '<ol class="score">'+H.players.slice().sort((a,b)=>b.score-a.score).slice(0,n).map((p,i)=>'<li><span>'+(i+1)+'</span><span>'+esc(p.name)+'</span><span>'+p.score+'</span></li>').join("")+'</ol>'}
+
+// ======================================================================
+// PLAYER (a phone)
+// ======================================================================
+let ME=null, plink=null, S=null, ends=0, sentA={}, sentM={}, pick={}, ptick=null, jt=null;
+function padStart(code,name){
+  const saved=ls.get("ws-me"), id=(saved&&saved.code===code&&saved.id)||rid();
+  ME={code,name,id};ls.set("ws-me",ME);
+  history.replaceState(null,"","?code="+code+(LOCAL?"&local":""));
+  showView("vPad");
+  $("meBar").innerHTML='<span>'+esc(name)+'</span>';
+  $("padCard").innerHTML='<div class="wait"><div class="emoji">💬</div><h2>Joining room '+esc(code)+'…</h2></div>';
+  plink=connect(code,padRecv,s=>{$("padStatus").textContent=s==="SUBSCRIBED"?"Connected to room "+code:s==="error"?"Couldn't connect. Check your internet and reload.":"Connecting…";
+    if(s==="SUBSCRIBED"){plink.send({t:"join",id:ME.id,name:ME.name});clearTimeout(jt);jt=setTimeout(()=>{if(!S)noRoom()},6000)}});
+  clearInterval(ptick);ptick=setInterval(()=>{
+    const t=$("pT");if(t)t.textContent=Math.max(0,Math.ceil((ends-Date.now())/1000))+"s";
+    // guesser out of time: send whatever is matched so far
+    if(S&&S.phase==="match"&&S.guesser===ME.id&&!sentM[S.round]&&Date.now()>=ends-800)sendMatch();
+  },500);
+}
+function noRoom(){
+  $("padCard").innerHTML='<div class="wait"><div class="emoji">🤷</div><h2>Room '+esc(ME.code)+' not found</h2><p class="muted">Check the code on the TV. The host screen has to stay open.</p><button class="btn" id="retry" type="button">Try another code</button></div>';
+  $("retry").onclick=()=>{if(plink)plink.close();plink=null;history.replaceState(null,"",location.pathname+(LOCAL?"?local":""));showView("vLanding")};
+}
+function padRecv(m){
+  if(!m)return;
+  if(m.t==="full"&&m.to===ME.id){$("padCard").innerHTML='<div class="wait"><div class="emoji">🙅</div><h2>This room is full</h2></div>';S={};return}
+  if(m.t!=="state")return;
+  S=m.s;ends=Date.now()+(S.left||0);
+  const me=S.players.find(p=>p.id===ME.id);
+  if(!me){plink.send({t:"join",id:ME.id,name:ME.name});return}
+  if(S.phase==="answer"&&sentA[S.round]&&!S.done.includes(ME.id))plink.send({t:"answer",id:ME.id,r:S.round,text:sentA[S.round]});
+  if(S.phase==="match"&&sentM[S.round])plink.send({t:"match",id:ME.id,r:S.round,m:sentM[S.round]});
+  $("meBar").innerHTML=dot(me)+'<span>'+esc(me.name)+'</span><span class="pts">'+me.score+' pts</span>';
+  draw();
+}
+function draw(){
+  const k=[S.phase,S.round,(S.done||[]).includes(ME.id),S.phase==="lobby"?S.players.length:"",sentM[S.round]?1:0].join("|");
+  if(draw.k===k)return;draw.k=k;
+  const C=$("padCard"), vip=S.players[0]&&S.players[0].id===ME.id, inR=S.inRound&&S.inRound.includes(ME.id), amG=S.guesser===ME.id;
+  const timer='<span class="ptimer" id="pT">'+Math.max(0,Math.ceil((ends-Date.now())/1000))+'s</span>';
+  const nm=id=>{const p=S.players.find(x=>x.id===id);return p?esc(p.name):"?"};
+  if(S.phase==="lobby"){
+    C.innerHTML='<div class="wait"><div class="emoji">💬</div><h2>You\'re in!</h2><p class="muted">'+S.players.length+' player'+(S.players.length===1?'':'s')+' so far. Watch the TV.</p>'
+      +(vip?'<button class="btn" id="vStart" type="button"'+(S.players.length<MINP?' disabled':'')+'>Everyone\'s in. Start!</button>'+(S.players.length<MINP?'<p class="muted">Needs at least '+MINP+' players.</p>':''):'<p class="muted">The first player or the TV starts the game.</p>')+'</div>';
+    if(vip)$("vStart").onclick=()=>plink.send({t:"start",id:ME.id});
+  } else if(!inR&&S.phase!=="final"){
+    C.innerHTML='<div class="wait"><div class="emoji">⏳</div><h2>You\'re in for next game</h2><p class="muted">Watch the TV in the meantime.</p></div>';
+  } else if(S.phase==="answer"){
+    if(amG){C.innerHTML='<div class="wait"><div class="emoji">🔍</div><h2>You\'re the Guesser!</h2><p class="muted">Everyone is answering:</p><div class="qcard">'+esc(S.q)+'</div><p class="muted">Get ready to figure out who said what. '+timer+'</p></div>';return}
+    if(S.done.includes(ME.id)){C.innerHTML='<div class="wait"><div class="emoji">🤫</div><h2>Answer locked in</h2><p class="muted">"'+esc(sentA[S.round]||"")+'"</p><p class="muted">'+timer+'</p></div>';return}
+    C.innerHTML='<div class="row"><span class="label">Round '+S.round+' · '+nm(S.guesser)+' is guessing</span>'+timer+'</div><div class="qcard"><small>Answer honestly. Or don\'t.</small>'+esc(S.q)+'</div>'
+      +'<form id="af" style="display:flex;flex-direction:column;gap:8px"><textarea id="at" maxlength="'+MAXLEN+'" placeholder="Your answer" enterkeyhint="send"></textarea><div class="count" id="cnt">0 / '+MAXLEN+'</div><button class="btn" type="submit">Lock it in</button></form>';
+    const ta=$("at"),dk="ws-draft-"+S.round;try{ta.value=sessionStorage.getItem(dk)||""}catch(e){}$("cnt").textContent=ta.value.length+" / "+MAXLEN;
+    ta.oninput=()=>{$("cnt").textContent=ta.value.length+" / "+MAXLEN;try{sessionStorage.setItem(dk,ta.value)}catch(e){}};
+    ta.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("af").requestSubmit()}};
+    $("af").onsubmit=e=>{e.preventDefault();const v=ta.value.replace(/\s+/g," ").trim();if(!v){toast("Type an answer first");return}
+      sentA[S.round]=v;plink.send({t:"answer",id:ME.id,r:S.round,text:v});C.innerHTML='<div class="wait"><div class="emoji">🤫</div><h2>Sending…</h2></div>'};
+  } else if(S.phase==="match"){
+    if(!amG){C.innerHTML='<div class="wait"><div class="emoji">😶</div><h2>'+nm(S.guesser)+' is matching</h2><p class="muted">Keep a straight face. '+timer+'</p></div>';return}
+    if(sentM[S.round]){C.innerHTML='<div class="wait"><div class="emoji">📨</div><h2>Locked in</h2><p class="muted">Look at the TV for the truth.</p></div>';return}
+    pick[S.round]=pick[S.round]||{};
+    renderMatch(C,timer);
+  } else if(S.phase==="reveal"){
+    const r=(S.res||[]).find(x=>x.by===ME.id);
+    let head,sub;
+    if(amG){head='You got '+S.right+' of '+S.res.length;sub='+'+(S.right*PT_RIGHT+(S.right===S.res.length&&S.res.length>1?PT_ALL:0))+' points'}
+    else if(r){head=r.ok?nm(S.guesser)+' knew it was you':'You fooled '+nm(S.guesser)+'!';sub=r.ok?'No points this round.':'+'+PT_FOOL+' points'}
+    else{head='Look at the TV';sub='You didn\'t answer this round.'}
+    C.innerHTML='<div class="wait"><div class="emoji">'+(amG?'🔮':r&&!r.ok?'😏':'😬')+'</div><h2>'+head+'</h2><p class="muted">'+sub+'</p>'+(vip?'<button class="btn" id="vNext" type="button">'+(S.round>=S.rounds?'Final scores':'Next round')+'</button>':'')+'</div>';
+    if(vip)$("vNext").onclick=()=>plink.send({t:"next",id:ME.id});
+  } else if(S.phase==="final"){
+    const rank=S.players.slice().sort((a,b)=>b.score-a.score), place=rank.findIndex(p=>p.id===ME.id)+1;
+    C.innerHTML='<div class="wait"><div class="emoji">'+(place===1?'🏆':'💬')+'</div><h2>'+(place===1?'You win!':'You finished #'+place+' of '+rank.length)+'</h2><p class="muted">'+rank[place-1].score+' points</p>'
+      +(vip?'<button class="btn" id="vNext" type="button">Play again</button>':'<p class="muted">Waiting for the next game…</p>')+'</div>';
+    if(vip)$("vNext").onclick=()=>plink.send({t:"next",id:ME.id});
+  }
+}
+function renderMatch(C,timer){
+  const P=pick[S.round], usedBy={};Object.entries(P).forEach(([o,w])=>usedBy[w]=o);
+  const cand=S.cand.map(id=>S.players.find(p=>p.id===id)).filter(Boolean);
+  const all=S.opts.every(o=>P[o.oid]);
+  C.innerHTML='<div class="row"><span class="label">Who said what?</span><span class="ptimer" id="pT">'+Math.max(0,Math.ceil((ends-Date.now())/1000))+'s</span></div><div class="qcard" style="font-size:1rem">'+esc(S.q)+'</div>'
+    +S.opts.map(o=>'<div class="mcard"><div class="txt">'+esc(o.text)+'</div><div class="who-pick">'+cand.map(p=>'<button type="button" data-o="'+o.oid+'" data-w="'+p.id+'" class="'+(P[o.oid]===p.id?'on':usedBy[p.id]?'used':'')+'">'+dot(p)+esc(p.name)+'</button>').join("")+'</div></div>').join("")
+    +'<button class="btn" id="lockM" type="button"'+(all?'':' disabled')+'>'+(all?'Lock in my guesses':'Match every answer ('+Object.keys(P).length+'/'+S.opts.length+')')+'</button>';
+  C.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{
+    const o=b.dataset.o,w=b.dataset.w;
+    if(P[o]===w)delete P[o];else{Object.keys(P).forEach(k=>{if(P[k]===w)delete P[k]});P[o]=w}
+    renderMatch(C,timer);
+  });
+  $("lockM").onclick=sendMatch;
+}
+function sendMatch(){
+  if(!S||sentM[S.round])return;
+  const m=Object.assign({},pick[S.round]||{});sentM[S.round]=m;plink.send({t:"match",id:ME.id,r:S.round,m});draw.k="";draw();
+}
+
+// ---------- views & startup ----------
+function showView(v){["vLanding","vTV","vPad"].forEach(x=>$(x).hidden=x!==v)}
+$("hostBtn").onclick=()=>hostStart(newCode());
+$("joinCode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)});
+$("joinForm").onsubmit=e=>{
+  e.preventDefault();
+  const code=$("joinCode").value.trim().toUpperCase(), name=$("joinName").value.replace(/\s+/g," ").trim().slice(0,12);
+  if(code.length!==4){$("joinErr").textContent="Room codes are 4 letters.";return}
+  if(!name){$("joinErr").textContent="Pick a name so your friends know it's you.";return}
+  $("joinErr").textContent="";ls.set("ws-name",name);padStart(code,name);
+};
+(function boot(){
+  const q=new URLSearchParams(location.search), hc=(q.get("host")||"").toUpperCase(), jc=(q.get("code")||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4);
+  const nm=ls.get("ws-name")||ls.get("bt-name")||ls.get("bi-name")||ls.get("gc-name");if(nm)$("joinName").value=nm;
+  if(hc){const s=ls.get("ws-host");hostStart(hc,s&&s.code===hc?s:null);return}
+  if(jc){$("joinCode").value=jc;const me=ls.get("ws-me");if(me&&me.code===jc&&me.name){padStart(jc,me.name);return}$("joinName").focus()}
+})();
+})();
+</script>
+</body>
+</html>
