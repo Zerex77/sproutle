@@ -42,6 +42,16 @@ a{color:inherit}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:800;font-size:.9rem}
 .top a{text-decoration:none;color:var(--muted);border:2px solid currentColor;border-radius:999px;padding:6px 14px;transform:rotate(2deg);display:inline-block}
 .top a:hover{color:var(--lime)}
+.top a.sp{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;text-decoration:none;color:#173b23;background:#d9f7c4;border:3px solid #1a9a47;
+  box-shadow:3px 3px 0 #2fc25f,6px 6px 0 #ffcd3c;transform:rotate(3deg);transition:transform .15s,box-shadow .15s;animation:spsway 5s ease-in-out infinite}
+.top a.sp:hover,.top a.sp:focus-visible{color:#173b23;transform:rotate(-3deg) scale(1.08);box-shadow:4px 4px 0 #ff5fa2,8px 8px 0 #2fc25f;animation:none}
+.sp img{width:34px;height:34px;border-radius:50%;background:#fff;flex:none;animation:spgrow 5s ease-in-out infinite}
+.sp span{display:flex;flex-direction:column;line-height:1}
+.sp b{font:800 1rem/1 var(--f-body);color:#1a9a47}
+.sp small{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#4d6e57}
+@keyframes spsway{0%,80%,100%{rotate:0deg}85%{rotate:4deg}90%{rotate:-3deg}95%{rotate:2deg}}
+@keyframes spgrow{0%,80%,100%{scale:1}88%{scale:1.15}}
+@media (prefers-reduced-motion:reduce){.top a.sp,.sp img{animation:none;transition:none}}
 .badge{background:var(--lime);color:var(--void);padding:4px 10px;border-radius:6px;transform:rotate(-3deg);font-weight:900;letter-spacing:.06em;text-transform:uppercase;font-size:.75rem}
 
 /* wordmark */
@@ -115,7 +125,7 @@ h3.sect{font:400 1.4rem var(--f-display);margin:0;transform:rotate(-1deg);color:
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><span class="badge">Party games</span></div>
+  <div class="top"><span class="badge">Party games</span><a class="sp" href="/" aria-label="Sproutle daily puzzles"><img src="/icon-192.png" alt="" width="34" height="34"><span><b>Sproutle</b><small>daily puzzles</small></span></a></div>
 
   <h1 class="mark" aria-label="Zach Box Games"><span class="w1">Zach</span><span class="w2">Box</span><span class="w3">Games</span></h1>
 
