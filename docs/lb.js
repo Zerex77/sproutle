@@ -29,7 +29,7 @@
     } finally { clearTimeout(t); }
   }
 
-  // Puzzle number shared by Ranked, Trailhead, Keystone, Ballpark and Imposter (No. 1 = Oct 13, 2026, local date)
+  // Puzzle number shared by Ranked, Trailhead, Keystone, Ballpark, Imposter and Gridiron Golf (No. 1 = Oct 13, 2026, local date)
   function dayNo(){
     const d = new Date(), u = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
     return Math.max(1, Math.round((u - Date.UTC(2026,9,13)) / 864e5) + 1);

@@ -13,5 +13,6 @@ Live at https://playsproutle.com
 - `build/keystone/` holds Keystone, the daily missing-word puzzle, which the build copies to `docs/keystone/`. Add puzzles to the `PUZZLES` list at the top of its script.
 - `build/ballpark/` holds Ballpark, the daily number-guess puzzle (`PUZZLES` list: question, answer, unit, and `tol`, how close counts as a win). Copied to `docs/ballpark/`.
 - `build/imposter/` holds Imposter, the daily odd-one-out puzzle (`CASES` list, five rows per day, easiest first). Copied to `docs/imposter/`.
+- `build/gridiron/` holds Gridiron Golf, the daily NFL trivia game (daily `HOLES` list plus an endless mode). Player stats are embedded in the page: since 1999 from nflverse, earlier careers from Pro Football Reference. Active players' totals are a snapshot (see `ASOF`). Copied to `docs/gridiron/`.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).
