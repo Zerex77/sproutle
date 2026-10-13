@@ -79,13 +79,21 @@
 .slb-l li.me{background:var(--slb-a);color:var(--slb-ai,#fff)}
 .slb-l li.me .slb-r{color:inherit}
 .slb-m{margin:0;font-size:.85em;opacity:.75;text-align:center}
+.slb-l li.tap{cursor:pointer}
+.slb-l li.tap:hover{outline:2px solid color-mix(in srgb,var(--slb-a) 55%,transparent);outline-offset:-2px}
+.slb-l li.tap:focus-visible{outline:3px solid var(--slb-a);outline-offset:1px}
+.slb-l li.tap .slb-r::after{content:"›";margin-left:4px;opacity:.5}
+.slb-l li.tap.open .slb-r::after{content:"⌄"}
+.slb-l li.slb-d{display:block;background:color-mix(in srgb,var(--slb-a) 10%,transparent);padding:10px 12px;margin:-1px 0 4px;font-size:.92em;line-height:1.4}
+.slb-hint{margin:-4px 0 0;font-size:.8em;opacity:.65}
 .slb-scrim{position:fixed;inset:0;z-index:9999;background:rgba(10,12,10,.55);display:grid;place-items:center;padding:16px}
 .slb-panel{width:100%;max-width:400px;max-height:88vh;overflow:auto;border-radius:18px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
 .slb-x{align-self:flex-end;height:42px;padding:0 20px;border-radius:10px;border:none;background:color-mix(in srgb,currentColor 12%,transparent);color:inherit;font-weight:700;cursor:pointer}`;
     document.head.appendChild(s);
   }
 
-  // opts: {game, day, score, eligible, fmt(score)->string, title, note, accent, accentInk, refresh}
+  // opts: {game, day, score, eligible, fmt(score)->string, title, note, accent, accentInk, refresh,
+  //        detail (what to save with the score), renderDetail(detail)->html (makes rows tappable)}
   function mount(el, o){
     css();
     const dev = device(), key = postedKey(o.game, o.day);
@@ -102,7 +110,7 @@
       + `<form class="slb-f" hidden><label for="slbIn">You scored ${esc(fmt(o.score))}. Add your initials to the board:</label>
          <input id="slbIn" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" value="${esc(last)}" aria-label="Your initials">
          <button type="submit">Post</button><p class="slb-err"></p></form>
-         <ol class="slb-l"><li class="gap">Loading…</li></ol><p class="slb-m"></p>`;
+         <ol class="slb-l"><li class="gap">Loading…</li></ol><p class="slb-m"></p><p class="slb-hint" hidden>Tap a player to see their round.</p>`;
     const form = box.querySelector("form"), input = box.querySelector("input"), err = box.querySelector(".slb-err"),
           list = box.querySelector("ol"), msg = box.querySelector(".slb-m"), btn = form.querySelector("button");
     form.hidden = !(o.eligible && !posted);
@@ -122,13 +130,47 @@
         list.innerHTML = html;
         const me = rows.find(r=>r.mine), total = rows[0].total;
         msg.textContent = me ? `You're #${me.rank} of ${total} player${total==1?"":"s"}${o.day? " today":""}.` : `${total} player${total==1?"":"s"} on the board.`;
+        if(o.renderDetail) addDetails(rows);
       }catch(e){
         list.innerHTML = `<li class="gap">The leaderboard couldn't load. Check your connection.</li>`; msg.textContent="";
       }
     }
+    // Rows become tappable when the database can return each posted round (round_details)
+    async function addDetails(rows){
+      let det;
+      try{ det = await rpc("round_details", {p_game:o.game, p_day:o.day}); }catch(e){ return; }
+      if(!Array.isArray(det)) return;
+      const map = new Map(det.filter(d=>d.detail).map(d=>[d.initials+"|"+d.score+"|"+d.ms, d.detail]));
+      const items = list.querySelectorAll("li:not(.gap)");
+      let any = false;
+      rows.forEach((r,i)=>{
+        const li = items[i], d = map.get(r.initials+"|"+r.score+"|"+r.ms);
+        if(!li || !d) return;
+        any = true;
+        li.classList.add("tap"); li.tabIndex = 0; li.setAttribute("role","button"); li.setAttribute("aria-expanded","false");
+        li.setAttribute("aria-label", `${r.initials}, rank ${r.rank}. Show their round`);
+        const toggle = ()=>{
+          const open = li.nextElementSibling && li.nextElementSibling.classList.contains("slb-d");
+          list.querySelectorAll(".slb-d").forEach(x=>x.remove());
+          list.querySelectorAll("li.open").forEach(x=>{ x.classList.remove("open"); x.setAttribute("aria-expanded","false"); });
+          if(open) return;
+          const box = document.createElement("li"); box.className = "slb-d";
+          try{ box.innerHTML = o.renderDetail(d, r); }catch(e){ box.textContent = "This round can't be shown."; }
+          li.after(box); li.classList.add("open"); li.setAttribute("aria-expanded","true");
+        };
+        li.addEventListener("click", toggle);
+        li.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); } });
+      });
+      box.querySelector(".slb-hint").hidden = !any;
+    }
     async function post(initials, quiet){
       const ms = o.day ? (elapsed(o.game, o.day) ?? 86399000) : 0;
-      await rpc("submit_score", {p_game:o.game, p_day:o.day, p_initials:initials, p_score:o.score, p_ms:Math.max(2000, Math.min(ms, 86399000)), p_device:dev});
+      const body = {p_game:o.game, p_day:o.day, p_initials:initials, p_score:o.score, p_ms:Math.max(2000, Math.min(ms, 86399000)), p_device:dev};
+      if(o.detail){
+        // Save the round too; if the database doesn't take rounds yet, post the score alone
+        try{ await rpc("submit_score", {...body, p_detail:o.detail}); }
+        catch(e){ if(e && /^bad /.test(e.msg||"")) throw e; await rpc("submit_score", body); }
+      } else await rpc("submit_score", body);
       ls.set(key, initials); ls.set("slb-initials", initials); posted = initials;
     }
     form.addEventListener("submit", async e=>{

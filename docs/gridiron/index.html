@@ -139,6 +139,13 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .stats b{display:block;font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums}
 .stats .sh{grid-column:1/-1;text-align:left;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-top:6px;border-top:1px solid var(--line);margin-top:4px}
 .stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.rd{display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums}
+.rd-row{display:flex;justify-content:space-between;gap:10px}
+.rd-row span{min-width:0}
+.rd-mull{opacity:.6}
+.rd-mull em{font-style:normal;font-size:.85em}
+.rd-tot{border-top:1px solid color-mix(in srgb,currentColor 25%,transparent);padding-top:4px;margin-top:2px;font-weight:700}
+.rd-note{font-size:.85em;opacity:.75}
 .src{margin:0;font-size:12px;line-height:1.45;color:var(--muted);text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -429,7 +436,8 @@ function renderResult(){
     <p>Your five totaled <b>${fmt(t)}</b>. ${where}</p>
     <div class="scale">${scale}</div>${tail}`;
   // Leaderboard ranks low to high: distance from the pin, in tenths so half sacks count
-  if(mode==="daily" && window.SLB) SLB.mount($("slb"), {game:"gridiron", day:pNo, score:Math.round(ad*10), eligible:true, fmt:x=>fmt(x/10)+" off", note:"Closest to the pin wins. Ties go to the fastest.", accent:"var(--turf)", accentInk:"var(--turf-ink)"});
+  if(mode==="daily" && window.SLB) SLB.mount($("slb"), {game:"gridiron", day:pNo, score:Math.round(ad*10), eligible:true, fmt:x=>fmt(x/10)+" off", note:"Closest to the pin wins. Ties go to the fastest.", accent:"var(--turf)", accentInk:"var(--turf-ink)",
+    detail: roundDetail(), renderDetail: showRound});
   $("btnShare").onclick=()=>{
     const txt=shareText();
     const ok=()=>toast("Copied. Paste it anywhere.");
@@ -439,6 +447,24 @@ function renderResult(){
   if($("btnNext")) $("btnNext").onclick = nextEndless;
   if($("btnToEndless")) $("btnToEndless").onclick = ()=>switchMode("endless");
   tick();
+}
+
+// What gets saved with a leaderboard score, so other players can tap it: picks in order, their numbers, and the mulligan
+function roundDetail(){
+  return {s:H.stat, p:H.pin, k:S.picks.map((n,i)=>[n.replace(/ \(.*\)$/,""), byName(n).v, i===S.mull?1:0])};
+}
+function showRound(d){
+  if(!d || !Array.isArray(d.k)) return "No picks saved for this round.";
+  const c = CATS[CI[d.s]] || ST, unit = c.unit;
+  let n = 0, t = 0;
+  const lines = d.k.map(([name,v,m])=>{
+    if(m) return `<div class="rd-row rd-mull"><span>✕ ${esc(name)} <em>mulligan</em></span><b>${fmt(+v)}</b></div>`;
+    t += +v; n++;
+    return `<div class="rd-row"><span>${n}. ${esc(name)}</span><b>${fmt(+v)}</b></div>`;
+  }).join("");
+  const off = t - (+d.p);
+  return `<div class="rd">${lines}<div class="rd-row rd-tot"><span>Total</span><b>${fmt(t)} ${esc(unit)}</b></div>
+    <div class="rd-note">${off===0 ? "Right in the cup" : fmt(Math.abs(off))+" "+esc(unit)+(off>0?" past":" short of")+" the "+fmt(+d.p)+" pin"}</div></div>`;
 }
 
 function nextEndless(){
