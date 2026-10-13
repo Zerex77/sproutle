@@ -150,6 +150,20 @@ def card(g):
             f'<div class="game-foot">{status}<span class="play">{btn}</span></div></a>')
 
 HOME_CSS = """<style>
+.zb{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;text-decoration:none;background:#1f1240;color:#fff8ec;border:3px solid #120a24;
+  box-shadow:3px 3px 0 #ff3d9a,6px 6px 0 #8c5cff;transform:rotate(-4deg);transition:transform .15s,box-shadow .15s;animation:zbwig 4s ease-in-out infinite}
+.zb:hover,.zb:focus-visible{transform:rotate(3deg) scale(1.08);box-shadow:4px 4px 0 #c6ff3d,8px 8px 0 #ff3d9a;animation:none}
+.zb:focus-visible{outline:3px solid #c6ff3d;outline-offset:4px}
+.zb-eye{width:36px;height:36px;border-radius:50%;background:#ff6b2c;display:grid;place-items:center;flex:none;position:relative}
+.zb-eye::before{content:"";position:absolute;top:-9px;left:12px;border:6px solid transparent;border-bottom:11px solid #8c5cff;border-top:0}
+.zb-eye i{width:20px;height:20px;border-radius:50%;background:#fff8ec;border:2px solid #120a24;display:grid;place-items:center}
+.zb-eye i::after{content:"";width:9px;height:9px;border-radius:50%;background:#120a24;animation:zblook 3s ease-in-out infinite}
+.zb-t{display:flex;flex-direction:column;line-height:1}
+.zb-t b{font:900 1rem/1 "Arial Black",Impact,system-ui,sans-serif;letter-spacing:.01em;color:#c6ff3d;text-shadow:2px 2px 0 #ff3d9a}
+.zb-t small{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#ffb38f}
+@keyframes zbwig{0%,82%,100%{rotate:0deg}85%{rotate:-6deg}88%{rotate:5deg}91%{rotate:-3deg}94%{rotate:2deg}}
+@keyframes zblook{0%,100%{translate:0 0}30%{translate:3px -2px}60%{translate:-3px 1px}}
+@media (prefers-reduced-motion:reduce){.zb,.zb-eye i::after{animation:none}.zb{transition:none}}
 .hero{display:flex;flex-direction:column;gap:8px;padding-top:4px}
 .hero .date{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero p{color:var(--muted);max-width:52ch}
@@ -220,7 +234,7 @@ HOME_BODY = ('''
 
 home = page('Sproutle: free daily puzzle games',
             'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, name the team from its colleges in Alma Mater, and merge animals in Critter Collector.',
-            '/', HOME_BODY, button='')
+            '/', HOME_BODY, button='<a class="zb" href="/zachbox/" aria-label="Zach Box party games"><span class="zb-eye" aria-hidden="true"><i></i></span><span class="zb-t"><b>Zach Box</b><small>party games!</small></span></a>')
 home = home.replace('</head>', HOME_CSS + '</head>', 1).replace('</body>', HOME_JS + '</body>', 1)
 
 # ---------- About: the whole site, built from GAMES so new games show up automatically ----------
