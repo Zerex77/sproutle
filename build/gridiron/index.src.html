@@ -163,7 +163,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
   </div>
 
   <section class="hole" aria-live="polite">
-    <div class="meta"><span id="pNo">Hole 1</span><span>Any position</span></div>
+    <div class="meta"><span id="pNo">Hole 1</span><span id="pGroup">Any position</span></div>
     <div class="stat"><b id="pStat"></b><span class="pin" id="pPin"></span></div>
     <div class="strip">
       <div class="track" id="track"><div class="fill" id="fill"></div><div class="flagpole" id="flagpole"></div><div class="ballmk" id="ball"></div></div>
@@ -187,13 +187,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 <div class="scrim" id="howModal" hidden>
   <div class="modal" role="dialog" aria-labelledby="howT">
     <h3 id="howT">How to play</h3>
-    <p>Every day there's one stat and one pin for everyone. Name five NFL players whose career totals add up as close to the pin as you can get.</p>
+    <p>Every day there's one stat and one pin for everyone, drawn from 55 categories: passing, rushing, receiving, defense, kicking, punting, returns, and odds and ends like penalties and fumbles. Name five NFL players whose career totals add up as close to the pin as you can get.</p>
     <ul>
       <li>Each player's number is revealed when you pick them, so you can aim your later picks.</li>
       <li>Going long counts the same as coming up short. Closest to the pin wins.</li>
       <li>You get one mulligan: swap out a pick you regret.</li>
       <li>Any position counts. A quarterback's handful of catches or a pass rusher's zero rushing yards can be exactly what you need.</li>
       <li>Active players count too, using their totals through <span class="asof"></span>.</li>
+      <li>Some categories, like penalties or passes defended, only have numbers from 1999 on. The hole card says "since 1999" when that's the case.</li>
       <li>Want more? Endless mode deals a new random stat and pin every hole, as many as you like.</li>
     </ul>
     <button class="close" data-close>Tee it up</button>
@@ -211,44 +212,32 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 
 <script src="/lb.js"></script>
 <script>
-// Career regular-season totals for every player, any position: [name, passing TDs, rushing yds, receiving yds, sacks, active?]
-// Filled in by build_site.py from players.json, which update_stats.py refreshes every week.
-// Since 1999 from nflverse; earlier careers from Pro Football Reference (sacks include pre-1982 unofficial totals).
-// A blank means we couldn't verify that stat, so the player can't be picked for it.
-const PLAYERS = /*DATA*/;
+// Every category, its pin range and every player's career totals are filled in by build_site.py
+// from categories.json and players.json (update_stats.py refreshes players.json every week).
+// Each player row is "name|active|fame|v,v,v..." with one value per category: blank = 0, "-" = not verified.
+const CATS = /*CATS*/;
+const ROWS = /*DATA*/;
 const ASOF = "/*ASOF*/";
-const COL = {passtd:1, rush:2, recyds:3, sacks:4};
-const STATS = {
-  rush:   {name:"Career rushing yards", short:"rushing yds", unit:"yds"},
-  passtd: {name:"Career passing touchdowns", short:"passing TDs", unit:"TD"},
-  recyds: {name:"Career receiving yards", short:"receiving yds", unit:"yds"},
-  sacks:  {name:"Career sacks", short:"sacks", unit:"sacks"},
-};
-// One hole per day. Add new ones to the end; the list repeats once it runs out.
-const HOLES = [
-  {stat:"rush", pin:45000},
-  {stat:"passtd", pin:1500},
-  {stat:"recyds", pin:55000},
-  {stat:"sacks", pin:600},
-  {stat:"rush", pin:30000},
-  {stat:"passtd", pin:1000},
-  {stat:"recyds", pin:40000},
-  {stat:"sacks", pin:450},
-  {stat:"rush", pin:55000},
-  {stat:"passtd", pin:1800},
-  {stat:"recyds", pin:62000},
-  {stat:"sacks", pin:700},
-];
-// Endless mode: random pins in these ranges, rounded to a friendly step
-const RANGES = { rush:[15000,60000,500], passtd:[300,1800,10], recyds:[15000,65000,500], sacks:[150,700,5] };
+const CI = Object.fromEntries(CATS.map((c,i)=>[c.key,i]));
+const short = c => c.name.replace(/^Career /,"").replace(/ \(in a career\)$/,"").replace(/^./,ch=>ch.toLowerCase());
+
+// Daily hole 1 was rushing yards with a 45,000 pin; after that a seeded draw picks every day's hole.
+function dailyHole(n){
+  if(n===1) return {stat:"rush", pin:45000};
+  const r = rng(n*2654435761 % 2147483647);
+  let i = Math.floor(r()*CATS.length);
+  if(n>2 && CATS[i].key===dailyHole(n-1).stat) i = (i+7) % CATS.length;
+  return {stat:CATS[i].key, pin:pinIn(CATS[i], r)};
+}
+function pinIn(c, rand){ const [lo,hi,step]=c.pin; return lo + Math.floor(rand()*((hi-lo)/step+1))*step; }
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const PICKS = 5;
 
 // ---- Daily hole number (local date, No. 1 = Oct 13, 2026, same as the other daily games)
 function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
 const pNo = Math.max(1, dayIndex(new Date()) - Math.floor(Date.UTC(2026,9,13)/864e5) + 1);
 const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
-const fame = r => Math.abs(+r[1]||0)*40 + Math.abs(+r[2]||0) + Math.abs(+r[3]||0) + Math.abs(+r[4]||0)*60;
-const BASE = PLAYERS.map(r=>({name:r[0], row:r, active:r[5]==="1", fame:fame(r), key:norm(r[0])}));
+const BASE = ROWS.map(s=>{ const [name,act,fame,vals]=s.split("|"); return {name, active:act==="1", fame:+fame, vals:vals.split(","), key:norm(name)}; });
 
 // ---- Storage (optional; the game works without it)
 const KEY="gridiron-v2";
@@ -259,23 +248,21 @@ store.stats = store.stats || {played:0,under:0,cur:0,max:0,last:0,best:null};
 store.estats = store.estats || {played:0,under:0,aces:0,best:null,sumPct:0};
 if(!(store.day && store.day.n===pNo)) store.day = {n:pNo, picks:[], mull:null, status:"playing"};
 function newEndless(round){
-  const keys = Object.keys(RANGES), prev = store.endless && store.endless.hole.stat;
-  let stat; do { stat = keys[Math.floor(Math.random()*keys.length)]; } while(stat===prev && Math.random()<.7);
-  const [lo,hi,step] = RANGES[stat];
-  const pin = lo + Math.round(Math.random()*(hi-lo)/step)*step;
-  return {round, hole:{stat,pin}, picks:[], mull:null, status:"playing"};
+  const prev = store.endless && store.endless.hole.stat;
+  let c; do { c = CATS[Math.floor(Math.random()*CATS.length)]; } while(c.key===prev);
+  return {round, hole:{stat:c.key, pin:pinIn(c, Math.random)}, picks:[], mull:null, status:"playing"};
 }
-if(!store.endless) store.endless = newEndless(1);
+if(!store.endless || !(store.endless.hole.stat in CI)) store.endless = newEndless((store.endless&&store.endless.round)||1);
 
 // ---- Current game: the daily hole or the endless one
 let mode = store.mode==="endless" ? "endless" : "daily";
 let S, H, ST, ALL, POOL;
 function setup(){
   S = mode==="daily" ? store.day : store.endless;
-  H = mode==="daily" ? HOLES[(pNo-1) % HOLES.length] : S.hole;
-  ST = STATS[H.stat];
-  const c = COL[H.stat];
-  ALL = BASE.map(b=>({...b, v: b.row[c]==="" ? null : +b.row[c]}));
+  H = mode==="daily" ? dailyHole(pNo) : S.hole;
+  ST = CATS[CI[H.stat]]; ST.short = short(ST);
+  const c = CI[H.stat];
+  ALL = BASE.map(b=>{ const s=b.vals[c]; return {...b, v: s==="-" ? null : s==="" ? 0 : +s}; });
   POOL = ALL.filter(p=>p.v!==null);
 }
 setup();
@@ -302,6 +289,7 @@ function render(isNew){
   $("mEndless").setAttribute("aria-pressed", mode==="endless");
   $("pNo").textContent = holeLabel();
   $("pStat").textContent = ST.name;
+  $("pGroup").textContent = ST.group + (ST.since ? " · since " + ST.since : "");
   $("pPin").innerHTML = `${fmt(H.pin)}<small>${ST.unit}</small>`;
 
   const t = total(), done = S.status!=="playing", scaleMax = H.pin*1.3;
@@ -381,7 +369,7 @@ $("entry").addEventListener("submit", e=>{
 function choose(p){
   if(S.status!=="playing") return;
   if(used().has(p.name)){ setHelp(p.name+" is already on your card.", true); return; }
-  if(p.v===null){ setHelp(`We don't have ${p.name}'s full career ${ST.short}, so he can't be picked for this hole.`, true); return; }
+  if(p.v===null){ setHelp(`We don't have ${p.name.replace(/ \(.*\)$/,"")}'s ${ST.short}, so he can't be picked for this hole.`, true); return; }
   if(mode==="daily") window.SLB && SLB.start("gridiron", pNo);
   S.picks.push(p.name);
   $("inp").value=""; matches=[]; showSugg();

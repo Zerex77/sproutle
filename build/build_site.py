@@ -305,12 +305,29 @@ shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs
 # Ballpark and Imposter are separate daily games, copied as-is from build/ballpark/ and build/imposter/
 for g in ('ballpark', 'imposter'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
-# Gridiron Golf: fill the page template with the player stats (refreshed weekly by gridiron/update_stats.py)
+# Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')
+gcats = json.load(open(os.path.join(G, 'categories.json')))['categories']
 gdata = json.load(open(os.path.join(G, 'players.json')))
-grows = [[r[1]] + ['' if x is None else x for x in r[2:6]] + ['1' if r[6] else ''] for r in gdata['players']]
+gidx = {k: i for i, k in enumerate(gdata['cats'])}
+gcats = [c for c in gcats if c['key'] in gidx and c['key'] in gdata['pins']]
+FAME = {'games': 5, 'pass_yds': .05, 'rush': 1, 'recyds': 1, 'sacks': 60, 'def_int': 80, 'fg_made': 20, 'solo': 3, 'punts': 4, 'kr_yds': .3}
+def gnum(v):
+    if v is None: return '-'
+    if v == 0: return ''
+    return str(int(v)) if float(v).is_integer() else str(v)
+grows = []
+for r in gdata['players']:
+    vals = r[3:]
+    fame = int(sum(abs(vals[gidx[k]] or 0) * w for k, w in FAME.items()))
+    grows.append(f"{r[1]}|{1 if r[2] else 0}|{fame}|" + ','.join(gnum(vals[gidx[c['key']]]) for c in gcats))
+# Categories with no verified pre-1999 numbers are marked so the hole card can say "since 1999"
+gold = [r for r in gdata['players'] if r[0].startswith('L:')]
+gmeta = [{'key': c['key'], 'name': c['name'], 'unit': c['unit'], 'group': c['group'], 'pin': gdata['pins'][c['key']],
+          'since': 0 if any(r[3 + gidx[c['key']]] is not None for r in gold) else 1999} for c in gcats]
 gpage = (open(os.path.join(G, 'index.src.html')).read()
-         .replace('/*DATA*/', json.dumps([[str(c) for c in r] for r in grows], separators=(',', ':'), ensure_ascii=False))
+         .replace('/*CATS*/', json.dumps(gmeta, separators=(',', ':'), ensure_ascii=False))
+         .replace('/*DATA*/', json.dumps(grows, separators=(',', ':'), ensure_ascii=False))
          .replace('/*ASOF*/', gdata['asof']))
 os.makedirs(os.path.join(OUT, 'gridiron'), exist_ok=True)
 open(os.path.join(OUT, 'gridiron', 'index.html'), 'w').write(gpage)
