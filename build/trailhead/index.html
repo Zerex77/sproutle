@@ -51,6 +51,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;fl
 h1{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1;margin:0;color:var(--accent);letter-spacing:.01em}
 .when{font-size:.75rem;color:var(--ink-soft)}
 .when a{color:var(--accent);font-weight:700;text-decoration:none}
+#toDaily::after{content:' · ';color:var(--ink-soft);font-weight:400}
 .stat{text-align:right}
 .stat b{display:block;font-family:var(--display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
 .stat span{font-size:.7rem;color:var(--ink-soft)}
@@ -164,7 +165,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 <body>
 <div class="app">
   <header>
-    <div><h1>Trailhead</h1><div class="when"><span id="when">Daily climb</span> · <a href="/">All games</a></div></div>
+    <div><h1>Trailhead</h1><div class="when"><span id="when">Daily climb</span> · <a href="#" id="toDaily" hidden>Back to daily</a><a href="/">All games</a></div></div>
     <div class="stat"><b id="total">0</b><span>guesses</span></div>
   </header>
 
@@ -250,8 +251,15 @@ function genMap(seed){
 let S, M, draft='', busy=false;
 const KEY='fogline-climb';
 function fresh(seed,daily){return {seed,daily,path:[],cur:null,g:{},res:{}}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const DKEY='trailhead-daily';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));if(S.daily)localStorage.setItem(DKEY,JSON.stringify(S))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function loadDaily(){try{const d=JSON.parse(localStorage.getItem(DKEY));if(d&&d.daily&&d.seed===today())return d}catch(e){}
+  const o=load();return (o&&o.daily&&o.seed===today())?o:fresh(today(),true)}
+const done=st=>!!st&&st.path.length>=STOPS;
+function setWhen(){$('when').textContent=S.daily?'Daily climb':'Practice climb';$('toDaily').hidden=S.daily}
+function toDaily(){S=loadDaily();M=genMap(S.seed);draft='';save();setWhen();$('wordView').hidden=true;$('mapView').hidden=false;
+  $('clouds').style.transition='none';renderMap();void $('clouds').offsetHeight;$('clouds').style.transition='';if(S.cur)enter(S.cur)}
 
 const here=()=>S.path.length?S.path[S.path.length-1]:'camp';
 const avail=()=>S.path.length>=STOPS?[]:M[here()].next;
@@ -316,8 +324,8 @@ function renderEnd(){
   if(!finished()){ec.hidden=true;ec.innerHTML='';return}
   const solved=S.path.filter(id=>S.res[id]==='solved').length, sum=S.res[S.path[STOPS-1]]==='solved';
   ec.hidden=false;
-  ec.innerHTML='<h2>'+(sum?'Summit reached':'You finished the climb')+'</h2><p>'+solved+' of '+STOPS+' words · '+total()+' guesses'+(S.daily?' · a new mountain tomorrow':'')+'</p><div class="actions"><button class="btn primary" id="shareBtn" type="button">Copy results</button>'+(S.daily&&window.SLB?'<button class="btn" id="lbBtn" type="button">🏆 Leaderboard</button>':'')+'<button class="btn" id="againBtn" type="button">Climb again</button></div><pre class="share" id="shareTxt" hidden></pre>';
-  $('shareBtn').onclick=copy; $('againBtn').onclick=()=>newRun(false);
+  ec.innerHTML='<h2>'+(sum?'Summit reached':'You finished the climb')+'</h2><p>'+solved+' of '+STOPS+' words · '+total()+' guesses'+(S.daily?' · a new mountain tomorrow':'')+'</p><div class="actions"><button class="btn primary" id="shareBtn" type="button">Copy results</button>'+(S.daily&&window.SLB?'<button class="btn" id="lbBtn" type="button">🏆 Leaderboard</button>':'')+(S.daily?'':'<button class="btn" id="dailyBtn" type="button">Today\'s daily</button>')+'<button class="btn" id="againBtn" type="button">Climb again</button></div><pre class="share" id="shareTxt" hidden></pre>';
+  $('shareBtn').onclick=copy; $('againBtn').onclick=()=>newRun(false); if($('dailyBtn'))$('dailyBtn').onclick=toDaily;
   if(S.daily&&window.SLB){
     const day=SLB.dayNo(); SLB.stop('trailhead',day);
     const cs=getComputedStyle(document.body);
@@ -431,7 +439,7 @@ function sizeAll(){
 function newRun(daily){
   const seed=daily?today():'p'+Date.now().toString(36);
   S=fresh(seed,daily); M=genMap(seed); draft=''; save();
-  $('when').textContent=daily?'Daily climb':'Practice climb';
+  setWhen();
   $('wordView').hidden=true;$('mapView').hidden=false;
   $('clouds').style.transition='none';renderMap();void $('clouds').offsetHeight;$('clouds').style.transition='';
 }
@@ -439,9 +447,12 @@ function newRun(daily){
 function start(data){
   buildKb(); buildScenery();
   const saved=(data&&data.S)||load();
-  S=(saved&&saved.seed&&(!saved.daily||saved.seed===today()))?saved:fresh(today(),true);
+  const daily=loadDaily();
+  // Today's daily climb always comes first. A practice climb only reopens once the daily is done.
+  S=(saved&&saved.daily===false&&saved.seed&&done(daily))?saved:daily;
   M=genMap(S.seed);
-  $('when').textContent=S.daily?'Daily climb':'Practice climb';
+  $('toDaily').onclick=e=>{e.preventDefault();toDaily()};
+  setWhen();
   $('clouds').style.transition='none';renderMap();void $('clouds').offsetHeight;$('clouds').style.transition='';
   if(S.cur)enter(S.cur);
   sizeAll(); new ResizeObserver(sizeAll).observe($('gridwrap')); window.addEventListener('resize',sizeAll);
