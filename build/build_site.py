@@ -48,7 +48,7 @@ def meta(title, desc, path):
             f'<meta property="og:description" content="{desc}">\n<meta property="og:url" content="{DOMAIN}{path}">\n'
             '<meta property="og:type" content="website">\n')
 
-FOOT = '<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/privacy">Privacy</a></nav>'
+FOOT = '<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/games">More games</a><span>·</span><a href="/privacy">Privacy</a></nav>'
 
 # ---------- game page ----------
 game = src.replace('<!--SITEFOOT-->', FOOT).replace('/*JS*/', '\n' + js)
@@ -85,6 +85,14 @@ a{color:var(--leaf-deep)}
 .sitefoot{display:flex;justify-content:center;gap:8px;font-size:.85rem;color:var(--muted)}
 .sitefoot a{color:var(--muted)}
 .big404{font:700 5rem/1 var(--f-display);color:var(--leaf)}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.game{background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:12px}
+.game-head{display:flex;align-items:center;gap:14px}
+.game-head img{width:64px;height:64px;border-radius:16px;flex:none}
+.game h2{margin:0;color:var(--ink)}
+.game .tag{font-size:.85rem;color:var(--muted);font-weight:600}
+.game p{flex:1}
+.game .play{align-self:flex-start}
 '''
 FONTS = fonts
 
@@ -141,6 +149,24 @@ notfound = page('Page not found | Sproutle', 'This page does not exist.', '/404'
 <p><a class="play" href="/">Play today's Sproutle</a></p>
 </main>''')
 
+games = page('More games | Sproutle', 'Free games from the maker of Sproutle: the daily word game and Critter Collector, an endless zoo merge game.', '/games', '''
+<main style="display:flex;flex-direction:column;gap:16px">
+<h1>More games</h1>
+<p>Free games from the maker of Sproutle. No accounts, no ads, and your progress stays on your device.</p>
+<div class="games">
+<article class="game">
+<div class="game-head"><img src="/icon-192.png" alt=""><div><h2>Sproutle</h2><div class="tag">Daily word puzzle · 2 minutes</div></div></div>
+<p>Grow today's seed into a long word one letter at a time, without rearranging. A new puzzle every day.</p>
+<a class="play" href="/">Play today's puzzle</a>
+</article>
+<article class="game">
+<div class="game-head"><img src="/critter-collector/icon-192.png" alt=""><div><h2>Critter Collector</h2><div class="tag">Zoo merge game · play anytime</div></div></div>
+<p>Merge chicks into bunnies and lions into elephants. Build attractions, open wilder exhibits from the Petting Farm to the Galactic Zoo, and watch your zoo earn while you're away.</p>
+<a class="play" href="/critter-collector/">Play Critter Collector</a>
+</article>
+</div>
+</main>''')
+
 manifest = {
     "name": "Sproutle", "short_name": "Sproutle",
     "description": "Grow a word, one letter at a time. A new puzzle every day.",
@@ -153,7 +179,7 @@ manifest = {
 
 sw = f'''// Sproutle offline support. The version changes on every build so players get updates.
 const CACHE="sproutle-{VERSION}";
-const SHELL=["/","/about","/privacy","/manifest.webmanifest","/icon-192.png","/icon-512.png","/favicon.png"];
+const SHELL=["/","/about","/games","/privacy","/manifest.webmanifest","/icon-192.png","/icon-512.png","/favicon.png"];
 self.addEventListener("install",e=>{{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));}});
 self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));}});
 self.addEventListener("fetch",e=>{{
@@ -168,7 +194,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/about', '/games', '/privacy', '/critter-collector/'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -180,9 +206,11 @@ headers = '''/*
 '''
 
 os.makedirs(OUT, exist_ok=True)
-files = {'index.html': index, 'about.html': about, 'privacy.html': privacy, '404.html': notfound,
+files = {'index.html': index, 'about.html': about, 'games.html': games, 'privacy.html': privacy, '404.html': notfound,
          'manifest.webmanifest': json.dumps(manifest, indent=2), 'sw.js': sw, 'robots.txt': robots,
          'sitemap.xml': sitemap, '_headers': headers}
 for name, text in files.items():
     open(os.path.join(OUT, name), 'w').write(text)
+# Critter Collector is a separate game, copied as-is from build/critter/
+shutil.copytree(os.path.join(D, 'critter'), os.path.join(OUT, 'critter-collector'), dirs_exist_ok=True)
 print('built', sorted(os.listdir(OUT)))

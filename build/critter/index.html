@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1810">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Critter Collector: a free zoo merge game. Merge animals, open wilder exhibits and build an endless zoo.">
+<link rel="canonical" href="https://playsproutle.com/critter-collector/">
+<meta property="og:title" content="Critter Collector">
+<meta property="og:description" content="Merge animals, open wilder exhibits and build an endless zoo. Free to play.">
+<meta property="og:url" content="https://playsproutle.com/critter-collector/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/critter-collector/icon-512.png">
+<link rel="icon" type="image/png" href="/critter-collector/icon-192.png">
+<link rel="apple-touch-icon" href="/critter-collector/apple-touch-icon.png">
+<script>window.CRITTER_WEB_ONLY=true;</script>
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{overscroll-behavior:none}img{max-width:100%}</style>
+<title>Critter Collector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: one-screen portrait game. Currency HUD on top, the merge exhibit fills the middle, the Adopt button sits under the thumb. */
+:root{
+  --abyss:#0b1810;
+  --deep:#15301f;
+  --cell:#1b3a27;
+  --cell-hi:#285638;
+  --line:#3a6443;
+  --coral:#ff8a3d;
+  --coral-deep:#cf611b;
+  --pearl:#f8f2e2;
+  --pearl-dim:#b7c8b2;
+  --foam:#a4e05f;
+  --gold:#ffc84a;
+  --gold-deep:#c98a12;
+  --danger:#ff6584;
+  --font-display:"Lilita One","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif;
+  --font-body:"Nunito",ui-rounded,system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%;box-sizing:border-box;background:var(--abyss)}
+body{height:100%;margin:0;background:var(--abyss);color:var(--pearl);font-family:var(--font-body);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--foam);outline-offset:2px}
+#bubbles{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.sea{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 60% at 50% -10%, var(--sea-a,#4f7a2a) 0%, transparent 60%),
+    linear-gradient(180deg, var(--sea-b,#1c2f14) 0%, var(--abyss) 70%);transition:background 1s}
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;gap:10px;
+  padding-inline:16px;padding-block:10px 12px;max-width:520px;margin:0 auto}
+
+/* HUD */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.purse{display:flex;align-items:center;gap:8px;background:rgba(6,17,10,.55);border:1px solid var(--line);
+  border-radius:999px;padding:5px 12px 5px 5px;min-width:0}
+.purse b{font-family:var(--font-display);font-size:22px;font-weight:400;letter-spacing:.3px;line-height:1;font-variant-numeric:tabular-nums}
+.purse small{display:block;font-size:11px;font-weight:800;color:var(--pearl-dim);line-height:1.1}
+.coin{width:28px;height:28px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 35% 30%,#fff3b8 0 12%,var(--gold) 30%,var(--gold-deep) 100%);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.18),0 2px 0 #7a5208}
+.pearl{width:24px;height:26px;flex:none;
+  background:linear-gradient(135deg,#f0feff 0%,#8ff0ff 30%,#27b8d6 65%,#0f7d9c 100%);
+  clip-path:polygon(50% 0,100% 36%,50% 100%,0 36%)}
+.purse.p{padding-right:5px}
+.plus{width:26px;height:26px;border-radius:50%;background:var(--coral);color:#fff;font-family:var(--font-display);font-size:20px;line-height:26px;
+  box-shadow:0 2px 0 var(--coral-deep)}
+.status{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.energy{flex:1;min-width:150px;display:flex;align-items:center;gap:8px}
+.bolt{width:22px;height:22px;flex:none}
+.ebar{flex:1;height:14px;border-radius:999px;background:rgba(6,17,10,.6);border:1px solid var(--line);overflow:hidden;position:relative}
+.ebar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#5fb63a,var(--foam));border-radius:999px;transition:width .3s}
+.etxt{font-family:var(--font-display);font-size:15px;font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+.etimer{font-size:11px;font-weight:800;color:var(--pearl-dim);min-width:58px}
+.chip{font-size:12px;font-weight:900;padding:4px 9px;border-radius:999px;background:rgba(164,224,95,.14);color:var(--foam);
+  border:1px solid rgba(164,224,95,.35);font-variant-numeric:tabular-nums;white-space:nowrap}
+button.chip{cursor:pointer}
+.chip.off{background:rgba(255,255,255,.05);color:var(--pearl-dim);border-color:var(--line)}
+.chip.hot{background:rgba(255,123,84,.16);color:#ffb197;border-color:rgba(255,123,84,.45)}
+.iconbtn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(6,17,10,.5);border:1px solid var(--line)}
+.iconbtn svg{width:16px;height:16px}
+
+.quest{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 12px;border-radius:14px;
+  background:rgba(6,17,10,.45);border:1px dashed var(--line)}
+.quest .qt{flex:1;min-width:0;font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quest .qbar{width:70px;height:8px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;flex:none}
+.quest .qbar i{display:block;height:100%;background:var(--gold);border-radius:9px}
+.quest.ready{border-style:solid;border-color:var(--gold);background:rgba(255,200,74,.1);animation:glow 1.4s ease-in-out infinite}
+.quest .qn{font-family:var(--font-display);font-size:13px;color:var(--gold);flex:none;font-variant-numeric:tabular-nums}
+@keyframes glow{50%{box-shadow:0 0 18px rgba(255,200,74,.35)}}
+
+/* Reef */
+.reefwrap{flex:1;min-height:0;display:grid;place-items:center;position:relative}
+.reef{display:grid;grid-template-columns:repeat(var(--cols,4),var(--cs));grid-auto-rows:var(--cs);gap:var(--gap);touch-action:none;
+  padding:var(--gap);border-radius:22px;background:rgba(4,12,7,.45);border:1px solid rgba(60,102,68,.7);
+  box-shadow:inset 0 2px 18px rgba(0,0,0,.35)}
+.cell{position:relative;border-radius:24%;display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 30%,var(--cell-hi),var(--cell) 72%);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)}
+.cell.has{background:radial-gradient(circle at 50% 30%,hsl(var(--h) 60% 40%),hsl(var(--h) 55% 22%) 75%);
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.3),inset 0 0 0 2px hsl(var(--h) 80% 65% / .35)}
+.cr{font-size:calc(var(--cs) * .56);line-height:1;filter:hue-rotate(var(--shift,0deg)) drop-shadow(0 4px 5px rgba(0,0,0,.4));animation:bob 3.2s ease-in-out infinite;
+  animation-delay:calc(var(--d) * -1s);pointer-events:none}
+.tier{position:absolute;left:7%;top:6%;font-family:var(--font-display);font-size:calc(var(--cs) * .17);line-height:1;color:hsl(var(--h) 90% 82%);
+  text-shadow:0 1px 0 rgba(0,0,0,.5);pointer-events:none}
+.cell.locked{background:repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 8px,transparent 8px 16px),rgba(6,17,10,.6);
+  box-shadow:inset 0 0 0 1px var(--line);color:var(--pearl-dim)}
+.cell.locked .lk{font-weight:900;font-size:11px;text-align:center;line-height:1.15;pointer-events:none}
+.cell.locked .lk b{display:block;font-family:var(--font-display);font-weight:400;font-size:14px;color:var(--gold)}
+.cell.lift .cr{opacity:.25;animation:none}
+.cell.mate{box-shadow:inset 0 0 0 3px var(--gold),0 0 16px rgba(255,200,74,.45)}
+.cell.over{transform:scale(1.06)}
+.cell.overmatch{transform:scale(1.1);box-shadow:inset 0 0 0 3px #fff,0 0 22px rgba(255,255,255,.6)}
+.cell.pop .cr{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.cell.spawn .cr{animation:spawn .4s cubic-bezier(.2,1.5,.4,1)}
+.cell{transition:transform .12s}
+@keyframes bob{50%{transform:translateY(-4%)}}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes spawn{0%{transform:translateY(-40%) scale(.2);opacity:0}100%{transform:none;opacity:1}}
+.ghost{position:fixed;z-index:30;pointer-events:none;font-size:calc(var(--cs) * .7);line-height:1;transform:translate(-50%,-60%) scale(1.1);
+  filter:hue-rotate(var(--shift,0deg)) drop-shadow(0 10px 12px rgba(0,0,0,.5))}
+.bk .e,.modal .big{filter:hue-rotate(var(--shift,0deg))}
+.tankbar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
+.tankname{min-width:0;font-family:var(--font-display);font-size:17px;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tankname small{font-family:var(--font-body);font-weight:900;font-size:11px;color:var(--pearl-dim);letter-spacing:.6px;text-transform:uppercase;margin-left:6px}
+.movebtn{flex:none;padding:6px 12px;border-radius:999px;font-weight:900;font-size:12.5px;background:linear-gradient(180deg,#ffd76e,var(--gold));color:#4a2f00;box-shadow:0 2px 0 var(--gold-deep);animation:glow 1.4s ease-in-out infinite}
+.tankcard{padding:14px;border-radius:18px;background:rgba(6,17,10,.5);border:1px solid rgba(78,124,86,.6);display:flex;flex-direction:column;gap:8px}
+.tankcard h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:.3px}
+.tankcard .peek{display:flex;gap:6px;font-size:26px;flex-wrap:wrap;filter:hue-rotate(var(--nshift,0deg))}
+.req{font-size:13px;font-weight:800;color:var(--pearl-dim);display:flex;gap:8px;align-items:center}
+.req b{color:var(--pearl)}
+.req.ok b{color:#8ff0a4}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
+.float{position:absolute;font-family:var(--font-display);font-size:18px;color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.45);
+  transform:translate(-50%,-50%);animation:rise .9s ease-out forwards;white-space:nowrap}
+.float.pp{color:#c9f6ff}
+@keyframes rise{to{transform:translate(-50%,-160%);opacity:0}}
+.spark{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--c);animation:spark .6s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--x),var(--y)) scale(.2);opacity:0}}
+
+/* Dock */
+.dock{display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr 1fr;align-items:end;gap:6px}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:14px;font-size:11px;font-weight:900;
+  color:var(--pearl-dim);letter-spacing:.3px}
+.tab svg{width:24px;height:24px}
+.tab:active{background:rgba(255,255,255,.05)}
+.badge{position:absolute;top:2px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--danger);
+  color:#fff;font-size:10px;line-height:16px;font-weight:900}
+.cast{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;height:68px;border-radius:22px;
+  background:linear-gradient(180deg,#ff9670,var(--coral) 55%,var(--coral-deep));box-shadow:0 5px 0 #9e3a1d,0 10px 22px rgba(255,123,84,.35);
+  color:#fff;transition:transform .08s,box-shadow .08s}
+.cast:active{transform:translateY(4px);box-shadow:0 1px 0 #9e3a1d,0 4px 12px rgba(255,123,84,.3)}
+.cast b{font-family:var(--font-display);font-weight:400;font-size:21px;letter-spacing:.5px;line-height:1}
+.cast small{font-size:11px;font-weight:900;opacity:.9}
+.cast.empty{filter:saturate(.35) brightness(.85)}
+
+/* Sheets and modals */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(3,10,6,.62);backdrop-filter:blur(2px)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:84%;display:flex;flex-direction:column;
+  margin:0 auto;max-width:520px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,#1d3d28,#0f2216);border-top:1px solid #4f8058;
+  padding-bottom:env(safe-area-inset-bottom,0px);animation:up .25s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.sheet h2{margin:0;font-family:var(--font-display);font-weight:400;font-size:26px;letter-spacing:.4px}
+.close{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:900;font-size:13px}
+.sbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 20px;display:flex;flex-direction:column;gap:10px;touch-action:pan-y}
+.sec{font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--foam);margin:8px 0 0}
+.row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:rgba(6,17,10,.45);border:1px solid rgba(78,124,86,.5)}
+.row .rt{flex:1;min-width:0}
+.row h3{margin:0 0 2px;font-size:15px;font-weight:900}
+.row p{margin:0;font-size:12.5px;color:var(--pearl-dim);font-weight:700;line-height:1.35}
+.row .lv{font-family:var(--font-display);font-size:12px;color:var(--foam);margin-left:6px;font-weight:400}
+.rico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:rgba(255,255,255,.06);flex:none}
+.buy{min-width:86px;padding:9px 10px;border-radius:13px;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;gap:5px;
+  background:linear-gradient(180deg,#ffd76e,var(--gold));color:#4a2f00;box-shadow:0 3px 0 var(--gold-deep);font-variant-numeric:tabular-nums}
+.buy .coin,.buy .pearl{width:16px;height:16px;box-shadow:none}
+.buy.pp{background:linear-gradient(180deg,#dcfbff,#93e4f2);color:#0b3c47;box-shadow:0 3px 0 #4aa3b5}
+.buy.cash{background:linear-gradient(180deg,#ff9670,var(--coral));color:#fff;box-shadow:0 3px 0 #9e3a1d}
+.buy:disabled{filter:grayscale(.8) brightness(.7);cursor:default;box-shadow:none}
+.buy:not(:disabled):active{transform:translateY(2px)}
+.tag{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;padding:2px 7px;border-radius:7px;
+  background:var(--coral);color:#fff;margin-left:6px;vertical-align:2px}
+.note{font-size:12px;color:var(--pearl-dim);font-weight:700;line-height:1.45;margin:4px 2px}
+.link{color:var(--foam);font-weight:900;font-size:13px;text-decoration:underline;padding:6px 0;align-self:center}
+.pbar{height:8px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.pbar i{display:block;height:100%;background:var(--gold);border-radius:9px}
+.book{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bk{padding:10px 6px;border-radius:16px;text-align:center;background:rgba(6,17,10,.45);border:1px solid rgba(78,124,86,.5)}
+.bk .e{font-size:36px;line-height:1.15}
+.bk .n{font-weight:900;font-size:12.5px;margin-top:2px}
+.bk .s{font-size:11px;color:var(--pearl-dim);font-weight:800;font-variant-numeric:tabular-nums}
+.bk.unk .e{filter:brightness(0) opacity(.45)}
+.bk.unk .n{color:var(--pearl-dim)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.day{border-radius:12px;padding:7px 2px;text-align:center;background:rgba(6,17,10,.45);border:1px solid rgba(78,124,86,.5);font-size:10px;font-weight:900;color:var(--pearl-dim)}
+.day b{display:block;font-family:var(--font-display);font-weight:400;font-size:14px;color:var(--pearl)}
+.day.done{opacity:.45}
+.day.today{border-color:var(--gold);background:rgba(255,200,74,.12);color:var(--gold)}
+.day.big{background:rgba(255,123,84,.14)}
+
+.modal{position:fixed;z-index:50;left:16px;right:16px;top:50%;transform:translateY(-50%);max-width:380px;margin:0 auto;
+  border-radius:28px;padding:22px 20px 18px;text-align:center;background:linear-gradient(180deg,#26522f,#11291a);border:1px solid #61976a;
+  box-shadow:0 30px 60px rgba(0,0,0,.5);animation:zoom .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes zoom{from{transform:translateY(-50%) scale(.7);opacity:0}}
+.modal .eyebrow{font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--foam)}
+.modal h2{margin:6px 0 4px;font-family:var(--font-display);font-weight:400;font-size:30px;letter-spacing:.4px;text-wrap:balance}
+.modal p{margin:6px 0;color:var(--pearl-dim);font-weight:700;font-size:14px;line-height:1.45}
+.modal .big{font-size:84px;line-height:1.1;margin:6px 0;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.modal .amt{font-family:var(--font-display);font-size:34px;color:var(--gold);display:flex;align-items:center;justify-content:center;gap:8px}
+.mbtns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.mbtns .buy{width:100%;padding:13px;font-size:16px}
+.mbtns .close{padding:10px}
+.rays{position:absolute;inset:-40px;z-index:-1;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 10deg,rgba(255,200,74,.12) 10deg 20deg,transparent 20deg 40deg,rgba(255,200,74,.12) 40deg 50deg,transparent 50deg 70deg,rgba(255,200,74,.12) 70deg 80deg,transparent 80deg);
+  animation:spin 14s linear infinite;pointer-events:none;opacity:.9}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);z-index:60;transform:translate(-50%,-20px);opacity:0;
+  max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;background:#0f2216;border:1px solid var(--line);font-weight:900;font-size:13.5px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);transition:.25s;pointer-events:none;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+
+/* Cookie-style systems */
+.chip.gold{background:rgba(255,200,74,.16);color:var(--gold);border-color:rgba(255,200,74,.5)}
+.seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(6,17,10,.55);border:1px solid var(--line)}
+.seg button{flex:1;padding:8px 6px;border-radius:10px;font-weight:900;font-size:13px;color:var(--pearl-dim)}
+.seg button[aria-selected="true"]{background:var(--cell-hi);color:var(--pearl);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.crewhead{display:flex;flex-direction:column;gap:8px}
+.amtsel{display:flex;gap:6px}
+.amtsel button{flex:1;padding:7px;border-radius:10px;font-weight:900;font-size:13px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--pearl-dim)}
+.amtsel button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:rgba(255,200,74,.1)}
+.buy small{font-size:10px;opacity:.75;margin-left:2px}
+.row.dim{opacity:.55}
+.rico.ach{font-family:var(--font-display);font-size:20px;color:var(--gold);background:rgba(255,200,74,.12)}
+.star{color:var(--gold);font-size:1em;line-height:1;text-shadow:0 0 10px rgba(255,200,74,.6)}
+.buy.star-b{background:linear-gradient(180deg,#2f6e40,#225430);color:#fff;box-shadow:0 3px 0 #123a20}
+.buy.offb{background:rgba(255,255,255,.08);color:var(--pearl-dim);box-shadow:none}
+.stats{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid rgba(78,124,86,.5)}
+.stats div{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;font-size:13.5px;font-weight:800;background:rgba(6,17,10,.45)}
+.stats div:nth-child(even){background:rgba(6,17,10,.25)}
+.stats span{color:var(--pearl-dim)}
+.stats b{text-align:right;font-variant-numeric:tabular-nums}
+#goldfish{position:fixed;left:0;z-index:35;width:72px;height:72px;margin-left:-72px;display:grid;place-items:center;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,215,90,.55),rgba(255,200,74,0) 70%)}
+#goldfish span{font-size:46px;line-height:1;display:block;filter:sepia(1) saturate(4) hue-rotate(-8deg) brightness(1.15) drop-shadow(0 0 10px #ffd34d);animation:wiggle .5s ease-in-out infinite}
+#goldfish.ltr span{transform:scaleX(-1)}
+#goldfish.swim{animation:swim-r 9s linear forwards}
+#goldfish:not(.ltr).swim{animation-name:swim-l}
+@keyframes swim-r{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 144px))}}
+@keyframes swim-l{from{transform:translateX(calc(100vw + 144px))}to{transform:translateX(0)}}
+@keyframes wiggle{50%{rotate:8deg}}
+@media (prefers-reduced-motion:reduce){ #goldfish.swim{animation:none;left:50%} #goldfish span{animation:none} }
+@media (prefers-reduced-motion:reduce){
+  .cr,.rays,.quest.ready{animation:none!important}
+  .sheet,.modal{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="sea" aria-hidden="true"></div>
+<canvas id="bubbles" aria-hidden="true"></canvas>
+
+<div id="app">
+  <header class="hud">
+    <div class="purse" aria-label="Coins">
+      <span class="coin"></span>
+      <div><b id="coins">0</b><small id="rate">0 / sec</small></div>
+    </div>
+    <div class="purse p" aria-label="Gems">
+      <span class="pearl"></span><b id="pearls">0</b>
+      <button class="plus" id="addPearls" aria-label="Get gems">+</button>
+    </div>
+  </header>
+
+  <div class="status">
+    <div class="energy" aria-label="Energy">
+      <svg class="bolt" viewBox="0 0 24 24"><path d="M13.5 2 4 14h7l-1.5 8L20 9.5h-7L13.5 2z" fill="var(--foam)" stroke="#2c5a12" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      <div class="ebar"><i id="ebar"></i></div>
+      <span class="etxt" id="etxt">30/30</span>
+    </div>
+    <span class="etimer" id="etimer"></span>
+    <span class="chip" id="autoChip" hidden></span>
+    <button class="chip" id="feedChip" hidden aria-pressed="true"></button>
+    <button class="chip" id="mergeChip" hidden aria-pressed="true"></button>
+    <span class="chip hot" id="boostChip" hidden></span>
+    <span class="chip gold" id="effChip" hidden></span>
+    <button class="iconbtn" id="soundBtn" aria-label="Sound on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--pearl)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="var(--pearl)"/><path id="sndWave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+  </div>
+
+  <button class="quest" id="questStrip"></button>
+
+  <div class="tankbar">
+    <button class="tankname" id="tankName" data-sheet="tanks" style="text-align:left"></button>
+    <button class="movebtn" id="moveBtn" data-sheet="tanks" hidden>New exhibit ready</button>
+  </div>
+
+  <main class="reefwrap" id="reefwrap">
+    <div class="reef" id="reef" aria-label="Exhibit"></div>
+  </main>
+
+  <nav class="dock">
+    <button class="tab" data-sheet="upgrades">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Build<span class="badge" id="upBadge" hidden></span>
+    </button>
+    <button class="tab" data-sheet="book">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></svg>Logbook
+    </button>
+    <button class="cast" id="castBtn"><b>ADOPT</b><small id="castSub">uses 1 energy</small></button>
+    <button class="tab" data-sheet="quests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Quests<span class="badge" id="qBadge" hidden></span>
+    </button>
+    <button class="tab" data-sheet="shop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18l-1.5 11h-15L3 9z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg>Shop
+    </button>
+  </nav>
+</div>
+
+<div id="fx"></div>
+<button id="goldfish" hidden aria-label="Golden butterfly. Tap to catch it"><span>🦋</span></button>
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header><h2 id="sheetTitle"></h2><button class="close" id="sheetClose">Close</button></header>
+  <div class="sbody" id="sheetBody"></div>
+</section>
+<div class="scrim" id="mscrim" hidden style="z-index:49"></div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Content ---------- */
+/* Each exhibit: name, backdrop tint, and 13 animals as "emoji Name" pairs, ordered from common to most exotic. */
+const THEMES = [
+  {name:"Petting Farm", sea:["#4f7a2a","#1c2f14"], list:"🐣 Chick|🐇 Bunny|🦆 Duck|🐓 Rooster|🐐 Goat|🐑 Sheep|🐖 Pig|🫏 Donkey|🐄 Cow|🦙 Llama|🐎 Horse|🦬 Bison|🐂 Champion Ox"},
+  {name:"Woodland Trail", sea:["#2f6a3a","#10241a"], list:"🐛 Caterpillar|🐿️ Squirrel|🐸 Tree Frog|🦔 Hedgehog|🦝 Raccoon|🦨 Skunk|🦫 Beaver|🦉 Great Owl|🦊 Red Fox|🦌 Elk|🐺 Gray Wolf|🦅 Bald Eagle|🐻 Grizzly Bear"},
+  {name:"Bird Aviary", sea:["#3f7fa8","#13283a"], list:"🐦 Finch|🐤 Canary|🕊️ Dove|🦃 Turkey|🦆 Mallard|🦢 Swan|🐧 Penguin|🦜 Macaw|🦩 Flamingo|🦉 Snowy Owl|🦚 Peacock|🦅 Harpy Eagle|🦤 Dodo"},
+  {name:"Reptile & Bug House", sea:["#6a7a2a","#1d2410"], list:"🐜 Ant Colony|🐞 Ladybug|🐌 Giant Snail|🦗 Cricket|🦋 Morpho Butterfly|🦎 Gecko|🐸 Dart Frog|🕷️ Tarantula|🦂 Scorpion|🐢 Giant Tortoise|🐍 King Cobra|🐊 Crocodile|🐉 Komodo Dragon"},
+  {name:"African Savanna", sea:["#a8762a","#2a1c0c"], list:"🪲 Dung Beetle|🦜 Lovebird|🐗 Warthog|🐒 Baboon|🦓 Zebra|🐃 Cape Buffalo|🦩 Lesser Flamingo|🐆 Cheetah|🦒 Giraffe|🦛 Hippo|🦏 Rhino|🦁 Lion|🐘 Elephant"},
+  {name:"Rainforest", sea:["#1f7a52","#0a2418"], list:"🐛 Glow Worm|🐸 Glass Frog|🦋 Blue Morpho|🦥 Sloth|🦜 Scarlet Macaw|🐒 Spider Monkey|🦎 Basilisk Lizard|🐍 Anaconda|🦧 Orangutan|🐆 Jaguar|🐅 Bengal Tiger|🦍 Gorilla|🐼 Giant Panda"},
+  {name:"Polar Frontier", sea:["#5a8fb4","#142838"], list:"🐟 Arctic Char|🐇 Snowshoe Hare|🦭 Harbor Seal|🐧 Emperor Penguin|🦊 Arctic Fox|🦉 Snowy Owl|🦌 Reindeer|🐺 Arctic Wolf|🐃 Musk Ox|🐬 Beluga|🐋 Orca|🐳 Narwhal|🐻‍❄️ Polar Bear"},
+  {name:"Aussie Outback", sea:["#b0552a","#2c140a"], list:"🐜 Bull Ant|🕷️ Huntsman Spider|🦎 Thorny Devil|🦜 Cockatoo|🐍 Taipan|🐢 Sea Turtle|🐕 Dingo|🐨 Koala|🦘 Kangaroo|🐪 Wild Camel|🦅 Wedge-tail Eagle|🐊 Saltwater Croc|🐋 Humpback Whale"},
+  {name:"Prehistoric Park", sea:["#7a5a32","#1f160c"], list:"🐚 Ammonite|🦀 Trilobite|🐟 Coelacanth|🐢 Archelon|🦤 Dodo|🦬 Steppe Bison|🐻 Cave Bear|🐅 Sabertooth|🦏 Woolly Rhino|🦣 Mammoth|🐊 Sarcosuchus|🦕 Brontosaurus|🦖 T. rex"},
+  {name:"Mythical Sanctuary", sea:["#7a3a9a","#1d0f2a"], list:"🐇 Jackalope|🦊 Kitsune|🐸 Toad King|🐍 Basilisk|🦅 Thunderbird|🦁 Griffin|🐎 Pegasus|🦍 Yeti|🦄 Unicorn|🧜 Merfolk|🦑 Kraken|🐲 Wyvern|🐉 Ancient Dragon"},
+  {name:"Galactic Zoo", sea:["#3a2a8f","#06041a"], list:"👾 Space Blob|🦠 Star Microbe|🦑 Void Squid|🐛 Moon Worm|👽 Gray Alien|🤖 Robo Pup|🐙 Xeno Octopus|🐢 Moon Turtle|🦊 Comet Fox|🦁 Solar Lion|🐋 Star Whale|🐉 Nebula Dragon|🌌 Galaxy Beast"}
+];
+const HUES=[12,205,28,45,0,330,300,130,215,195,225,240,155];
+const PREFIX=["","Shimmering ","Mythic ","Cosmic ","Eternal ","Celestial ","Primeval ","Infinite "];
+function roman(n){ const r=[[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]]; let s=""; for (const [v,c] of r) while(n>=v){s+=c;n-=v;} return s; }
+function tankInfo(k){
+  const th=THEMES[k%THEMES.length], cyc=Math.floor(k/THEMES.length);
+  const pre = cyc<PREFIX.length ? PREFIX[cyc] : `Ascended ${roman(cyc-PREFIX.length+2)} `;
+  const list=[null].concat(th.list.split("|").map((s,i)=>{ const sp=s.indexOf(" "); return {e:s.slice(0,sp), n:pre+s.slice(sp+1), h:(HUES[i]+cyc*47)%360}; }));
+  return {name: th.name+(cyc?" "+roman(cyc+1):""), sea:th.sea, shift:cyc*55, cols:4+Math.min(2,Math.floor((k+1)/2)), rows:6+(k>=4?1:0)+(k>=6?1:0), list};
+}
+const tankMult = k => Math.pow(40, k);
+let TANK, CREATURES, COLS=4, ROWS=6;
+const MAX_TIER = 13;
+function rowCost(r){ return 5000*Math.pow(18, r-4)*tankMult(S.tank); }
+function tankCost(){ return 1e9*tankMult(S.tank); }
+function starsFor(e){ return Math.floor(Math.cbrt(e/(1e7*tankMult(S.tank)))); }
+function applyTank(){
+  TANK=tankInfo(S.tank); CREATURES=TANK.list; COLS=TANK.cols; ROWS=TANK.rows;
+  const st=document.documentElement.style;
+  st.setProperty("--sea-a",TANK.sea[0]); st.setProperty("--sea-b",TANK.sea[1]); st.setProperty("--shift",TANK.shift+"deg"); st.setProperty("--cols",COLS);
+}
+const ENERGY_SEC = 20;
+
+const PRODUCTS = [
+  {id:"critters.starter",      name:"Starter Zoo",     desc:"250 gems and two level-7 animals in your exhibit. One per player.", price:"$1.99", consumable:false, once:true, icon:"🐖"},
+  {id:"critters.vippass",      name:"VIP Pass",        desc:"Permanent 2× income and 8 hours of offline earnings.", price:"$6.99", consumable:false, icon:"🎟️"},
+  {id:"critters.gems.small",   name:"Handful of Gems", desc:"80 gems", pearls:80,   price:"$0.99", consumable:true, icon:"💎"},
+  {id:"critters.gems.medium",  name:"Bag of Gems",     desc:"500 gems", pearls:500, price:"$4.99", consumable:true, tag:"Popular", icon:"💰"},
+  {id:"critters.gems.large",   name:"Treasure Vault",  desc:"1,200 gems", pearls:1200, price:"$9.99", consumable:true, tag:"Best value", icon:"👑"}
+];
+
+const UPGRADES = [
+  {k:"value", name:"Ticket Price", icon:"🎟️", max:60, perTank:true, cost:l=>40*Math.pow(2.15,l)*tankMult(S.tank),
+    desc:l=>`+25% income per level. Now +${l*25}%`},
+  {k:"net", name:"Breeding Program", icon:"🥚", max:8, perTank:true, cost:l=>80*Math.pow(5.5,l)*tankMult(S.tank),
+    desc:l=>`Adoptions can bring up to a ${CREATURES[Math.min(l+1,MAX_TIER)].n}. Each level adds a 30% chance of one step higher.`},
+  {k:"auto", name:"Auto Adopt", icon:"⏱️", max:12, cost:l=>150*Math.pow(3.1,l),
+    desc:l=>l? `Free adoption every ${autoInterval(l).toFixed(1)}s` : "Adopts animals for free on a timer, even when you're out of energy"},
+  {k:"tapper", name:"Auto Feeder", icon:"🥕", max:10, cost:l=>400*Math.pow(3.4,l),
+    desc:l=>l? `Feeds an animal every ${tapInterval(l).toFixed(2)}s for coins and energy` : `Feeds your animals for you. Every ${TAPS_PER_ENERGY} feedings charge 1 energy`},
+  {k:"merger", name:"Auto Merge", icon:"🧲", max:12, cost:l=>1500*Math.pow(3.6,l),
+    desc:l=>l? `Merges a matching pair every ${mergeInterval(l).toFixed(1)}s, smallest animals first` : "Finds matching pairs and merges them for you, smallest animals first"},
+  {k:"tank", name:"Bigger Pantry", icon:"🧺", max:5, cost:l=>300*Math.pow(4.5,l),
+    desc:l=>`Holds ${30+l*10} energy`}
+];
+const TAPS_PER_ENERGY = 15;
+
+/* ---------- State ---------- */
+const KEY = "deepmerge.save.v1";
+function fresh(){
+  const b = new Array(COLS*ROWS).fill(0);
+  b[5]=1; b[6]=1; b[9]=2;
+  return {v:1, coins:0, pearls:25, energy:30, lastEnergy:Date.now(), board:b, rows:4,
+    up:{value:0,net:0,auto:0,tank:0,tapper:0,merger:0}, feederOn:true, mergerOn:true, tank:0, found:[1,2], merges:0, casts:0, taps:0, earned:0,
+    boostUntil:0, golden:false, starter:false, starterOffered:false,
+    daily:{last:null, streak:0}, quests:[], qseq:0, lastSeen:Date.now(), sound:true,
+    crew:{}, stars:0, starsTotal:0, perks:{}, polish:0, ach:{}, gold:0, fx:{frenzy:0,storm:0,tapfrenzy:0},
+    tEarned:0, totMerges:0, foundTotal:2, started:Date.now(), crewAuto:true, butlerOn:true, moverOn:true, buyAmt:1};
+}
+let S;
+function load(data){
+  if (data && data.state) return data.state;
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v===1){
+    const f=fresh(); const out=Object.assign(f, s);
+    for (const k of ["up","fx"]) out[k]=Object.assign(fresh()[k], s[k]||{});
+    if (s.tEarned===undefined) out.tEarned=s.earned||0;
+    return out; } } } catch(e){}
+  return fresh();
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+/* ---------- Economy ---------- */
+const base = t => 0.6 * Math.pow(2.55, t-1) * tankMult(S.tank);
+const has = p => !!S.perks[p];
+const now = () => Date.now();
+function starBonus(){ return 1 + S.starsTotal*(has("starshine")?0.03:0.02); }
+function achTotal(){ let s=0; for (const k in S.ach) s+=S.ach[k]; return s; }
+function achBonus(){ return 1 + 0.01*achTotal()*(has("glow")?2:1); }
+function polishBonus(){ return Math.pow(1.1, S.polish); }
+function mult(steady){
+  let m = (1 + 0.25*S.up.value) * (S.golden?2:1) * starBonus() * achBonus() * polishBonus();
+  if (!steady){ if (now()<S.boostUntil) m*=2; if (now()<S.fx.frenzy) m*=7; }
+  return m;
+}
+function boardRaw(){ let s=0; for (const t of S.board) if (t>0) s+=base(t); return s; }
+function income(steady){ return (boardRaw() + crewRaw()) * mult(steady); }
+
+/* ---------- Crew (buildings) ---------- */
+const CREW = [
+  {n:"Balloon Cart",      e:"🎈", c:15,     p:0.2},
+  {n:"Ice Cream Stand",   e:"🍦", c:100,    p:1.2},
+  {n:"Zoo Train",         e:"🚂", c:1100,   p:8},
+  {n:"Food Court",        e:"🍔", c:12000,  p:47},
+  {n:"Gift Shop",         e:"🎁", c:1.3e5,  p:260},
+  {n:"Vet Hospital",      e:"🩺", c:1.4e6,  p:1400},
+  {n:"Carousel",          e:"🎠", c:2e7,    p:7800},
+  {n:"Animal Show",       e:"🎪", c:3.3e8,  p:4.4e4},
+  {n:"Safari Lodge",      e:"🏨", c:5.1e9,  p:2.6e5},
+  {n:"Helicopter Safari", e:"🚁", c:7.5e10, p:1.6e6},
+  {n:"Thrill Coaster",    e:"🎢", c:1e12,   p:1e7},
+  {n:"Island Resort",     e:"🏝️", c:1.4e13, p:6.5e7},
+  {n:"Space Zoo Port",    e:"🚀", c:1.7e14, p:4.3e8},
+  {n:"Zoo Singularity",   e:"🌀", c:2.1e15, p:2.9e9}
+];
+const owned = i => S.crew[i]||0;
+function doublings(n){ return (n>=10)+(n>=25)+(n>=50)+(n>=100 ? 1+Math.floor((n-100)/50) : 0); }
+function nextMilestone(n){ if (n<10) return 10; if (n<25) return 25; if (n<50) return 50; if (n<100) return 100; return 100+50*(Math.floor((n-100)/50)+1); }
+function crewPerk(){ return (has("starryCrew")?2:1) * (has("constellation")?3:1); }
+function crewEach(i){ return CREW[i].p * tankMult(S.tank) * Math.pow(2, doublings(owned(i))) * crewPerk(); }
+function crewRaw(){ let s=0; for (let i=0;i<CREW.length;i++) if (owned(i)) s+=crewEach(i)*owned(i); return s; }
+function crewCost(i, amt){
+  const b=CREW[i].c*tankMult(S.tank), r=1.15, n=owned(i);
+  return b*Math.pow(r,n)*(Math.pow(r,amt)-1)/(r-1);
+}
+function crewMaxAfford(i){
+  const b=CREW[i].c*tankMult(S.tank)*Math.pow(1.15,owned(i));
+  return Math.max(0, Math.floor(Math.log(S.coins*0.15/b + 1)/Math.log(1.15)));
+}
+function crewAmt(i){ return S.buyAmt==="max" ? Math.max(1, crewMaxAfford(i)) : S.buyAmt; }
+function crewVisible(i){ return i===0 || owned(i-1)>0 || owned(i)>0; }
+function crewTotal(){ let s=0; for (const k in S.crew) s+=S.crew[k]; return s; }
+function buyCrew(i, amt, silent){
+  amt = amt || crewAmt(i);
+  const c=crewCost(i,amt);
+  if (S.coins<c || amt<1) return false;
+  S.coins-=c; S.crew[i]=owned(i)+amt;
+  if (!silent){ sfx.coin(); buzz("light"); }
+  return true;
+}
+function eMax(){ return 30 + 10*S.up.tank; }
+function autoInterval(l){ l = l ?? S.up.auto; return 12*Math.pow(0.84, l-1); }
+function tapInterval(l){ l = l ?? S.up.tapper; return 2*Math.pow(0.85, l-1); }
+function mergeInterval(l){ l = l ?? S.up.merger; return 6*Math.pow(0.82, l-1); }
+function offlineCap(){ return ((S.golden?8:2)+(has("pockets")?6:0))*3600; }
+function gain(c){ S.coins+=c; S.earned+=c; S.tEarned+=c; }
+function maxTier(){ return S.board.reduce((a,b)=>Math.max(a,b),0); }
+function bestFound(){ return Math.max(...S.found); }
+
+function fmt(n){
+  if (!isFinite(n)) return "0";
+  if (n < 1000) return n < 10 && n % 1 ? (Math.floor(n*10)/10).toString() : Math.floor(n).toString();
+  const u=["K","M","B","T"]; let i=-1;
+  while (n>=1000){ n/=1000; i++; }
+  const unit = i<u.length ? u[i] : String.fromCharCode(97+Math.floor((i-4)/26)%26)+String.fromCharCode(97+(i-4)%26);
+  return (n<10? n.toFixed(2) : n<100? n.toFixed(1) : Math.floor(n)) + unit;
+}
+function clock(sec){ sec=Math.max(0,Math.ceil(sec)); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
+  return h? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`; }
+
+/* ---------- DOM ---------- */
+const $ = id => document.getElementById(id);
+const reef=$("reef"), fx=$("fx");
+let cs = 70;
+
+function layout(){
+  const wrap=$("reefwrap"); const W=wrap.clientWidth, H=wrap.clientHeight;
+  const gap = Math.max(6, Math.min(10, W*0.02));
+  const byW = (W - gap*(COLS+1))/COLS, byH = (H - gap*(ROWS+1))/ROWS;
+  cs = Math.max(36, Math.floor(Math.min(byW, byH, 112)));
+  document.documentElement.style.setProperty("--cs", cs+"px");
+  document.documentElement.style.setProperty("--gap", gap+"px");
+}
+const locked = i => Math.floor(i/COLS) >= S.rows;
+
+function renderBoard(anim){
+  anim = anim || {};
+  let h="";
+  for (let i=0;i<COLS*ROWS;i++){
+    const r=Math.floor(i/COLS);
+    if (locked(i)){
+      const first = i % COLS === 0 && r === S.rows;
+      h += `<div class="cell locked" data-i="${i}">${first?`<div class="lk">Unlock row<b>${fmt(rowCost(r))}</b></div>`:""}</div>`;
+      continue;
+    }
+    const t=S.board[i];
+    if (!t){ h+=`<div class="cell" data-i="${i}"></div>`; continue; }
+    const c=CREATURES[t];
+    const cls = anim.pop===i?" pop": anim.spawn===i?" spawn":"";
+    h += `<div class="cell has${cls}" data-i="${i}" style="--h:${c.h};--d:${(i*0.37)%3.2}" aria-label="${c.n}, level ${t}"><span class="tier">${t}</span><span class="cr">${c.e}</span></div>`;
+  }
+  reef.innerHTML = h;
+}
+
+let lastHud = {};
+function setText(id,v){ if (lastHud[id]!==v){ lastHud[id]=v; $(id).textContent=v; } }
+function updateHud(){
+  setText("coins", fmt(S.coins));
+  setText("rate", fmt(income())+" / sec");
+  setText("pearls", fmt(S.pearls));
+  const m=eMax();
+  setText("etxt", `${Math.floor(S.energy)}/${m}`);
+  $("ebar").style.width = Math.min(100, S.energy/m*100)+"%";
+  setText("etimer", S.energy>=m ? "Full" : "+1 in "+clock(ENERGY_SEC - (Date.now()-S.lastEnergy)/1000));
+  const ac=$("autoChip");
+  if (S.up.auto>0){ ac.hidden=false; setText("autoChip", "Auto "+Math.max(0,Math.ceil(autoInterval()-autoT))+"s"); } else ac.hidden=true;
+  setText("tankName", TANK.name+" · Exhibit "+(S.tank+1));
+  $("moveBtn").hidden = !canMove();
+  const mc=$("mergeChip");
+  if (S.up.merger>0){ mc.hidden=false; mc.classList.toggle("off",!S.mergerOn); mc.setAttribute("aria-pressed",String(S.mergerOn)); setText("mergeChip", S.mergerOn?"Merge on":"Merge off"); } else mc.hidden=true;
+  const fc=$("feedChip");
+  if (S.up.tapper>0){ fc.hidden=false; fc.classList.toggle("off",!S.feederOn); fc.setAttribute("aria-pressed",String(S.feederOn)); setText("feedChip", S.feederOn?"Feeder on":"Feeder off"); } else fc.hidden=true;
+  const ef=[]; const T=now();
+  if (T<S.fx.frenzy) ef.push("7× "+clock((S.fx.frenzy-T)/1000));
+  if (T<S.fx.storm) ef.push("Stampede "+clock((S.fx.storm-T)/1000));
+  if (T<S.fx.tapfrenzy) ef.push("777× taps "+clock((S.fx.tapfrenzy-T)/1000));
+  const ec=$("effChip"); ec.hidden=!ef.length; if (ef.length) setText("effChip", ef.join(" · "));
+  const bc=$("boostChip"), left=(S.boostUntil-Date.now())/1000;
+  if (left>0){ bc.hidden=false; setText("boostChip", "2× Golden hour "+clock(left)); } else bc.hidden=true;
+  $("castBtn").classList.toggle("empty", S.energy<1);
+  setText("castSub", S.energy>=1 ? "uses 1 energy" : "out of energy");
+  // badges
+  const ready = S.quests.filter(q=>qDone(q)&&!q.claimed).length + (canDaily()?1:0);
+  const qb=$("qBadge"); qb.hidden = !ready; if (ready) setText("qBadge", String(ready));
+  const ups = UPGRADES.filter(u=>S.up[u.k]<u.max && S.coins>=u.cost(S.up[u.k])).length + CREW.filter((c,i)=>crewVisible(i)&&S.coins>=crewCost(i,1)).length;
+  const ub=$("upBadge"); ub.hidden=!ups; if (ups) setText("upBadge", String(ups));
+  renderQuestStrip();
+  if (openSheetKind) refreshSheetButtons();
+}
+
+/* ---------- Feedback ---------- */
+let ac=null;
+function audioInit(){ if (ac||!S.sound) return; try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+function tone(f,d,type,vol,slide,delay){
+  if (!ac||!S.sound) return;
+  try{
+    const t=ac.currentTime+(delay||0), o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(f,t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(f*slide,t+d);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+d+0.05);
+  }catch(e){}
+}
+const sfx = {
+  cast(){ tone(520,.12,"sine",.1,1.8); },
+  merge(t){ const f=196*Math.pow(1.1225,t); tone(f,.16,"triangle",.16,1.5); tone(f*1.5,.22,"sine",.1,1.2,.08); },
+  tap(){ tone(880,.06,"square",.03,1.3); },
+  coin(){ tone(1046,.08,"square",.04); tone(1568,.14,"square",.04,1,.07); },
+  fanfare(){ [523,659,784,1046].forEach((f,i)=>tone(f,.25,"triangle",.12,1,i*.09)); },
+  nope(){ tone(180,.15,"sawtooth",.05,.7); }
+};
+function buzz(kind){
+  try{
+    const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+    if (H){ H.impact({style: kind==="heavy"?"HEAVY":kind==="medium"?"MEDIUM":"LIGHT"}); return; }
+    if (navigator.vibrate) navigator.vibrate(kind==="heavy"?28:kind==="medium"?16:8);
+  }catch(e){}
+}
+function cellCenter(i){ const el=reef.children[i]; if(!el) return {x:innerWidth/2,y:innerHeight/2}; const r=el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+function floater(i,text,pearl){
+  const p=cellCenter(i), d=document.createElement("div");
+  d.className="float"+(pearl?" pp":""); d.textContent=text; d.style.left=p.x+"px"; d.style.top=p.y+"px";
+  fx.appendChild(d); setTimeout(()=>d.remove(),950);
+}
+function burst(i,hue){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const p=cellCenter(i);
+  for (let k=0;k<12;k++){
+    const s=document.createElement("div"), a=k/12*Math.PI*2, r=cs*(0.6+Math.random()*0.5);
+    s.className="spark"; s.style.left=p.x+"px"; s.style.top=p.y+"px";
+    s.style.setProperty("--x", Math.cos(a)*r+"px"); s.style.setProperty("--y", Math.sin(a)*r+"px");
+    s.style.setProperty("--c", k%3? `hsl(${hue} 90% 70%)` : "#fff");
+    fx.appendChild(s); setTimeout(()=>s.remove(),650);
+  }
+}
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200); }
+
+/* ---------- Actions ---------- */
+function emptyCells(){ const out=[]; for (let i=0;i<S.board.length;i++) if(!locked(i)&&!S.board[i]) out.push(i); return out; }
+function rollTier(){ let t=1; for (let i=0;i<S.up.net;i++){ if (Math.random()<0.3) t++; else break; } return Math.min(t, MAX_TIER-1); }
+
+function cast(auto){
+  const empty=emptyCells();
+  if (!empty.length){ if(!auto){ sfx.nope(); toast("This exhibit is full. Drag two matching animals together to make room."); } return false; }
+  if (!auto){
+    if (S.energy<1){ sfx.nope(); openEnergy(); return false; }
+    if (S.energy>=eMax()) S.lastEnergy=Date.now();
+    S.energy-=1;
+  }
+  const i=empty[Math.floor(Math.random()*empty.length)], t=rollTier();
+  S.board[i]=t; S.casts++;
+  discover(t);
+  renderBoard({spawn:i}); sfx.cast(); if(!auto) buzz("light");
+  updateHud(); return true;
+}
+
+function merge(a,b,auto){
+  const t=S.board[a]+1;
+  S.board[a]=0; S.board[b]=t;
+  if (!auto) S.merges++;
+  S.totMerges++;
+  const bonus = base(t)*mult()*4;
+  gain(bonus);
+  renderBoard({pop:b}); burst(b, CREATURES[t].h); floater(b, "+"+fmt(bonus));
+  if (auto) sfx.tap(); else { sfx.merge(t); buzz(t>=8?"heavy":"medium"); }
+  discover(t);
+  updateHud(); save();
+}
+function autoMerge(){
+  if (drag) return;
+  const seen={};
+  let best=null;
+  S.board.forEach((t,i)=>{ if (!t||locked(i)||t>=MAX_TIER) return;
+    if (seen[t]!==undefined){ if (!best||t<best.t) best={t,a:i,b:seen[t]}; } else seen[t]=i; });
+  if (best) merge(best.a, best.b, true);
+}
+const discoverReward = t => t*4 + S.tank*3;
+
+function discover(t){
+  if (S.found.includes(t)) return;
+  S.found.push(t); S.foundTotal++;
+  const reward = discoverReward(t);
+  S.pearls += reward;
+  const c=CREATURES[t];
+  queueModal(()=>`
+    <div class="rays"></div>
+    <div class="eyebrow">New animal · Level ${t}</div>
+    <div class="big">${c.e}</div>
+    <h2>${c.n}</h2>
+    <p>Earns ${fmt(base(t)*mult())} coins every second while it lives in your zoo.</p>
+    <div class="amt"><span class="pearl"></span>+${reward}</div>
+    ${t===MAX_TIER?`<p style="color:var(--gold)">This is the star animal of the ${TANK.name}. Tap the exhibit name above your animals to open the next exhibit.</p>`:""}
+    <div class="mbtns"><button class="buy" data-act="close">Keep merging</button></div>`, ()=>{ sfx.fanfare(); buzz("heavy"); });
+  if (t===5 && !S.starter && !S.starterOffered && !WEB_ONLY){ S.starterOffered=true; queueModal(starterOfferHtml); }
+}
+
+function tapCell(i, auto){
+  const t=S.board[i]; if(!t) return;
+  const v = (base(t)*mult()*2 + income()*0.02 + 1) * (now()<S.fx.tapfrenzy ? 777 : 1);
+  gain(v);
+  if (!auto){ S.taps++; sfx.tap(); buzz("light"); }
+  chargeEnergy();
+  floater(i,"+"+fmt(v));
+  const el=reef.children[i]; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+  updateHud();
+}
+function chargeEnergy(){
+  const m=eMax(); if (S.energy>=m) return;
+  S.energy=Math.min(m, S.energy+1/TAPS_PER_ENERGY);
+  if (S.energy>=m) S.lastEnergy=Date.now();
+}
+function autoFeed(){
+  if (drag) return;
+  const filled=[]; S.board.forEach((t,i)=>{ if (t && !locked(i)) filled.push(i); });
+  if (!filled.length) return;
+  tapCell(filled[Math.floor(Math.random()*filled.length)], true);
+}
+
+function drop(a,b){
+  if (b<0||a===b||locked(b)) return renderBoard();
+  const ta=S.board[a], tb=S.board[b];
+  if (tb===ta && ta<MAX_TIER){ merge(a,b); return; }
+  if (tb===ta && ta===MAX_TIER){ toast(`The ${CREATURES[MAX_TIER].n} is the star animal of this exhibit. Open the next exhibit to keep growing.`); }
+  S.board[b]=ta; S.board[a]=tb; renderBoard(); save();
+}
+
+function canMove(){ return S.found.includes(MAX_TIER) && S.coins>=tankCost(); }
+function moveTank(auto){
+  if (!canMove()) return;
+  const reward = 50 + S.tank*25, stars = starsFor(S.tEarned);
+  const keepValue = has("heirloom") ? Math.floor(S.up.value/2) : 0, keepNet = has("veteran") ? S.up.net : 0;
+  S.tank++; applyTank();
+  const b=new Array(COLS*ROWS).fill(0); b[COLS+1]=1; b[COLS+2]=1; b[2*COLS+1]=2;
+  if (has("starterfish")) [0,1,2,3].forEach(c=>{ b[c]=5; });
+  S.board=b; S.rows=Math.min(ROWS, has("headstart")?6:4); S.coins=0; S.tEarned=0; S.crew={};
+  S.up.value=keepValue; S.up.net=keepNet; S.found=has("starterfish")?[1,2,5]:[1,2];
+  S.stars+=stars; S.starsTotal+=stars;
+  S.pearls+=reward; S.quests=[]; ensureQuests(); autoT=0; feedT=0; mergeT=0;
+  if (!auto) closeSheet();
+  layout(); renderBoard(); updateHud(); save();
+  if (auto){ toast(`Expansion Planner opened the ${TANK.name}: +${stars} Zoo Stars, +${reward} gems`); return; }
+  queueModal(()=>`<div class="rays"></div><div class="eyebrow">Exhibit ${S.tank+1} opened</div>
+    <div class="big">${CREATURES[1].e}${CREATURES[2].e}</div><h2>${TANK.name}</h2>
+    <p>A ${COLS}×${ROWS} exhibit with 13 new animals to discover. Everything here earns 40× more.</p>
+    <div class="amt"><span class="star">★</span>+${stars} <span class="pearl" style="margin-left:10px"></span>+${reward}</div>
+    <p>Each Zoo Star adds +${has("starshine")?3:2}% income forever. Spend them on perks in Exhibits.</p>
+    <div class="mbtns"><button class="buy" data-act="close">Open the gates</button></div>`, ()=>{ sfx.fanfare(); buzz("heavy"); });
+}
+/* ---------- Zoo Star perks ---------- */
+const PERKS = [
+  {id:"lucky",        name:"Lucky Breeze",         cost:3,  desc:"Golden butterflies show up 50% more often."},
+  {id:"gills",        name:"Golden Wings",         cost:5,  desc:"Golden butterfly effects last 50% longer."},
+  {id:"headstart",    name:"Head Start",           cost:5,  desc:"New exhibits open with 6 rows instead of 4."},
+  {id:"pockets",      name:"Night Shift",          cost:6,  desc:"Offline earnings last 6 hours longer."},
+  {id:"pearldiver",   name:"Gem Hunter",           cost:8,  desc:"Every golden butterfly also drops 2 gems."},
+  {id:"crewmgr",      name:"Park Builder",         cost:10, desc:"Builds the best-value attraction for you as coins come in.", toggle:"crewAuto"},
+  {id:"starryCrew",   name:"Starry Attractions",   cost:12, desc:"All attractions earn 2×."},
+  {id:"whisperer",    name:"Butterfly Net",        cost:15, desc:"Catches every golden butterfly for you."},
+  {id:"starterfish",  name:"Starter Herd",         cost:18, desc:"New exhibits begin with four level-5 animals."},
+  {id:"butler",       name:"Park Manager",         cost:20, desc:"Buys Ticket Price, Breeding Program and new rows for you.", toggle:"butlerOn"},
+  {id:"veteran",      name:"Veteran Breeders",     cost:25, desc:"Keep Breeding Program levels when you open a new exhibit."},
+  {id:"glow",         name:"Achievement Glow",     cost:35, desc:"Achievements give +2% income each instead of +1%."},
+  {id:"starshine",    name:"Star Shine",           cost:40, desc:"Each Zoo Star gives +3% income instead of +2%."},
+  {id:"heirloom",     name:"Loyal Visitors",       cost:50, desc:"Keep half your Ticket Price levels when you open a new exhibit."},
+  {id:"constellation",name:"All-Star Attractions", cost:60, desc:"All attractions earn another 3×."},
+  {id:"mover",        name:"Expansion Planner",    cost:80, desc:"Opens the next exhibit by itself the moment it's ready.", toggle:"moverOn"}
+];
+const polishCost = () => Math.ceil(25*Math.pow(1.6, S.polish));
+function buyPerk(id){
+  const p=PERKS.find(x=>x.id===id); if (!p||has(id)||S.stars<p.cost) return;
+  S.stars-=p.cost; S.perks[id]=true; sfx.fanfare(); buzz("heavy"); toast(`${p.name} unlocked.`); save(); updateHud(); renderSheet();
+}
+function buyPolish(){ const c=polishCost(); if (S.stars<c) return; S.stars-=c; S.polish++; sfx.coin(); buzz("medium"); save(); updateHud(); renderSheet(); }
+
+/* ---------- Achievements (endless) ---------- */
+const GOLD_TH=[1,7,27,77,177,777];
+const ACH = [
+  {k:"earn",   name:"Treasure Hoard", m:()=>S.earned,      th:n=>Math.pow(1000,n+1), label:v=>`Earn ${fmt(v)} coins`},
+  {k:"merge",  name:"Matchmaker",     m:()=>S.totMerges,   th:n=>Math.pow(10,n+1),   label:v=>`Merge ${fmt(v)} times`},
+  {k:"tap",    name:"Head Keeper",    m:()=>S.taps,        th:n=>100*Math.pow(10,n),  label:v=>`Feed animals ${fmt(v)} times`},
+  {k:"cast",   name:"Adoption Agent", m:()=>S.casts,       th:n=>50*Math.pow(10,n),   label:v=>`Adopt ${fmt(v)} animals`},
+  {k:"found",  name:"Naturalist",     m:()=>S.foundTotal,  th:n=>10*(n+1),           label:v=>`Discover ${v} animals`},
+  {k:"crew",   name:"Zoo Tycoon",     m:()=>crewTotal(),   th:n=>10*Math.pow(2,n),   label:v=>`Own ${fmt(v)} attractions at once`},
+  {k:"gold",   name:"Gold Rush",      m:()=>S.gold,        th:n=>n<6?GOLD_TH[n]:777*Math.pow(3,n-5), label:v=>`Catch ${fmt(v)} golden butterflies`},
+  {k:"tank",   name:"Expansionist",   m:()=>S.tank+1,      th:n=>n+2,                label:v=>`Open exhibit ${v}`}
+];
+function achLevel(a){ const m=a.m(); let n=0; while (n<1000 && a.th(n)<=m) n++; return n; }
+function checkAch(){
+  for (const a of ACH){
+    const lv=achLevel(a), was=S.ach[a.k]||0;
+    if (lv>was){ S.ach[a.k]=lv; toast(`Achievement: ${a.label(a.th(lv-1))} · +${has("glow")?2:1}% income`); sfx.coin(); }
+  }
+}
+
+/* ---------- Golden butterfly ---------- */
+let goldT = 45 + Math.random()*60, goldLive=false, stormT=0;
+const GOLD_EFFECTS = [
+  {k:"frenzy",   w:45, dur:77, text:"Zoo rush! 7× income"},
+  {k:"lucky",    w:30, text:"Lucky find!"},
+  {k:"storm",    w:10, dur:15, text:"Stampede! Everything merges"},
+  {k:"surge",    w:10, text:"Snack time! Energy full"},
+  {k:"tapfrenzy",w:5,  dur:13, text:"Photo frenzy! Taps worth 777×"}
+];
+function spawnGold(){
+  if (goldLive) return;
+  goldLive=true;
+  const g=$("goldfish"), r=$("reefwrap").getBoundingClientRect();
+  const ltr=Math.random()<0.5;
+  g.style.top=(r.top + 20 + Math.random()*Math.max(40, r.height-100))+"px";
+  g.classList.toggle("ltr", ltr); g.classList.remove("swim"); void g.offsetWidth;
+  g.hidden=false; g.classList.add("swim");
+  if (has("whisperer")) setTimeout(()=>{ if (goldLive) catchGold(); }, 1200);
+}
+function hideGold(){ goldLive=false; const g=$("goldfish"); g.hidden=true; g.classList.remove("swim"); goldT = (60+Math.random()*120)/(has("lucky")?1.5:1); }
+function catchGold(){
+  if (!goldLive) return;
+  const g=$("goldfish"), rect=g.getBoundingClientRect();
+  hideGold(); S.gold++;
+  let roll=Math.random()*100, e=GOLD_EFFECTS[0];
+  for (const x of GOLD_EFFECTS){ if ((roll-=x.w)<0){ e=x; break; } }
+  const dm = has("gills")?1.5:1, t=now();
+  let msg=e.text;
+  if (e.k==="frenzy") S.fx.frenzy=Math.max(t,S.fx.frenzy)+e.dur*dm*1000;
+  if (e.k==="storm") S.fx.storm=Math.max(t,S.fx.storm)+e.dur*dm*1000;
+  if (e.k==="tapfrenzy") S.fx.tapfrenzy=Math.max(t,S.fx.tapfrenzy)+e.dur*dm*1000;
+  if (e.k==="surge"){ S.energy=Math.max(S.energy,eMax()); S.lastEnergy=t; }
+  if (e.k==="lucky"){ const c=Math.max(50, Math.min(S.coins*0.15, income(true)*900)+13); gain(c); msg+=` +${fmt(c)} coins`; }
+  if (has("pearldiver")){ S.pearls+=2; msg+=" · +2 gems"; }
+  const d=document.createElement("div"); d.className="float"; d.textContent=msg;
+  d.style.left=Math.min(innerWidth-100,Math.max(100,rect.left+rect.width/2))+"px"; d.style.top=rect.top+"px"; d.style.fontSize="20px";
+  fx.appendChild(d); setTimeout(()=>d.remove(),950);
+  toast(msg); sfx.fanfare(); buzz("heavy"); updateHud(); save();
+}
+
+/* ---------- Automation (perks) ---------- */
+function autoBuyers(){
+  if (has("crewmgr") && S.crewAuto){
+    for (let n=0;n<25;n++){
+      let best=-1, bestR=0;
+      for (let i=0;i<CREW.length;i++){ if (!crewVisible(i)) continue; const c=crewCost(i,1); if (c>S.coins) continue;
+        const r=crewEach(i)/c; if (r>bestR){ bestR=r; best=i; } }
+      if (best<0 || !buyCrew(best,1,true)) break;
+    }
+  }
+  if (has("butler") && S.butlerOn){
+    for (const k of ["value","net"]){ const u=UPGRADES.find(x=>x.k===k); let g=0;
+      while (g++<20 && S.up[k]<u.max && S.coins>=u.cost(S.up[k])){ S.coins-=u.cost(S.up[k]); S.up[k]++; } }
+    if (!drag && S.rows<ROWS && S.coins>=rowCost(S.rows)){ S.coins-=rowCost(S.rows); S.rows++; renderBoard(); }
+  }
+  if (has("mover") && S.moverOn && canMove() && !modalOpen) moveTank(true);
+}
+
+function unlockRow(){
+  const r=S.rows, cost=rowCost(r);
+  if (S.coins<cost){ sfx.nope(); toast(`You need ${fmt(cost)} coins to open this row.`); return; }
+  S.coins-=cost; S.rows++; sfx.coin(); buzz("medium"); renderBoard(); updateHud(); save();
+  toast("New row unlocked. More room to merge.");
+}
+
+/* ---------- Drag & drop ---------- */
+let drag=null;
+function cellAt(x,y){
+  for (let i=0;i<reef.children.length;i++){ const r=reef.children[i].getBoundingClientRect();
+    if (x>=r.left-4&&x<=r.right+4&&y>=r.top-4&&y<=r.bottom+4) return i; }
+  return -1;
+}
+reef.addEventListener("pointerdown", e=>{
+  audioInit();
+  const cell=e.target.closest(".cell"); if (!cell) return;
+  const i=+cell.dataset.i;
+  if (locked(i)){ if (Math.floor(i/COLS)===S.rows) unlockRow(); return; }
+  if (!S.board[i]) return;
+  e.preventDefault();
+  drag={i,x0:e.clientX,y0:e.clientY,id:e.pointerId,moving:false,over:-1,ghost:null};
+  try{ reef.setPointerCapture(e.pointerId); }catch(err){}
+});
+reef.addEventListener("pointermove", e=>{
+  if (!drag||e.pointerId!==drag.id) return;
+  if (!drag.moving && Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)>7){
+    drag.moving=true;
+    const t=S.board[drag.i], g=document.createElement("div");
+    g.className="ghost"; g.textContent=CREATURES[t].e; document.body.appendChild(g); drag.ghost=g;
+    reef.children[drag.i].classList.add("lift");
+    S.board.forEach((v,k)=>{ if (k!==drag.i && v===t && t<MAX_TIER) reef.children[k].classList.add("mate"); });
+    buzz("light");
+  }
+  if (drag.moving){
+    drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px";
+    const o=cellAt(e.clientX,e.clientY);
+    if (o!==drag.over){
+      if (drag.over>=0) reef.children[drag.over].classList.remove("over","overmatch");
+      drag.over=o;
+      if (o>=0 && o!==drag.i && !locked(o)){
+        const m = S.board[o]===S.board[drag.i] && S.board[o]<MAX_TIER;
+        reef.children[o].classList.add(m?"overmatch":"over");
+      }
+    }
+  }
+});
+function endDrag(e,cancel){
+  if (!drag||e.pointerId!==drag.id) return;
+  const d=drag; drag=null;
+  if (d.ghost) d.ghost.remove();
+  if (!d.moving){ if(!cancel) tapCell(d.i); return; }
+  if (cancel) return renderBoard();
+  drop(d.i, d.over);
+}
+reef.addEventListener("pointerup", e=>endDrag(e,false));
+reef.addEventListener("pointercancel", e=>endDrag(e,true));
+reef.addEventListener("contextmenu", e=>e.preventDefault());
+
+/* ---------- Quests ---------- */
+function makeQuest(){
+  const n=S.qseq++, kinds=["merge","cast","tier","earn","tap"];
+  let k=kinds[n%kinds.length];
+  if (k==="tier" && bestFound()>=MAX_TIER) k="merge";
+  const q={id:n,k,claimed:false};
+  if (k==="merge"){ q.target=6+n*2; q.base=S.merges; q.reward=6+Math.floor(n/2); }
+  if (k==="cast"){ q.target=12+n*3; q.base=S.casts; q.reward=5+Math.floor(n/2); }
+  if (k==="tap"){ q.target=30+n*5; q.base=S.taps; q.reward=4+Math.floor(n/3); }
+  if (k==="tier"){ q.target=Math.min(MAX_TIER,bestFound()+1); q.base=0; q.reward=10+q.target*2; }
+  if (k==="earn"){ const amt=Math.max(500, income()*240); const p=Math.pow(10,Math.floor(Math.log10(amt))); q.target=Math.ceil(amt/p)*p; q.base=S.earned; q.reward=8+Math.floor(n/2); }
+  return q;
+}
+function qProg(q){
+  if (q.k==="merge") return S.merges-q.base;
+  if (q.k==="cast") return S.casts-q.base;
+  if (q.k==="tap") return S.taps-q.base;
+  if (q.k==="tier") return bestFound()>=q.target?1:0;
+  if (q.k==="earn") return S.earned-q.base;
+}
+function qGoal(q){ return q.k==="tier"?1:q.target; }
+function qDone(q){ return qProg(q)>=qGoal(q); }
+function qText(q){
+  if (q.k==="merge") return `Merge ${q.target} times`;
+  if (q.k==="cast") return `Adopt ${q.target} animals`;
+  if (q.k==="tap") return `Feed animals ${q.target} times`;
+  if (q.k==="tier") return `Discover the ${CREATURES[q.target].n}`;
+  if (q.k==="earn") return `Earn ${fmt(q.target)} coins`;
+}
+function ensureQuests(){ while (S.quests.length<3) S.quests.push(makeQuest()); }
+function claimQuest(id){
+  const q=S.quests.find(x=>x.id===id); if(!q||!qDone(q)) return;
+  S.pearls+=q.reward; S.quests=S.quests.filter(x=>x.id!==id); ensureQuests();
+  sfx.coin(); buzz("medium"); toast(`Quest complete: +${q.reward} gems`); save(); updateHud();
+}
+let lastStrip="";
+function renderQuestStrip(){
+  const q = S.quests.find(x=>qDone(x)) || S.quests[0]; if(!q) return;
+  const done=qDone(q), p=Math.min(1,qProg(q)/qGoal(q));
+  const key=q.id+"|"+done+"|"+Math.round(p*50);
+  if (key===lastStrip) return; lastStrip=key;
+  const el=$("questStrip"); el.classList.toggle("ready",done);
+  el.innerHTML = done
+    ? `<span class="pearl" style="width:18px;height:18px"></span><span class="qt">${qText(q)}</span><span class="qn">Claim +${q.reward}</span>`
+    : `<span class="qt">${qText(q)}</span><span class="qbar"><i style="width:${p*100}%"></i></span><span class="qn">+${q.reward}</span>`;
+  el.dataset.q = done ? q.id : "";
+}
+$("questStrip").addEventListener("click",()=>{ const id=$("questStrip").dataset.q; if (id!=="") claimQuest(+id); else openSheet("quests"); });
+
+/* ---------- Daily streak ---------- */
+const DAILY_PEARLS=[5,5,10,10,15,20,50];
+function dayKey(d){ d=d||new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function yesterdayKey(){ const d=new Date(); d.setDate(d.getDate()-1); return dayKey(d); }
+function canDaily(){ return S.daily.last!==dayKey(); }
+function nextStreak(){ return S.daily.last===yesterdayKey() ? S.daily.streak+1 : (S.daily.last===dayKey()? S.daily.streak : 1); }
+function dailyCoins(day){ return Math.max(200, income()*300)*day; }
+function daysHtml(){
+  const ns=nextStreak(), cur=((ns-1)%7)+1, claimed=!canDaily();
+  return `<div class="days">${DAILY_PEARLS.map((p,k)=>{
+    const d=k+1, cls = d<cur || (d===cur&&claimed) ? "done" : d===cur ? "today" : "";
+    return `<div class="day ${cls} ${d===7?"big":""}">Day ${d}<b>${p}</b>gems</div>`; }).join("")}</div>`;
+}
+function claimDaily(){
+  if (!canDaily()) return;
+  const ns=nextStreak(), day=((ns-1)%7)+1, coins=dailyCoins(day), p=DAILY_PEARLS[day-1];
+  S.daily={last:dayKey(), streak:ns}; S.pearls+=p; gain(coins);
+  sfx.fanfare(); buzz("heavy"); toast(`Day ${day} reward: +${p} gems, +${fmt(coins)} coins`); save(); updateHud();
+}
+function dailyModalHtml(){
+  const ns=nextStreak(), day=((ns-1)%7)+1;
+  return `<div class="eyebrow">Daily visit · ${ns>1?`${ns}-day streak`:"Welcome back"}</div>
+    <h2>Day ${day} reward</h2>
+    <p>Come back every day. Day 7 pays 50 gems, and missing a day resets the streak.</p>
+    ${daysHtml()}
+    <div class="amt" style="margin-top:12px"><span class="pearl"></span>+${DAILY_PEARLS[day-1]} <span class="coin" style="margin-left:10px"></span>+${fmt(dailyCoins(day))}</div>
+    <div class="mbtns"><button class="buy" data-act="daily">Collect</button></div>`;
+}
+
+/* ---------- Store / purchases ---------- */
+/* On a plain website (window.CRITTER_WEB_ONLY) real-money items are hidden; gems are still earned by playing. */
+const WEB_ONLY = !!window.CRITTER_WEB_ONLY && !window.CdvPurchase;
+const IAP = {
+  native:false, prices:{},
+  init(){
+    const C=window.CdvPurchase; if (!C || this.native) return;
+    this.native=true;
+    const {store, ProductType, Platform} = C;
+    store.register(PRODUCTS.map(p=>({id:p.id, platform:Platform.APPLE_APPSTORE,
+      type: p.consumable ? ProductType.CONSUMABLE : ProductType.NON_CONSUMABLE})));
+    store.when()
+      .approved(tx=>tx.verify())
+      .verified(rc=>rc.finish())
+      .finished(tx=>{ tx.products.forEach(p=>grant(p.id)); })
+      .productUpdated(()=>{ PRODUCTS.forEach(p=>{ const sp=store.get(p.id); if (sp && sp.pricing) IAP.prices[p.id]=sp.pricing.price; }); if (openSheetKind==="shop") renderSheet(); });
+    store.error(err=>{ if (err && err.code!==C.ErrorCode.PAYMENT_CANCELLED) toast("The App Store couldn't finish that purchase. Try again in a moment."); });
+    store.initialize([Platform.APPLE_APPSTORE]);
+  },
+  price(p){ return this.prices[p.id] || p.price; },
+  buy(id){
+    if (this.native){
+      const sp=window.CdvPurchase.store.get(id), offer=sp && sp.getOffer();
+      if (offer) offer.order(); else toast("This item isn't available from the App Store yet.");
+      return;
+    }
+    const p=PRODUCTS.find(x=>x.id===id);
+    queueModal(()=>`<div class="eyebrow">Web preview</div><h2>${p.name}</h2>
+      <p>${p.desc}</p>
+      <p>In the iPhone app this opens Apple's payment sheet for <b style="color:var(--pearl)">${p.price}</b>. Here nothing is charged; tap below to see what the player receives.</p>
+      <div class="mbtns"><button class="buy cash" data-act="demo-grant" data-id="${p.id}">Get it free (preview)</button><button class="close" data-act="close">Cancel</button></div>`, null, true);
+  },
+  restore(){
+    if (this.native){ window.CdvPurchase.store.restorePurchases().then(()=>toast("Purchases restored.")); }
+    else toast("Restore runs through the App Store in the iPhone app.");
+  }
+};
+function ownsProduct(p){ return (p.id==="critters.starter"&&S.starter) || (p.id==="critters.vippass"&&S.golden); }
+function grant(id){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  if (id==="critters.starter"){
+    if (S.starter) return; S.starter=true; S.pearls+=250;
+    let placed=0; for (const i of emptyCells()){ if (placed>=2) break; S.board[i]=7; placed++; }
+    if (placed<2) S.coins += base(7)*600*(2-placed);
+    discover(7); renderBoard();
+  } else if (id==="critters.vippass"){
+    if (S.golden) return; S.golden=true;
+  } else if (p.pearls){ S.pearls+=p.pearls; }
+  sfx.fanfare(); buzz("heavy"); toast(`${p.name} added. Thank you!`); save(); updateHud();
+  if (openSheetKind==="shop") renderSheet();
+}
+function spend(pearls, fn){
+  if (S.pearls<pearls){ sfx.nope(); toast("Not enough gems."); openSheet("shop"); return; }
+  S.pearls-=pearls; fn(); sfx.coin(); buzz("medium"); save(); updateHud(); if (openSheetKind) renderSheet();
+}
+const PEARL_ITEMS = [
+  {id:"refill", name:"Refill Energy", icon:"⚡", cost:10, desc:()=>`Fill energy to ${eMax()}.`,
+    act(){ S.energy=eMax(); S.lastEnergy=Date.now(); toast("Energy full."); }},
+  {id:"tide", name:"Golden Hour", icon:"🌅", cost:25, desc:()=>"2× income for 30 minutes. Stacks time.",
+    act(){ S.boostUntil=Math.max(Date.now(),S.boostUntil)+30*60*1000; toast("2× income is on."); }},
+  {id:"chest", name:"Treasure Chest", icon:"🪙", cost:30, desc:()=>`${fmt(Math.max(1000,income()*1800))} coins right now (30 min of income).`,
+    act(){ const c=Math.max(1000,income()*1800); gain(c); toast(`+${fmt(c)} coins`); }}
+];
+function starterOfferHtml(){
+  const p=PRODUCTS[0];
+  return `<div class="rays"></div><div class="eyebrow">One-time offer</div><div class="big">${CREATURES[7].e}${CREATURES[7].e}</div><h2>Starter Zoo</h2>
+    <p>Skip ahead with two level-7 animals and 250 gems. Available once.</p>
+    <div class="mbtns"><button class="buy cash" data-act="buy" data-id="${p.id}">${IAP.price(p)}</button><button class="close" data-act="close">No thanks</button></div>`;
+}
+
+/* ---------- Sheets ---------- */
+let openSheetKind=null;
+const SUB={upgrades:"crew", book:"creatures"};
+const TITLES={tanks:"Exhibits", upgrades:"Build", quests:"Quests", book:"Logbook", shop:"Shop", energy:"Out of energy"};
+function openSheet(kind){
+  openSheetKind=kind; $("sheetTitle").textContent=TITLES[kind];
+  $("scrim").hidden=false; $("sheet").hidden=false; lastBtnKey=""; renderSheet(); $("sheetBody").scrollTop=0;
+}
+function closeSheet(){ openSheetKind=null; $("scrim").hidden=true; $("sheet").hidden=true; }
+function openEnergy(){ openSheet("energy"); }
+function coinBtn(cost, can, act, k){ return `<button class="buy" data-act="${act}" data-k="${k}" data-cost="${cost}" ${can?"":"disabled"}><span class="coin"></span>${fmt(cost)}</button>`; }
+function seg(kind, opts){
+  return `<div class="seg" role="tablist">${opts.map(([v,l])=>`<button role="tab" aria-selected="${SUB[kind]===v}" data-act="sub" data-k="${kind}" data-id="${v}">${l}</button>`).join("")}</div>`;
+}
+function crewBtnInner(i){
+  const amt=crewAmt(i), c=crewCost(i,amt);
+  return {html:`<span class="coin"></span>${fmt(c)}${amt>1?`<small>×${amt}</small>`:""}`, can:S.coins>=c};
+}
+function renderSheet(){
+  const b=$("sheetBody"), k=openSheetKind; let h="";
+  if (k==="upgrades"){
+    h += seg("upgrades", [["crew","Attractions"],["boosts","Boosts"]]);
+    if (SUB.upgrades==="crew"){
+      h += `<div class="crewhead"><p class="note" style="margin:0">Attractions earn <b style="color:var(--gold)">${fmt(crewRaw()*mult(true))}/s</b>. Each type doubles at 10, 25, 50, 100 and every 50 after.</p>
+        <div class="amtsel">${[1,10,"max"].map(a=>`<button data-act="amt" data-k="${a}" aria-pressed="${S.buyAmt===a}">${a==="max"?"Max":"×"+a}</button>`).join("")}</div></div>`;
+      let shownLocked=false;
+      for (let i=0;i<CREW.length;i++){
+        const vis=crewVisible(i);
+        if (!vis){ if (shownLocked) break; shownLocked=true;
+          h += `<div class="row dim"><div class="rico">?</div><div class="rt"><h3>Unknown attraction</h3><p>Build a ${CREW[i-1].n} to reveal it.</p></div></div>`; continue; }
+        const n=owned(i), bi=crewBtnInner(i), nm=nextMilestone(n);
+        h += `<div class="row"><div class="rico">${CREW[i].e}</div><div class="rt"><h3>${CREW[i].n}<span class="lv">${n} owned</span></h3>
+          <p>${fmt(crewEach(i)*mult(true))}/s each · ${nm-n} more to 2×</p></div>
+          <button class="buy" data-act="crew" data-k="${i}" data-crew="${i}" ${bi.can?"":"disabled"}>${bi.html}</button></div>`;
+      }
+    } else {
+      for (const u of UPGRADES){
+        const l=S.up[u.k], max=l>=u.max, cost=u.cost(l);
+        h += `<div class="row"><div class="rico">${u.icon}</div><div class="rt"><h3>${u.name}<span class="lv">Lv ${l}${max?" · Max":""}</span></h3><p>${u.desc(l)}</p></div>
+          ${max?`<button class="buy" disabled>Max</button>`:coinBtn(cost, S.coins>=cost, "up", u.k)}</div>`;
+      }
+      if (S.rows<ROWS){ const c=rowCost(S.rows);
+        h += `<div class="row"><div class="rico">🧱</div><div class="rt"><h3>Expand Exhibit</h3><p>Open row ${S.rows+1} for ${COLS} more spaces.</p></div>${coinBtn(c,S.coins>=c,"row","")}</div>`; }
+    }
+  }
+  if (k==="quests"){
+    h += `<div class="sec">Daily visit</div>${daysHtml()}`;
+    h += canDaily() ? `<button class="buy" data-act="daily" style="padding:12px">Collect today's reward</button>` : `<p class="note">Today's reward is collected. Next one unlocks at midnight.</p>`;
+    h += `<div class="sec">Quests</div>`;
+    for (const q of S.quests){
+      const p=Math.min(1,qProg(q)/qGoal(q)), done=qDone(q);
+      const prog = q.k==="tier" ? (done?"Found":"Not yet") : q.k==="earn" ? `${fmt(Math.min(qProg(q),q.target))} / ${fmt(q.target)}` : `${Math.min(qProg(q),q.target)} / ${q.target}`;
+      h += `<div class="row"><div class="rt"><h3>${qText(q)}</h3><p>${prog}</p><div class="pbar"><i style="width:${p*100}%"></i></div></div>
+        <button class="buy pp" data-act="claim" data-k="${q.id}" ${done?"":"disabled"}><span class="pearl"></span>${q.reward}</button></div>`;
+    }
+  }
+  if (k==="book"){
+    h += seg("book", [["creatures","Animals"],["ach","Achievements"],["stats","Stats"]]);
+    if (SUB.book==="creatures"){
+      h += `<p class="note">${TANK.name}: ${S.found.length} of ${MAX_TIER} found. Each new animal pays gems.</p><div class="book">`;
+      for (let t=1;t<=MAX_TIER;t++){
+        const c=CREATURES[t], f=S.found.includes(t);
+        h += `<div class="bk ${f?"":"unk"}"><div class="e">${c.e}</div><div class="n">${f?c.n:"Level "+t}</div><div class="s">${f? fmt(base(t)*mult())+"/s" : "+"+discoverReward(t)+" gems"}</div></div>`;
+      }
+      h += `</div>`;
+    } else if (SUB.book==="ach"){
+      const tot=achTotal(), per=has("glow")?2:1;
+      h += `<p class="note">${tot} achievements unlocked · +${tot*per}% income. Every goal has a bigger one after it.</p>`;
+      for (const a of ACH){
+        const lv=S.ach[a.k]||0, next=a.th(lv), m=a.m(), prev=lv?a.th(lv-1):0;
+        const p=Math.max(0,Math.min(1,(m-prev)/(next-prev)));
+        h += `<div class="row"><div class="rico ach">${lv}</div><div class="rt"><h3>${a.name}</h3><p>Next: ${a.label(next)}</p><div class="pbar"><i style="width:${p*100}%"></i></div></div></div>`;
+      }
+    } else {
+      const played=(now()-S.started)/1000;
+      const rows=[["Coins per second",fmt(income())],["Coins earned, all time",fmt(S.earned)],["Coins earned in this exhibit",fmt(S.tEarned)],
+        ["Current exhibit",`${S.tank+1} · ${TANK.name}`],["Zoo Stars",`${fmt(S.stars)} to spend · ${fmt(S.starsTotal)} earned`],
+        ["Income multiplier","×"+fmt(mult(true))],["Attractions built",fmt(crewTotal())],["Merges",fmt(S.totMerges)],["Taps",fmt(S.taps)],
+        ["Animals adopted",fmt(S.casts)],["Golden butterflies caught",fmt(S.gold)],["Animals discovered",fmt(S.foundTotal)],["Time played",clock(played)]];
+      h += `<div class="stats">${rows.map(([a,v])=>`<div><span>${a}</span><b>${v}</b></div>`).join("")}</div>`;
+    }
+  }
+  if (k==="tanks"){
+    const nx=tankInfo(S.tank+1), top=CREATURES[MAX_TIER], cost=tankCost();
+    const hasTop=S.found.includes(MAX_TIER), rich=S.coins>=cost, st=starsFor(S.tEarned);
+    const nextStarAt = Math.pow(st+1,3)*1e7*tankMult(S.tank);
+    h += `<div class="tankcard" style="border-color:var(--gold)"><div class="sec" style="margin:0;color:var(--gold)">Next · Exhibit ${S.tank+2}</div><h3>${nx.name}</h3>
+      <div class="peek" style="--nshift:${nx.shift}deg">${nx.list.slice(1).map(c=>c.e).join("")}</div>
+      <p class="note" style="margin:0">${nx.cols}×${nx.rows} exhibit. New animals and attractions earn 40× more than here.</p>
+      <div class="req ${hasTop?"ok":""}">${hasTop?"✓":"○"} Discover the <b>${top.n}</b></div>
+      <div class="req ${rich?"ok":""}">${rich?"✓":"○"} Have <b>${fmt(cost)}</b> coins</div>
+      <p class="note" style="margin:0"><span class="star">★</span> Opening it now earns <b style="color:var(--gold)">${st} Zoo Star${st===1?"":"s"}</b>. The next star comes at ${fmt(nextStarAt)} coins earned in this exhibit.</p>
+      <button class="buy" data-act="move" style="padding:12px" ${hasTop&&rich?"":"disabled"}>Open the ${nx.name}</button></div>`;
+    h += `<p class="note">Opening a new exhibit keeps gems, Zoo Stars, perks, purchases and the Auto Adopt, Auto Feeder, Auto Merge and Bigger Pantry upgrades. Coins, animals, attractions, rows, Ticket Price and Breeding Program start fresh. Exhibits never run out.</p>`;
+    h += `<div class="sec">Zoo Stars</div><div class="tankcard"><h3><span class="star">★</span> ${fmt(S.stars)} to spend</h3>
+      <p class="note" style="margin:0">${fmt(S.starsTotal)} earned all time, giving +${fmt(S.starsTotal*(has("starshine")?3:2))}% income forever. Spending stars never lowers that bonus.</p></div>`;
+    const pc=polishCost();
+    h += `<div class="row"><div class="rico">💫</div><div class="rt"><h3>Star Polish<span class="lv">Lv ${S.polish}</span></h3><p>×1.1 income per level, forever. Now ×${fmt(polishBonus())}.</p></div>
+      <button class="buy star-b" data-act="polish" data-cost="${pc}" data-cur="s" ${S.stars>=pc?"":"disabled"}><span class="star">★</span>${fmt(pc)}</button></div>`;
+    for (const p of PERKS){
+      const own=has(p.id);
+      const right = own
+        ? (p.toggle ? `<button class="buy ${S[p.toggle]?"":"offb"}" data-act="toggle" data-k="${p.toggle}">${S[p.toggle]?"On":"Off"}</button>` : `<button class="buy" disabled>Owned</button>`)
+        : `<button class="buy star-b" data-act="perk" data-k="${p.id}" data-cost="${p.cost}" data-cur="s" ${S.stars>=p.cost?"":"disabled"}><span class="star">★</span>${p.cost}</button>`;
+      h += `<div class="row${own?"":" "}"><div class="rt"><h3>${p.name}</h3><p>${p.desc}</p></div>${right}</div>`;
+    }
+  }
+  if (k==="energy"){
+    const wait = ENERGY_SEC - (Date.now()-S.lastEnergy)/1000;
+    h += `<p class="note">Energy refills by 1 every ${ENERGY_SEC} seconds, up to ${eMax()}. Next one in ${clock(wait)}.</p>`;
+    h += pearlRow(PEARL_ITEMS[0]);
+    if (S.up.auto<1){ const u=UPGRADES[2], c=u.cost(0); h += `<div class="row"><div class="rico">${u.icon}</div><div class="rt"><h3>${u.name}</h3><p>${u.desc(0)}</p></div>${coinBtn(c,S.coins>=c,"up","auto")}</div>`; }
+    if (S.up.tapper<1){ const u=UPGRADES.find(x=>x.k==="tapper"), c=u.cost(0); h += `<div class="row"><div class="rico">${u.icon}</div><div class="rt"><h3>${u.name}</h3><p>${u.desc(0)}</p></div>${coinBtn(c,S.coins>=c,"up","tapper")}</div>`; }
+    h += `<p class="note">Feeding animals (tap them) charges energy too: every ${TAPS_PER_ENERGY} feedings give 1 energy.</p>`;
+  }
+  if (k==="shop"){
+    h += `<div class="sec">Spend gems</div>` + PEARL_ITEMS.map(pearlRow).join("");
+    if (WEB_ONLY){
+      h += `<p class="note">Gems come from quests, daily visits, new animals and golden butterflies. Gem packs and the VIP Pass are coming to the iPhone app.</p>`;
+    } else {
+    h += `<div class="sec">Gems & passes</div>`;
+    for (const p of PRODUCTS){
+      if (p.once && S.starter) continue;
+      const own=ownsProduct(p);
+      h += `<div class="row"><div class="rico">${p.icon}</div><div class="rt"><h3>${p.name}${p.tag?`<span class="tag">${p.tag}</span>`:""}</h3><p>${p.desc}</p></div>
+        <button class="buy cash" data-act="buy" data-id="${p.id}" ${own?"disabled":""}>${own?"Owned":IAP.price(p)}</button></div>`;
+    }
+    h += `<button class="link" data-act="restore">Restore purchases</button>`;
+    h += `<p class="note">Purchases are optional. Every animal, upgrade and row can be earned by playing.${IAP.native?"":" This web preview never charges you."}</p>`;
+    }
+  }
+  b.innerHTML=h;
+}
+function pearlRow(it){
+  return `<div class="row"><div class="rico">${it.icon}</div><div class="rt"><h3>${it.name}</h3><p>${it.desc()}</p></div>
+    <button class="buy pp" data-act="pearl" data-k="${it.id}" data-cost="${it.cost}" data-cur="p" ${S.pearls>=it.cost?"":"disabled"}><span class="pearl"></span>${it.cost}</button></div>`;
+}
+let lastBtnKey="";
+/* Full re-render only when the sheet's structure changes; otherwise update button states in place so taps never get lost. */
+function refreshSheetButtons(){
+  const k=openSheetKind, sub=SUB[k]||"";
+  const live = k==="energy" || (k==="book" && sub!=="creatures") ? Math.floor(Date.now()/1000) : "";
+  const key = [k,sub,S.quests.map(qDone).join(),crewTotal(),canMove(),S.stars,S.tank,S.rows,S.found.length,live,S.buyAmt].join("|");
+  if (key!==lastBtnKey){ lastBtnKey=key; const st=$("sheetBody").scrollTop; renderSheet(); $("sheetBody").scrollTop=st; return; }
+  for (const el of $("sheetBody").querySelectorAll("[data-cost]")){
+    const c=+el.dataset.cost, cur=el.dataset.cur, bal = cur==="p"?S.pearls : cur==="s"?S.stars : S.coins;
+    el.disabled = bal < c;
+  }
+  for (const el of $("sheetBody").querySelectorAll("[data-crew]")){
+    const bi=crewBtnInner(+el.dataset.crew); if (el.innerHTML!==bi.html) el.innerHTML=bi.html; el.disabled=!bi.can;
+  }
+}
+function buyUpgrade(k){
+  const u=UPGRADES.find(x=>x.k===k), l=S.up[k], c=u.cost(l);
+  if (l>=u.max||S.coins<c) return;
+  S.coins-=c; S.up[k]++; if (k==="auto"&&l===0) autoT=0;
+  sfx.coin(); buzz("medium"); save(); updateHud(); renderSheet();
+}
+
+document.addEventListener("click", e=>{
+  const btn=e.target.closest("[data-act],[data-sheet]"); if(!btn) return;
+  audioInit();
+  if (btn.dataset.sheet){ openSheet(btn.dataset.sheet); return; }
+  const a=btn.dataset.act, k=btn.dataset.k, id=btn.dataset.id;
+  if (a==="up") buyUpgrade(k);
+  if (a==="move") moveTank();
+  if (a==="sub"){ SUB[k]=id; renderSheet(); $("sheetBody").scrollTop=0; }
+  if (a==="amt"){ S.buyAmt = k==="max"?"max":+k; renderSheet(); }
+  if (a==="crew"){ if (buyCrew(+k)){ updateHud(); renderSheet(); save(); } }
+  if (a==="perk") buyPerk(k);
+  if (a==="polish") buyPolish();
+  if (a==="toggle"){ S[k]=!S[k]; save(); renderSheet(); }
+  if (a==="row"){ unlockRow(); if (openSheetKind) renderSheet(); }
+  if (a==="claim") { claimQuest(+k); renderSheet(); }
+  if (a==="daily"){ claimDaily(); if (!$("modal").hidden && btn.closest("#modal")) closeModal(); if (openSheetKind) renderSheet(); }
+  if (a==="pearl"){ const it=PEARL_ITEMS.find(x=>x.id===k); spend(it.cost, it.act); if (openSheetKind==="energy" && S.energy>=1) closeSheet(); }
+  if (a==="buy"){ if (btn.closest("#modal")) closeModal(); IAP.buy(id); }
+  if (a==="demo-grant"){ closeModal(); grant(id); }
+  if (a==="restore") IAP.restore();
+  if (a==="close") closeModal();
+  if (a==="offline1"){ gain(pendingOffline); sfx.coin(); closeModal(); save(); updateHud(); }
+  if (a==="offline2"){ if (S.pearls<10){ toast("Not enough gems."); return; } S.pearls-=10; gain(pendingOffline*2); sfx.fanfare(); closeModal(); save(); updateHud(); }
+});
+$("sheetClose").addEventListener("click", closeSheet);
+$("scrim").addEventListener("click", closeSheet);
+$("goldfish").addEventListener("pointerdown", e=>{ e.preventDefault(); audioInit(); catchGold(); });
+$("goldfish").addEventListener("animationend", e=>{ if (e.target.id==="goldfish") hideGold(); });
+$("castBtn").addEventListener("click", ()=>{ audioInit(); cast(false); });
+$("addPearls").addEventListener("click", ()=>openSheet("shop"));
+$("mergeChip").addEventListener("click", ()=>{ S.mergerOn=!S.mergerOn; mergeT=0; toast(S.mergerOn?"Auto Merge is on.":"Auto Merge paused. Merge by hand."); save(); updateHud(); });
+$("feedChip").addEventListener("click", ()=>{ S.feederOn=!S.feederOn; feedT=0; toast(S.feederOn?"Auto Feeder is feeding your animals.":"Auto Feeder paused."); save(); updateHud(); });
+function paintSound(){ $("sndWave").style.display=S.sound?"":"none"; $("soundBtn").setAttribute("aria-label", S.sound?"Sound on":"Sound off"); }
+$("soundBtn").addEventListener("click", ()=>{ S.sound=!S.sound; if(S.sound) audioInit(); paintSound(); save(); });
+document.addEventListener("keydown", e=>{ if (e.key==="Escape"){ if(!$("modal").hidden) closeModal(); else closeSheet(); } });
+
+/* ---------- Modals ---------- */
+const modalQ=[]; let modalOpen=false;
+function queueModal(html, onShow, front){ front? modalQ.unshift({html,onShow}) : modalQ.push({html,onShow}); if (!modalOpen) nextModal(); }
+function nextModal(){
+  const m=modalQ.shift(); if (!m){ modalOpen=false; return; }
+  modalOpen=true; const el=$("modal");
+  el.innerHTML = typeof m.html==="function" ? m.html() : m.html;
+  el.hidden=false; $("mscrim").hidden=false; if (m.onShow) m.onShow();
+}
+function closeModal(){ $("modal").hidden=true; $("mscrim").hidden=true; modalOpen=false; setTimeout(nextModal,180); }
+
+/* ---------- Offline earnings ---------- */
+let pendingOffline=0;
+function offline(sec){
+  if (sec<60) return;
+  const capped=Math.min(sec, offlineCap()), coins=income(true)*capped;
+  if (coins<1) return;
+  pendingOffline=coins;
+  const h=Math.floor(capped/3600), m=Math.floor(capped%3600/60);
+  queueModal(`<div class="eyebrow">While you were away</div><h2>Your zoo kept earning</h2>
+    <p>${h?h+" h ":""}${m} min of income${sec>offlineCap()?` (limit is ${offlineCap()/3600} hours${S.golden?"":", VIP Pass raises it to 8"})`:""}.</p>
+    <div class="amt"><span class="coin"></span>${fmt(coins)}</div>
+    <div class="mbtns"><button class="buy pp" data-act="offline2"><span class="pearl"></span>10 · Collect 2×</button><button class="buy" data-act="offline1">Collect</button></div>`);
+}
+
+/* ---------- Loop ---------- */
+let autoT=0, feedT=0, mergeT=0, secT=0, lastTick=Date.now(), saveT=0;
+function regen(now){
+  const m=eMax();
+  if (S.energy>=m){ S.lastEnergy=now; return; }
+  const g=Math.floor((now-S.lastEnergy)/(ENERGY_SEC*1000));
+  if (g>0){ S.energy=Math.min(m,S.energy+g); S.lastEnergy+=g*ENERGY_SEC*1000; if (S.energy>=m) S.lastEnergy=now; }
+}
+function tick(){
+  const t0=Date.now(), dt=(t0-lastTick)/1000; lastTick=t0;
+  if (dt>30){ offline(dt); }
+  else {
+    const inc=income()*dt; gain(inc);
+    if (S.up.auto>0){ autoT+=dt; if (autoT>=autoInterval()){ autoT=0; cast(true); } }
+    if (now()<S.fx.storm){ stormT+=dt; while (stormT>=0.2){ stormT-=0.2; autoMerge(); } }
+    if (!goldLive){ goldT-=dt; if (goldT<=0 && !document.hidden) spawnGold(); }
+    secT+=dt; if (secT>=1){ secT=0; autoBuyers(); checkAch(); }
+    if (S.up.merger>0 && S.mergerOn){ mergeT+=dt; if (mergeT>=mergeInterval()){ mergeT=0; autoMerge(); } }
+    if (S.up.tapper>0 && S.feederOn){ feedT+=dt; let n=0; while (feedT>=tapInterval() && n<4){ feedT-=tapInterval(); autoFeed(); n++; } if (n>=4) feedT=0; }
+  }
+  regen(t0); S.lastSeen=t0;
+  saveT+=Math.min(dt,30); if (saveT>5){ saveT=0; save(); }
+  updateHud();
+}
+document.addEventListener("visibilitychange", ()=>{ if (document.hidden) save(); else tick(); });
+addEventListener("pagehide", save);
+addEventListener("resize", ()=>{ layout(); });
+
+/* ---------- Fireflies ---------- */
+function bubbles(){
+  const cv=$("bubbles"), cx=cv.getContext("2d"); if(!cx) return;
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W,H,d=1,B=[];
+  function size(){ d=Math.min(2,devicePixelRatio||1); W=cv.width=innerWidth*d; H=cv.height=innerHeight*d; cx.setTransform(1,0,0,1,0,0);
+    B=Array.from({length:26},()=>({x:Math.random()*W,y:Math.random()*H,r:(1.2+Math.random()*1.8)*d,s:(.08+Math.random()*.25)*d,w:Math.random()*6,p:Math.random()*6})); }
+  size(); addEventListener("resize",size);
+  function frame(t){
+    cx.clearRect(0,0,W,H);
+    for (const b of B){
+      if (!reduce){ b.y-=b.s; if (b.y<-20){ b.y=H+20; b.x=Math.random()*W; } }
+      const x=b.x+Math.sin(t/1700+b.w)*14*d, a=.25+.55*(.5+.5*Math.sin(t/600+b.p));
+      const g=cx.createRadialGradient(x,b.y,0,x,b.y,b.r*5);
+      g.addColorStop(0,`rgba(235,255,160,${a})`); g.addColorStop(.3,`rgba(200,240,110,${a*.45})`); g.addColorStop(1,"rgba(200,240,110,0)");
+      cx.fillStyle=g; cx.beginPath(); cx.arc(x,b.y,b.r*5,0,Math.PI*2); cx.fill();
+    }
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Boot ---------- */
+function start(data){
+  S = load(data);
+  applyTank();
+  if (S.board.length!==COLS*ROWS){ const b=new Array(COLS*ROWS).fill(0); S.board.forEach((t,i)=>{ if (i<b.length) b[i]=t; }); S.board=b; }
+  ensureQuests(); layout(); renderBoard(); paintSound();
+  const away=(Date.now()-S.lastSeen)/1000;
+  regen(Date.now());
+  offline(away);
+  S.lastSeen=Date.now(); lastTick=Date.now();
+  if (canDaily()) queueModal(dailyModalHtml);
+  updateHud(); bubbles();
+  setInterval(tick, 250);
+  IAP.init(); document.addEventListener("deviceready", ()=>IAP.init(), false);
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(()=>({state:S}));
+  requestAnimationFrame(()=>{ layout(); });
+}
+const hot = window.claude && window.claude.hot;
+if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
