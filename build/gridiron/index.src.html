@@ -146,6 +146,15 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .rd-mull em{font-style:normal;font-size:.85em}
 .rd-tot{border-top:1px solid color-mix(in srgb,currentColor 25%,transparent);padding-top:4px;margin-top:2px;font-weight:700}
 .rd-note{font-size:.85em;opacity:.75}
+.best-box{border:1.5px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg)}
+.best-box summary{cursor:pointer;font-weight:800;padding:11px 0;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.best-box summary::-webkit-details-marker{display:none}
+.best-box summary::after{content:"+";font-size:20px;line-height:1;color:var(--muted)}
+.best-box[open] summary::after{content:"−"}
+.best-box .best{padding-bottom:12px}
+.best-h{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.best-h span{font-size:.88em;color:var(--muted)}
+.best .rd-row span span{display:inline;margin-left:6px;font-size:.8em;color:var(--muted)}
 .src{margin:0;font-size:12px;line-height:1.45;color:var(--muted);text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -435,7 +444,10 @@ function renderResult(){
   }
   r.innerHTML = `<div class="kicker">${esc(holeLabel())} · ${esc(ST.name)}</div><h2>${g[1]}</h2>
     <p>Your five totaled <b>${fmt(t)}</b>. ${where}</p>
-    <div class="scale">${scale}</div>${tail}`;
+    <div class="scale">${scale}</div>
+    <details class="best-box"><summary>See the best possible round</summary><div class="best rd" id="best">Working it out…</div></details>${tail}`;
+  const bx = r.querySelector(".best-box");
+  if(bx) bx.addEventListener("toggle", ()=>{ if(bx.open && $("best").textContent==="Working it out…") setTimeout(showBest, 30); });
   // Leaderboard ranks low to high: distance from the pin, in tenths so half sacks count
   if(mode==="daily" && window.SLB) SLB.mount($("slb"), {game:"gridiron", day:pNo, score:Math.round(ad*10), eligible:true, fmt:x=>fmt(x/10)+" off", note:"Closest to the pin wins. Ties go to the fastest.", accent:"var(--turf)", accentInk:"var(--turf-ink)",
     detail: roundDetail(), renderDetail: showRound});
@@ -466,6 +478,46 @@ function showRound(d){
   const off = t - (+d.p);
   return `<div class="rd">${lines}<div class="rd-row rd-tot"><span>Total</span><b>${fmt(t)} ${esc(unit)}</b></div>
     <div class="rd-note">${off===0 ? "Right in the cup" : fmt(Math.abs(off))+" "+esc(unit)+(off>0?" past":" short of")+" the "+fmt(+d.p)+" pin"}</div></div>`;
+}
+
+// The best possible round for this hole: five different players, each with some of the stat, whose total lands
+// closest to the pin. Searches the 400 best-known players (so the answer is recognizable): every pair is indexed by
+// its total, then each trio of the 80 best-known players looks up the pair that finishes the job.
+function bestRound(){
+  const T = Math.round(H.pin*10);
+  const A = POOL.filter(p=>p.v>0).sort((a,b)=>b.fame-a.fame).slice(0,400).map(p=>({p, v:Math.round(p.v*10)}));
+  if(A.length<5) return null;
+  const pairs = new Map();
+  for(let i=0;i<A.length;i++) for(let j=i+1;j<A.length;j++){
+    const s=A[i].v+A[j].v, l=pairs.get(s);
+    if(!l) pairs.set(s,[[i,j]]); else if(l.length<6) l.push([i,j]);
+  }
+  const sums = [...pairs.keys()].sort((a,b)=>a-b);
+  const near = r => { let lo=0, hi=sums.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(sums[m]<r) lo=m+1; else hi=m; } return lo; };
+  const N = Math.min(A.length, 80);
+  let best = null;
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) for(let k=j+1;k<N;k++){
+    const r = T - (A[i].v+A[j].v+A[k].v);
+    const at = near(r);
+    for(let q=Math.max(0,at-2); q<=Math.min(sums.length-1,at+1); q++){
+      const d = Math.abs(sums[q]-r);
+      if(best && d>=best.d) continue;
+      const ok = pairs.get(sums[q]).find(([a,b])=>a!==i&&a!==j&&a!==k&&b!==i&&b!==j&&b!==k);
+      if(ok){ best = {d, picks:[i,j,k,ok[0],ok[1]].map(x=>A[x].p)}; if(d===0) return best; }
+    }
+  }
+  return best;
+}
+function showBest(){
+  const el = $("best"); if(!el) return;
+  const b = bestRound();
+  if(!b){ el.hidden = true; return; }
+  const t = b.picks.reduce((a,p)=>a+p.v,0), off = Math.abs(H.pin - t), mine = Math.abs(H.pin - total());
+  const head = off===0 ? "A hole in one was possible" : `The closest possible was ${fmt(off)} ${ST.unit} off`;
+  const cmp = mine===off ? "You matched the best possible round." : `You were ${fmt(mine - off)} ${ST.unit} further away.`;
+  el.innerHTML = `<div class="best-h"><b>${head}</b><span>${cmp}</span></div>`
+    + b.picks.map(p=>`<div class="rd-row"><span>${nameHtml(p.name)}</span><b>${fmt(p.v)}</b></div>`).join("")
+    + `<div class="rd-row rd-tot"><span>Total</span><b>${fmt(t)} ${esc(ST.unit)}</b></div>`;
 }
 
 function nextEndless(){

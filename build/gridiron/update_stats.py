@@ -92,8 +92,8 @@ def main():
         if text is None:
             sys.exit(f'Missing nflverse data for {y}; leaving players.json unchanged.')
         for r in rows(text):
-            if r.get('season_type') != 'REG':
-                continue
+            if r.get('season_type') != 'REG' or not r.get('player_id') or not r.get('player_display_name'):
+                continue  # skip rows that aren't tied to a named player
             t = tot.setdefault(r['player_id'], {'name': r['player_display_name'], 'pos': r.get('position') or '',
                                                 'first': y, 'last': y, 'v': {k: 0.0 for k in keys}})
             t['name'] = r['player_display_name'] or t['name']
