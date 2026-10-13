@@ -160,6 +160,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
   </div>
 </div>
 
+<script src="/lb.js"></script>
 <script>
 // Each puzzle lists items in the CORRECT order, top to bottom.
 const PUZZLES = [
@@ -267,6 +268,7 @@ function render(flip){
 
 function tap(slot){
   if(S.status!=="playing" || lockedSet().has(slot)) return;
+  window.SLB && SLB.start("ranked", pNo);
   if(sel===null){ sel=slot; render(); return; }
   if(sel===slot){ sel=null; render(); return; }
   const o=S.order; [o[sel],o[slot]]=[o[slot],o[sel]];
@@ -286,6 +288,7 @@ function submit(){
 
 function finish(won){
   S.status = won?"won":"lost";
+  window.SLB && SLB.stop("ranked", pNo);
   const st=store.stats;
   st.played++;
   if(won){ st.wins++; st.dist[S.guesses.length-1]++; st.cur = (st.lastWon===pNo-1) ? st.cur+1 : 1; st.lastWon=pNo; st.max=Math.max(st.max,st.cur); }
@@ -306,7 +309,8 @@ function renderResult(){
   const sub = won ? `Solved in ${n} of ${MAX}. Here's how they stack up.` : "Here's the real order, with the numbers.";
   r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
     <button class="share" id="btnShare">Share result</button>
-    <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>`;
+    <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div><div id="slb"></div>`;
+  if(window.SLB) SLB.mount($("slb"), {game:"ranked", day:pNo, score:S.guesses.length, eligible:won, fmt:n=>n+"/"+MAX, note:"Fewest tries wins. Ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
   $("btnShare").onclick = ()=>{
     const txt=shareText();
     const done=()=>toast("Copied. Paste it anywhere.");

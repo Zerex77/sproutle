@@ -133,6 +133,8 @@ privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, no a
 <p>Your puzzles, scores, streaks and settings are saved in your browser's local storage. They never leave your device, and we can't see them. Clearing your browser data erases them.</p>
 <h2>What we don't collect</h2>
 <ul><li>No accounts, names or email addresses.</li><li>No advertising and no ad trackers.</li><li>We don't sell or share personal data.</li></ul>
+<h2>Leaderboards</h2>
+<p>If you choose to post a score, we store the three initials you enter, your score, how long the puzzle took, and a random ID created on your device so you can only post once per puzzle. Leaderboard data is stored with our database provider, Supabase. Nothing is posted unless you press Post.</p>
 <h2>Visitor counts</h2>
 <p>We may use a privacy-friendly analytics service to count visits and see which pages are popular. It doesn't use cookies and doesn't identify you personally.</p>
 <h2>Fonts</h2>
@@ -286,6 +288,8 @@ files = {'index.html': home, 'sproutle/index.html': index, 'about.html': about, 
          'sitemap.xml': sitemap, '_headers': headers}
 for name, text in files.items():
     open(os.path.join(OUT, name), 'w').write(text)
+# Shared leaderboard script used by every game
+shutil.copy(os.path.join(D, 'lb.js'), os.path.join(OUT, 'lb.js'))
 # Ranked is a separate daily game, copied as-is from build/ranked/
 shutil.copytree(os.path.join(D, 'ranked'), os.path.join(OUT, 'ranked'), dirs_exist_ok=True)
 # Trailhead is a separate daily game, copied as-is from build/trailhead/

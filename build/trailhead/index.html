@@ -212,6 +212,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 <div class="bubble" id="bubble" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="/lb.js"></script>
 <script>
 (function(){
 const CATS={
@@ -315,8 +316,16 @@ function renderEnd(){
   if(!finished()){ec.hidden=true;ec.innerHTML='';return}
   const solved=S.path.filter(id=>S.res[id]==='solved').length, sum=S.res[S.path[STOPS-1]]==='solved';
   ec.hidden=false;
-  ec.innerHTML='<h2>'+(sum?'Summit reached':'You finished the climb')+'</h2><p>'+solved+' of '+STOPS+' words · '+total()+' guesses'+(S.daily?' · a new mountain tomorrow':'')+'</p><div class="actions"><button class="btn primary" id="shareBtn" type="button">Copy results</button><button class="btn" id="againBtn" type="button">Climb again</button></div><pre class="share" id="shareTxt" hidden></pre>';
+  ec.innerHTML='<h2>'+(sum?'Summit reached':'You finished the climb')+'</h2><p>'+solved+' of '+STOPS+' words · '+total()+' guesses'+(S.daily?' · a new mountain tomorrow':'')+'</p><div class="actions"><button class="btn primary" id="shareBtn" type="button">Copy results</button>'+(S.daily&&window.SLB?'<button class="btn" id="lbBtn" type="button">🏆 Leaderboard</button>':'')+'<button class="btn" id="againBtn" type="button">Climb again</button></div><pre class="share" id="shareTxt" hidden></pre>';
   $('shareBtn').onclick=copy; $('againBtn').onclick=()=>newRun(false);
+  if(S.daily&&window.SLB){
+    const day=SLB.dayNo(); SLB.stop('trailhead',day);
+    const cs=getComputedStyle(document.body);
+    const openLb=()=>SLB.open({game:'trailhead',day,score:total(),eligible:true,fmt:n=>n+' guesses',note:'Fewest guesses to the summit wins. Ties go to the fastest.',accent:'var(--accent)',accentInk:'var(--on-accent)',panelBg:cs.getPropertyValue('--tile')||'#fff',panelInk:cs.getPropertyValue('--ink')||'#1f3326'});
+    $('lbBtn').onclick=openLb;
+    const seenKey='slb-seen:trailhead:'+day;
+    if(!SLB.wasPosted('trailhead',day)&&!localStorage.getItem(seenKey)){try{localStorage.setItem(seenKey,'1')}catch(e){} setTimeout(openLb,900);}
+  }
 }
 function shareText(){
   const lines=S.path.map(id=>{const c=S.res[id]==='failed'?TRIES:S.g[id].length;return (S.res[id]==='failed'?'🌧 ':'🌼 ')+M[id].cat+' '+'●'.repeat(c)+'○'.repeat(TRIES-c)});
@@ -352,7 +361,7 @@ function renderWord(flipRow){
   gs.forEach(q=>q.g.split('').forEach((c,j)=>{const r=q.res[j];if(!ks[c]||rank[r]>rank[ks[c]])ks[c]=r}));
   keys.forEach(k=>{if(k.dataset.k.length===1){k.classList.remove('hit','near','miss');if(ks[k.dataset.k])k.classList.add(ks[k.dataset.k])}});
 }
-function type(L){if(!S.cur||busy||draft.length>=5)return;draft+=L;renderWord()}
+function type(L){if(!S.cur||busy||draft.length>=5)return;if(S.daily&&window.SLB)SLB.start('trailhead',SLB.dayNo());draft+=L;renderWord()}
 function back(){if(!S.cur||busy||!draft.length)return;draft=draft.slice(0,-1);renderWord()}
 function shake(){const r=document.querySelector('.row.cur');if(r){r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake')}}
 function submit(){

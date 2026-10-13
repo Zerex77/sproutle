@@ -160,6 +160,7 @@ function buildKB(){
 }
 function press(k){
   if(S.done||dead())return;
+  if(isToday()&&window.SLB)SLB.start("sproutle",TODAY);
   if(armed>=0){armed=-1;}
   const n=cur().length+1;
   if(k==="enter")return grow();
@@ -246,6 +247,7 @@ function bloom(){
 }
 function record(){
   if(!isToday())return;
+  if(window.SLB)SLB.stop("sproutle",TODAY);
   const st=store.get(STATS)||{played:0,blooms:0,perfect:0,streak:0,max:0,last:0,dist:[0,0,0,0,0,0]};
   if(st.rec===TODAY)return;
   st.played++;
@@ -340,6 +342,7 @@ function showResults(){
     :`<button class="btn" type="button" id="moreBtn">Play more</button><button class="btn primary" type="button" id="shareBtn">Share</button>`;
   openModal(`${S.done?`${where?`<p class="where">${where}</p>`:""}<div class="big${S.end==="bloom"&&score()===0?" over":""}">${label()}<small>${sub}</small></div>
    <div class="trail" aria-label="Your growth">${trail()}</div>
+   ${isToday()?`<div id="slbMount" style="margin:14px 0"></div>`:""}
    <div class="path"><h3>Your sprout</h3><p>${yours}</p></div>
    <div class="path"><h3>A perfect path</h3><p>${PATH.map(x=>x.toUpperCase()).join(" → ")}</p><small>${PERFECT===1?"This was the only path with everyday words.":`There are ${PERFECT} paths with everyday words.`}</small></div>`:"<h2>Statistics</h2>"}
    <div class="stats"><div><b>${st.played}</b><span>Played</span></div><div><b>${st.played?Math.round((st.perfect||0)/st.played*100):0}</b><span>Perfect %</span></div><div><b>${st.streak}</b><span>Streak</span></div><div><b>${st.max}</b><span>Best streak</span></div></div>
@@ -350,6 +353,7 @@ function showResults(){
   const tick2=()=>{const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.max(0,Math.floor((t-n)/1000));
     const el=$("cd");if(el)el.textContent=[s/3600,s%3600/60,s%60].map(x=>String(Math.floor(x)).padStart(2,"0")).join(":");};
   tick2();clearInterval(cd);cd=setInterval(tick2,1000);
+  if(window.SLB&&$("slbMount"))SLB.mount($("slbMount"),{game:"sproutle",day:TODAY,score:score(),eligible:S.end==="bloom",fmt:n=>n===0?"Perfect":"+"+n,note:"Lowest score wins. Ties go to the fastest grower.",accent:"var(--leaf-deep)",accentInk:"#fff"});
   const mb=$("moreBtn");if(mb)mb.onclick=MODE.kind==="practice"?newPractice:archive;
   const tb=$("todayBtn");if(tb)tb.onclick=()=>{closeModal();load({kind:"daily",num:TODAY});};
   const sb=$("shareBtn");if(sb)sb.onclick=()=>{const txt=shareText();

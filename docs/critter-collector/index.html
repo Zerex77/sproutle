@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" href="/critter-collector/icon-192.png">
 <link rel="apple-touch-icon" href="/critter-collector/apple-touch-icon.png">
 <script>window.CRITTER_WEB_ONLY=true;</script>
+<script src="/lb.js"></script>
 <style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{overscroll-behavior:none}img{max-width:100%}</style>
 <title>Critter Collector</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -292,6 +293,7 @@ a.iconbtn{text-decoration:none;font-size:15px;line-height:1}
     <button class="chip" id="mergeChip" hidden aria-pressed="true"></button>
     <span class="chip hot" id="boostChip" hidden></span>
     <span class="chip gold" id="effChip" hidden></span>
+    <button class="iconbtn" id="lbBtn" hidden aria-label="Leaderboard" title="Leaderboard" style="font-size:15px;line-height:1">🏆</button>
     <a class="iconbtn" id="gamesBtn" href="/" hidden aria-label="All games" title="All games">🎮</a>
     <button class="iconbtn" id="soundBtn" aria-label="Sound on">
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--pearl)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="var(--pearl)"/><path id="sndWave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
@@ -1320,6 +1322,10 @@ function start(data){
   applyTank();
   if (S.board.length!==COLS*ROWS){ const b=new Array(COLS*ROWS).fill(0); S.board.forEach((t,i)=>{ if (i<b.length) b[i]=t; }); S.board=b; }
   if (WEB_ONLY) $("gamesBtn").hidden=false;
+  if (WEB_ONLY && window.SLB){ $("lbBtn").hidden=false;
+    $("lbBtn").onclick=()=>SLB.open({game:"critter", day:0, score:Math.floor(S.earned), eligible:true, refresh:true, fmt:n=>fmt(n)+" coins",
+      title:"All-time top 10", note:"Ranked by coins earned, all time. Your posted score updates each time you open this.",
+      accent:"#ffc84a", accentInk:"#2a1d00", panelBg:"#14301d", panelInk:"#f8f2e2"}); }
   ensureQuests(); layout(); renderBoard(); paintSound();
   const away=(Date.now()-S.lastSeen)/1000;
   regen(Date.now());

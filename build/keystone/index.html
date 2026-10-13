@@ -195,6 +195,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
   </div>
 </div>
 
+<script src="/lb.js"></script>
 <script>
 // Each puzzle: six [left, ANSWER, right] bridges. The answers' first letters spell the keystone.
 const PUZZLES = [
@@ -348,6 +349,7 @@ function select(i){
 
 function type(c){
   if(S.status!=="playing") return;
+  window.SLB && SLB.start("keystone", pNo);
   if(buf.length<capacity(sel)){ buf+=c; render(); }
 }
 function back(){ if(buf){ buf=buf.slice(0,-1); render(); } }
@@ -385,6 +387,7 @@ function submit(){
 function hint(){
   if(S.status!=="playing") return;
   if(sel===KS){ toast("Pick a bridge to reveal a letter"); return; }
+  window.SLB && SLB.start("keystone", pNo);
   const A=P[sel][1];
   if(S.rev[sel]>=A.length-1){ toast("The last letter's on you"); return; }
   S.rev[sel]++; buf=""; save(); render();
@@ -392,6 +395,7 @@ function hint(){
 
 function finish(won){
   S.status = won?"won":"lost";
+  window.SLB && SLB.stop("keystone", pNo);
   const st=store.stats; st.played++;
   if(won){
     st.wins++; st.dist[Math.min(S.cracks,4)]++;
@@ -423,7 +427,9 @@ function renderResult(){
   r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
     <button class="share" id="btnShare">Share result</button>
     <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>
+    <div id="slb"></div>
     <a class="more" href="/">Play more games →</a>`;
+  if(window.SLB) SLB.mount($("slb"), {game:"keystone", day:pNo, score:S.cracks+S.rev.reduce((a,b)=>a+b,0), eligible:won, fmt:n=>n===0?"Perfect":"+"+n, note:"+1 per crack and per revealed letter. Lowest wins; ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
   $("btnShare").onclick = ()=>{
     const txt=shareText();
     const ok=()=>toast("Copied. Paste it anywhere.");
