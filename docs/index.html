@@ -239,6 +239,17 @@ h1{font-family:var(--f-display);font-weight:700;font-size:2rem;margin:0;line-hei
 
 .icon.round{width:36px;padding:9px 0;text-align:center}
 .icon.plusb{width:36px;padding:7px 0;text-align:center;background:linear-gradient(135deg,var(--bloom),var(--petal-y));color:#fff;font:700 1.15rem/1 var(--f-display)}
+a.icon{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.icon.gamesb{font-size:1rem;line-height:1}
+.promo{display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;background:linear-gradient(135deg,#1d4a2a,#0f2a18);color:#f8f2e2;text-decoration:none;box-shadow:var(--shadow)}
+.promo img{width:52px;height:52px;border-radius:14px;flex:none}
+.promo span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.promo small{font:700 .68rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:#a4e05f}
+.promo b{font:700 1.05rem/1.15 var(--f-display)}
+.promo em{font-style:normal;font-size:.8rem;color:#c9d8c4;line-height:1.3}
+.promo i{font-style:normal;flex:none;background:#ff8a3d;color:#fff;font:700 .85rem var(--f-body);padding:8px 14px;border-radius:14px;box-shadow:0 3px 0 #cf611b}
+.morelink{text-align:center;font-size:.85rem}
+.morelink a{color:var(--muted)}
 .modebar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--card);border-radius:16px;padding:8px 10px 8px 14px;box-shadow:var(--shadow);font-size:.84rem;color:var(--muted)}
 .modebar b{color:var(--ink)}
 .mb-btns{display:flex;gap:6px}
@@ -336,6 +347,7 @@ header h1{font-size:1.7rem}
 .sitefoot{display:flex;justify-content:center;gap:8px;font-size:.8rem;color:var(--muted);padding-top:4px}.sitefoot a{color:var(--muted)}
 @media (max-width:420px){h1{font-size:1.6rem}.mark svg{width:30px;height:30px}.hbtns{gap:5px}.icon{padding:8px 10px;font-size:.76rem}.icon.round,.icon.plusb{width:32px;padding:7px 0}.days{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:380px){.k{height:50px;font-size:.95rem}.kr{gap:4px}.gap{width:9px}.chip{font-size:.74rem}}
+@media (max-width:400px){header{gap:6px;padding-inline:0}header h1{font-size:1.32rem}.mark{gap:4px}.mark svg{width:24px;height:24px}.hbtns{gap:4px}.icon{padding:7px 9px;font-size:.72rem}.icon.round,.icon.plusb{width:30px;padding:6px 0}.icon.gamesb{font-size:.9rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -345,7 +357,7 @@ header h1{font-size:1.7rem}
 <div class="wrap">
   <header>
     <div class="mark"><svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 31 V15" stroke="var(--leaf-deep)" stroke-width="3" stroke-linecap="round"/><path d="M17 17 C 9 17 5 12 5 6 C 12 6 17 10 17 17Z" fill="var(--leaf)"/><path d="M17 14 C 23 14 28 10 29 3 C 22 3 17 7 17 14Z" fill="var(--leaf)"/><circle cx="17" cy="31" r="2.5" fill="var(--bloom)"/></svg><h1>Sproutle</h1></div>
-    <div class="hbtns"><button class="icon plusb" id="plusHdr" type="button" aria-label="Sproutle+">+</button><button class="icon" id="archiveBtn" type="button">Archive</button><button class="icon round" id="helpBtn" type="button" aria-label="How to play">?</button><button class="icon" id="statsBtn" type="button">Stats</button></div>
+    <div class="hbtns"><button class="icon plusb" id="plusHdr" type="button" aria-label="Sproutle+">+</button><button class="icon" id="archiveBtn" type="button">Archive</button><a class="icon round gamesb" href="/games" aria-label="More games" title="More games">🎮</a><button class="icon round" id="helpBtn" type="button" aria-label="How to play">?</button><button class="icon" id="statsBtn" type="button">Stats</button></div>
   </header>
   <div class="modebar" id="modebar" hidden></div>
   <section class="scene" id="scene" aria-label="Your plant">
@@ -717,7 +729,9 @@ function showResults(){
    <div class="path"><h3>A perfect path</h3><p>${PATH.map(x=>x.toUpperCase()).join(" → ")}</p><small>${PERFECT===1?"This was the only path with everyday words.":`There are ${PERFECT} paths with everyday words.`}</small></div>`:"<h2>Statistics</h2>"}
    <div class="stats"><div><b>${st.played}</b><span>Played</span></div><div><b>${st.played?Math.round((st.perfect||0)/st.played*100):0}</b><span>Perfect %</span></div><div><b>${st.streak}</b><span>Streak</span></div><div><b>${st.max}</b><span>Best streak</span></div></div>
    <h3>Daily scores</h3><div class="dist">${rows}</div>
-   <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>`);
+   <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>
+   <a class="promo" href="/critter-collector/"><img src="/critter-collector/icon-192.png" alt=""><span><small>${S.done?"While you wait for tomorrow":"Try our other game"}</small><b>Critter Collector</b><em>Merge animals and build an endless zoo</em></span><i>Play</i></a>
+   <p class="morelink"><a href="/games">See all games</a></p>`);
   const tick2=()=>{const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.max(0,Math.floor((t-n)/1000));
     const el=$("cd");if(el)el.textContent=[s/3600,s%3600/60,s%60].map(x=>String(Math.floor(x)).padStart(2,"0")).join(":");};
   tick2();clearInterval(cd);cd=setInterval(tick2,1000);

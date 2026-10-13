@@ -344,7 +344,9 @@ function showResults(){
    <div class="path"><h3>A perfect path</h3><p>${PATH.map(x=>x.toUpperCase()).join(" → ")}</p><small>${PERFECT===1?"This was the only path with everyday words.":`There are ${PERFECT} paths with everyday words.`}</small></div>`:"<h2>Statistics</h2>"}
    <div class="stats"><div><b>${st.played}</b><span>Played</span></div><div><b>${st.played?Math.round((st.perfect||0)/st.played*100):0}</b><span>Perfect %</span></div><div><b>${st.streak}</b><span>Streak</span></div><div><b>${st.max}</b><span>Best streak</span></div></div>
    <h3>Daily scores</h3><div class="dist">${rows}</div>
-   <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>`);
+   <div class="next"><div><h3 style="margin:0">Next seed</h3><b id="cd">--:--:--</b></div>${S.done?`<div class="acts">${actions}</div>`:""}</div>
+   <a class="promo" href="/critter-collector/"><img src="/critter-collector/icon-192.png" alt=""><span><small>${S.done?"While you wait for tomorrow":"Try our other game"}</small><b>Critter Collector</b><em>Merge animals and build an endless zoo</em></span><i>Play</i></a>
+   <p class="morelink"><a href="/games">See all games</a></p>`);
   const tick2=()=>{const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),s=Math.max(0,Math.floor((t-n)/1000));
     const el=$("cd");if(el)el.textContent=[s/3600,s%3600/60,s%60].map(x=>String(Math.floor(x)).padStart(2,"0")).join(":");};
   tick2();clearInterval(cd);cd=setInterval(tick2,1000);
