@@ -279,7 +279,7 @@ function help(){
   </ol>
   <p>Everyone gets the same seed. A new one sprouts every day at midnight. Missed a day? Open the Archive.</p>
   <button class="btn primary" type="button" id="goBtn">Start growing</button>
-  <p class="note" style="text-align:center"><a href="/about">About Sproutle</a> · <a href="/">All games</a> · <a href="/privacy">Privacy</a></p>`);
+  <p class="note" style="text-align:center"><a href="/about">About</a> · <a href="/">All games</a> · <a href="/privacy">Privacy</a></p>`);
   $("goBtn").onclick=closeModal;
 }
 

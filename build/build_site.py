@@ -101,29 +101,6 @@ def page(title, desc, path, body, button='<a class="play" href="/sproutle/">Play
             '<div class="page">\n<header class="top"><a class="brand" href="/"><img src="/icon-192.png" alt="">Sproutle</a>'
             + button +'</header>\n' + body + '\n' + FOOT + '\n</div>\n</body>\n</html>\n')
 
-about = page('About Sproutle', 'How to play Sproutle, the daily word game where you grow a short word into a long one, one letter at a time.', '/about', '''
-<main class="card">
-<h1>Grow a word, one letter at a time</h1>
-<p>Sproutle is a free daily word game. Everyone gets the same short seed word. Your job is to grow it into a long word by adding one letter at a time, and every step has to be a real word.</p>
-<div class="chain"><span>ORE</span><i>→</i><span><b>C</b>ORE</span><i>→</i><span><b>S</b>CORE</span><i>→</i><span>SCORE<b>D</b></span><i>→</i><span>SCO<b>U</b>RED</span></div>
-<h2>How to play</h2>
-<ol>
-<li>Type your next word: today's word plus one new letter, added anywhere. Then press Grow.</li>
-<li>You can't rearrange the letters you already have, and every word must be real.</li>
-<li>Keep growing until you reach the target length: 7 letters early in the week, longer on weekends.</li>
-<li>No easy endings: you can't add S, D, R or Y to the end of a word, so no plurals and no -ED or -ER.</li>
-<li>Every word must still be able to grow to the target. A real word that can't bounces back 🟨 and costs one of your 5 leaves. A word that isn't real just shakes, with no penalty.</li>
-<li>Stuck? A hint shows where a letter fits, and a second hint shows the letter.</li>
-</ol>
-<h2>Scoring</h2>
-<p>Every bounce and every hint adds 1 to your score. A perfect bloom is zero: no bounces, no hints. Share your result with friends without spoiling the answer.</p>
-<h2>A new seed every day</h2>
-<p>A new puzzle sprouts at midnight in your time zone. Missed a day? Open the Archive from the game to catch up. Your streak counts only the puzzle of the day.</p>
-<h2>Questions or ideas</h2>
-<p>Sproutle is an independent game. Spotted a word that should count, or one that shouldn't? We'd love to hear about it.</p>
-<p class="muted">Word list based on the Spell Checker Oriented Word Lists (SCOWL) by Kevin Atkinson, used under its MIT-style license.</p>
-</main>''')
-
 privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, no ads, and your game progress stays on your device.', '/privacy', '''
 <main class="card">
 <h1>Privacy</h1>
@@ -245,6 +222,50 @@ home = page('Sproutle: free daily puzzle games',
             'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, name the team from its colleges in Alma Mater, and merge animals in Critter Collector.',
             '/', HOME_BODY, button='')
 home = home.replace('</head>', HOME_CSS + '</head>', 1).replace('</body>', HOME_JS + '</body>', 1)
+
+# ---------- About: the whole site, built from GAMES so new games show up automatically ----------
+ABOUT_CSS = """<style>
+.alist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.alist li{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:start}
+.alist img{width:48px;height:48px;border-radius:12px}
+.alist a{font:700 1.05rem var(--f-body);text-decoration:none;color:var(--ink)}
+.alist a:hover{text-decoration:underline}
+.alist .t{font-size:.82rem;color:var(--muted);font-weight:600}
+.alist p{margin:2px 0 0;font-size:.95rem}
+.alist div{min-width:0}
+</style>
+"""
+def about_item(g):
+    slug, name, tag, blurb, btn, icon, daily = g
+    return (f'<li><img src="{icon}" alt="" width="48" height="48"><div><a href="/{slug}/">{name}</a>'
+            f'<div class="t">{tag}</div><p>{blurb}</p></div></li>')
+about = page('About | Sproutle', 'About playsproutle.com: free, quick daily puzzle games with no accounts and no ads, from word puzzles to NFL trivia.', '/about', '''
+<main class="card">
+<h1>Small games, new every day</h1>
+<p>playsproutle.com is an independent collection of free games. Most are daily puzzles: everyone gets the same puzzle, a new one arrives at midnight in your time zone, and a game takes a few minutes. There's a word puzzle, a number puzzle, a couple of football games and more, plus one game you can play anytime.</p>
+<h2>The games</h2>
+<ul class="alist">
+''' + '\n'.join(about_item(g) for g in GAMES) + '''
+</ul>
+<h2>How the daily games work</h2>
+<ul>
+<li>Everyone plays the same puzzle each day, so you can compare results with friends.</li>
+<li>Each game has a <b>?</b> button with its own rules, and a stats button with your record and streaks.</li>
+<li>Share buttons copy your result without giving away the answer.</li>
+<li>Your progress saves as you play, so you can close a game and finish it later today.</li>
+</ul>
+<h2>Leaderboards</h2>
+<p>When you finish a daily puzzle you can add three initials to that day's top 10. Ties go to whoever finished faster. Posting is optional, and nothing is shared unless you press Post. In Gridiron Golf you can tap a player on the board to see the round they played.</p>
+<h2>No accounts, no ads</h2>
+<p>You don't sign up for anything. Your scores, streaks and settings stay in your browser on your device. The <a href="/privacy">privacy page</a> has the details.</p>
+<h2>Play it like an app</h2>
+<p>On your phone, open the site and choose Add to Home Screen from your browser's share or menu button. It opens full screen, like an app.</p>
+<h2>Questions or ideas</h2>
+<p>Spotted a word that should count, a stat that looks off, or have an idea for a new game? We'd love to hear about it.</p>
+<h2>Credits</h2>
+<p class="muted">Sproutle and Trailhead use word lists based on the Spell Checker Oriented Word Lists (SCOWL) by Kevin Atkinson, under its MIT-style license. Gridiron Golf's player stats come from nflverse (1999 to today) and Pro Football Reference (earlier careers).</p>
+</main>''', button='<a class="play" href="/">All games</a>')
+about = about.replace('</head>', ABOUT_CSS + '</head>', 1)
 
 # The old More games page forwards to the homepage so existing links keep working
 games = ('<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><title>Sproutle games</title>\n'
