@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap">
 <style>
-/* Layout: one narrow column — scoreboard header, the lineup on a turf panel, then a 32-team guess board grouped by division */
+/* Layout: one narrow column — scoreboard header, the lineup on a turf panel, then a guess dock pinned to the bottom so the lineup stays in view */
 :root{
   --bg:#f3f6f6; --surface:#ffffff; --fg:#0f1b1d; --muted:#5b6b6e; --line:#d5dfe0;
   --teal:#006778; --teal-d:#004f5c; --gold:#d7a22a; --turf:#0c3b33; --turf2:#0f463c; --chalk:#e9f3ef;
@@ -63,23 +63,23 @@ h1 span{color:var(--gold)}
 .hint.on b{color:var(--teal)}
 .msg{min-height:1.4em;font-weight:600;margin:0}
 .msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
-.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
-.div h3{margin:0;font-family:var(--display);font-weight:600;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.teams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
-.t{font:800 .95rem var(--display);letter-spacing:.04em;padding:9px 0;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
-.t:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
-.t:focus-visible,.modes button:focus-visible,.next:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.t:disabled{cursor:default}
-.t.wrong{background:transparent;color:var(--bad);text-decoration:line-through;opacity:.6}
-.t.right{background:var(--good);border-color:var(--good);color:#fff}
-.t.answer{border:2px solid var(--good);color:var(--good)}
+.dock{position:sticky;bottom:0;z-index:5;margin-inline:-16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.pick{display:flex;gap:8px}
+.pick select{flex:1;min-width:0;height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:600 1rem var(--body);padding:0 12px}
+.pick select:focus-visible{outline:none;border-color:var(--teal)}
+.pick button{height:48px;padding:0 22px;border:0;border-radius:12px;background:var(--teal);color:#fff;font:800 1.05rem var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.pick button:disabled{opacity:.45;cursor:default}
+.pick button:focus-visible,.modes button:focus-visible,.next:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.tried{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:0}
+.tried:empty{display:none}
+.chip{font:800 .8rem var(--display);letter-spacing:.05em;padding:3px 9px;border-radius:999px;border:1px solid var(--bad);color:var(--bad);text-decoration:line-through}
+.dock .msg{font-size:.9rem}
 .result{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .result h2{margin:0;font-family:var(--display);font-weight:800;font-size:1.5rem;text-transform:uppercase;letter-spacing:.02em}
 .next{align-self:flex-start;font:700 .95rem var(--body);padding:10px 18px;border-radius:999px;border:0;background:var(--teal);color:#fff;cursor:pointer}
 .share{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;white-space:pre-wrap;margin:0}
-.foot{font-size:.78rem;color:var(--muted)}
-@media (max-width:420px){.board{grid-template-columns:minmax(0,1fr)}h1{font-size:2rem}.roster{grid-template-columns:minmax(0,1fr)}}
+.foot{font-size:.78rem;color:var(--muted);margin:0}
+@media (max-width:420px){h1{font-size:2rem}.tag{font-size:.82rem}.roster{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:no-preference){.o{animation:in .4s ease both}@keyframes in{from{opacity:0}to{opacity:1}}}
 .hbtns{display:flex;gap:8px;align-items:center}
 .ibtn{width:36px;height:36px;display:grid;place-items:center;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
@@ -115,16 +115,23 @@ h1 span{color:var(--gold)}
   </section>
 
   <div class="hints" id="hints"></div>
-  <p class="msg" id="msg" aria-live="polite"></p>
   <div id="result" hidden></div>
-  <div class="board" id="board"></div>
   <p class="foot">Lineups use each team's most common starters that season, playoff starters where it mattered. Four guesses; each miss unlocks a clue.</p>
+  <div class="dock" id="dock">
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <div class="tried" id="tried" aria-label="Wrong guesses"></div>
+    <form class="pick" id="pick">
+      <select id="team" aria-label="Choose a team"></select>
+      <button type="submit" id="go" disabled>Guess</button>
+    </form>
+  </div>
 </div>
 
 <script src="/lb.js"></script>
 <script>
 const DIVS={"AFC East":["BUF","MIA","NE","NYJ"],"AFC North":["BAL","CIN","CLE","PIT"],"AFC South":["HOU","IND","JAX","TEN"],"AFC West":["DEN","KC","LV","LAC"],"NFC East":["DAL","NYG","PHI","WAS"],"NFC North":["CHI","DET","GB","MIN"],"NFC South":["ATL","CAR","NO","TB"],"NFC West":["ARI","LAR","SF","SEA"]};
 const NAMES={BUF:"Bills",MIA:"Dolphins",NE:"Patriots",NYJ:"Jets",BAL:"Ravens",CIN:"Bengals",CLE:"Browns",PIT:"Steelers",HOU:"Texans",IND:"Colts",JAX:"Jaguars",TEN:"Titans",DEN:"Broncos",KC:"Chiefs",LV:"Raiders",LAC:"Chargers",DAL:"Cowboys",NYG:"Giants",PHI:"Eagles",WAS:"Commanders",CHI:"Bears",DET:"Lions",GB:"Packers",MIN:"Vikings",ATL:"Falcons",CAR:"Panthers",NO:"Saints",TB:"Buccaneers",ARI:"Cardinals",LAR:"Rams",SF:"49ers",SEA:"Seahawks"};
+const CITY={BUF:"Buffalo",MIA:"Miami",NE:"New England",NYJ:"New York",BAL:"Baltimore",CIN:"Cincinnati",CLE:"Cleveland",PIT:"Pittsburgh",HOU:"Houston",IND:"Indianapolis",JAX:"Jacksonville",TEN:"Tennessee",DEN:"Denver",KC:"Kansas City",LV:"Las Vegas",LAC:"Los Angeles",DAL:"Dallas",NYG:"New York",PHI:"Philadelphia",WAS:"Washington",CHI:"Chicago",DET:"Detroit",GB:"Green Bay",MIN:"Minnesota",ATL:"Atlanta",CAR:"Carolina",NO:"New Orleans",TB:"Tampa Bay",ARI:"Arizona",LAR:"Los Angeles",SF:"San Francisco",SEA:"Seattle"};
 const DIV_OF={};for(const[d,ts]of Object.entries(DIVS))ts.forEach(t=>DIV_OF[t]=d);
 
 // team, season, then "POS|Name|College" × 11 (skill players first, then LT LG C RG RT)
@@ -234,10 +241,12 @@ function render(){
   if(won){msg.className="msg good";msg.textContent=misses?`Got it on guess ${misses+1}.`:"First try."}
   else if(done){msg.className="msg bad";msg.textContent="Out of guesses."}
   else if(misses){msg.className="msg bad";msg.textContent=`Not the ${NAMES[guesses[guesses.length-1]]}. Clue unlocked.`}
-  else{msg.className="msg";msg.textContent="Pick a team below."}
-  $("board").innerHTML=Object.entries(DIVS).map(([d,ts])=>`<div class="div"><h3>${d}</h3><div class="teams">${ts.map(t=>{
-    let c="";if(guesses.includes(t))c=t===ans?"right":"wrong";else if(done&&t===ans)c="answer";
-    return`<button class="t ${c}" data-t="${t}" ${done||guesses.includes(t)?"disabled":""} aria-label="${NAMES[t]}">${t}</button>`}).join("")}</div></div>`).join("");
+  else{msg.className="msg";msg.textContent="Pick a team from the list."}
+  const sel=$("team"),keep=sel.value;
+  sel.innerHTML=`<option value="">Choose a team…</option>`+Object.entries(DIVS).map(([d,ts])=>`<optgroup label="${d}">${ts.map(t=>`<option value="${t}" ${guesses.includes(t)?"disabled":""}>${CITY[t]} ${NAMES[t]}${guesses.includes(t)?"  ✗":""}</option>`).join("")}</optgroup>`).join("");
+  sel.value=guesses.includes(keep)?"":keep;$("go").disabled=!sel.value;
+  $("tried").innerHTML=guesses.filter(g=>g!==ans).map(g=>`<span class="chip">${NAMES[g]}</span>`).join("");
+  $("pick").hidden=done;$("tried").hidden=done;
   const r=$("result");
   if(done){
     r.hidden=false;r.className="result";
@@ -250,14 +259,17 @@ function render(){
   }else r.hidden=true;
 }
 
-$("board").addEventListener("click",e=>{
-  const b=e.target.closest(".t");if(!b||done)return;
-  guesses.push(b.dataset.t);
+$("team").addEventListener("change",e=>{$("go").disabled=!e.target.value});
+$("pick").addEventListener("submit",e=>{
+  e.preventDefault();
+  const t=$("team").value;if(!t||done||guesses.includes(t))return;
+  guesses.push(t);$("team").value="";
   if(mode==="daily"&&window.SLB){if(guesses.length===1)SLB.start("almamater",pNo)}
-  const ans=L[cur].team,won=b.dataset.t===ans,lost=!won&&guesses.filter(g=>g!==ans).length>=MAX;
+  const ans=L[cur].team,won=t===ans,lost=!won&&guesses.filter(g=>g!==ans).length>=MAX;
   if(mode==="endless"&&(won||lost)){endless.streak=won?endless.streak+1:0;endless.best=Math.max(endless.best,endless.streak)}
   if(mode==="daily"&&(won||lost)&&window.SLB)SLB.stop("almamater",pNo);
   store.set("am_endless",endless);save();render();
+  if(won||lost)$("result").scrollIntoView({behavior:"smooth",block:"start"});
 });
 function setMode(m){mode=m;$("mDaily").setAttribute("aria-pressed",m==="daily");$("mEndless").setAttribute("aria-pressed",m==="endless");start()}
 $("mDaily").onclick=()=>setMode("daily");$("mEndless").onclick=()=>setMode("endless");
