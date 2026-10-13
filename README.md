@@ -9,5 +9,6 @@ Live at https://playsproutle.com
   Settings such as the launch date and Sproutle+ live at the top of `build_site.py`.
 - `build/critter/` holds Critter Collector, which the build copies to `docs/critter-collector/`. The More games page is in `build_site.py`.
 - `build/ranked/` holds Ranked, the daily ordering puzzle, which the build copies to `docs/ranked/`.
+- `build/keystone/` holds Keystone, the daily missing-word puzzle, which the build copies to `docs/keystone/`. Add puzzles to the `PUZZLES` list at the top of its script.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).

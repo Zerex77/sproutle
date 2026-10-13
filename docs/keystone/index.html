@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2A231D">
+<meta name="description" content="Keystone: a free daily word puzzle. Find the missing middle word in six bridges, and their first letters spell the keystone.">
+<link rel="canonical" href="https://playsproutle.com/keystone/">
+<meta property="og:title" content="Keystone">
+<meta property="og:description" content="Six bridges, one keystone. Find the missing middle words. A new puzzle every day.">
+<meta property="og:url" content="https://playsproutle.com/keystone/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/keystone/icon-512.png">
+<link rel="icon" type="image/png" href="/keystone/icon-192.png">
+<link rel="apple-touch-icon" href="/keystone/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Keystone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
+<style>
+/* Layout: one narrow column. A stone arch on top holds the keystone word; six bridge rows below; keyboard at the bottom. */
+:root{
+  --bg:#F3ECDF; --surface:#FFFBF4; --ink:#2A231D; --muted:#76695A; --line:#DDD0BC;
+  --stone:#E6D8C1; --stone-edge:#C4B092; --stone-ink:#3A3026;
+  --river:#3B86A8; --accent:#2F7FA3; --accent-ink:#FFFFFF;
+  --good:#4F8C3C; --good-ink:#FFFFFF; --patch:#D4952B; --patch-ink:#2A1A04;
+  --key:#C9A227; --key-ink:#2A1F02; --bad:#C2452F; --key-bg:#E9E1D2;
+  --display:"Young Serif", Georgia, serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1B1815; --surface:#26211C; --ink:#F1E9DC; --muted:#AA9C89; --line:#3A332B;
+  --stone:#4A4036; --stone-edge:#62564A; --stone-ink:#F1E9DC;
+  --river:#6BB3D3; --accent:#6BB3D3; --accent-ink:#0B1C24;
+  --good:#6DB357; --good-ink:#0C1A08; --patch:#E8AE4A; --patch-ink:#231503;
+  --key:#E6C04D; --key-ink:#241B02; --bad:#E4664F; --key-bg:#3A332B; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#1B1815; --surface:#26211C; --ink:#F1E9DC; --muted:#AA9C89; --line:#3A332B;
+  --stone:#4A4036; --stone-edge:#62564A; --stone-ink:#F1E9DC;
+  --river:#6BB3D3; --accent:#6BB3D3; --accent-ink:#0B1C24;
+  --good:#6DB357; --good-ink:#0C1A08; --patch:#E8AE4A; --patch-ink:#231503;
+  --key:#E6C04D; --key-ink:#241B02; --bad:#E4664F; --key-bg:#3A332B; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:4px 10px}
+.mark{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:.01em}
+.mark span{color:var(--key)}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.meta{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;font-variant-numeric:tabular-nums}
+.cracks{display:flex;gap:5px;align-items:center}
+.ck{width:11px;height:11px;transform:rotate(45deg);border:2px solid var(--muted);border-radius:2px}
+.ck.used{background:var(--bad);border-color:var(--bad)}
+
+.arch{display:block;width:100%;max-width:330px;margin:0 auto;cursor:pointer;touch-action:manipulation}
+.arch text{font-family:var(--display);font-size:22px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.arch .sel path.st{stroke:var(--accent);stroke-width:2.5}
+.arch.pulse{animation:pulse .6s ease}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.archcap{text-align:center;font-size:13px;color:var(--muted);margin-top:2px;min-height:18px}
+.archcap b{color:var(--ink)}
+
+.board{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:44px;padding:4px 8px;border-radius:12px;border:2px solid transparent;background:var(--surface);width:100%;text-align:center}
+.row.sel{border-color:var(--accent);box-shadow:0 4px 14px -8px var(--accent)}
+.row.done{cursor:default}
+.w{font-weight:800;font-size:clamp(12px,3.7vw,15px);letter-spacing:.05em;text-transform:uppercase;min-width:0;overflow-wrap:anywhere}
+.lw{text-align:right}.rw{text-align:left}
+.tiles{display:flex;gap:3px}
+.t{width:clamp(24px,7.2vw,30px);height:34px;border-radius:6px;background:var(--bg);border:1.5px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:17px;text-transform:uppercase}
+.t.cs{border-color:var(--stone-edge);border-bottom-width:4px}
+.t.rv{color:var(--patch)}
+.t.ty{border-color:var(--ink)}
+.row.solved .t{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.row.solved.patched .t{background:var(--patch);border-color:var(--patch);color:var(--patch-ink)}
+.row.missed .t{color:var(--bad);border-color:var(--bad)}
+.row.shake{animation:shake .35s ease}
+.row.pop .t{animation:flip .4s ease both}
+.row.pop .t:nth-child(2){animation-delay:.05s}.row.pop .t:nth-child(3){animation-delay:.1s}.row.pop .t:nth-child(4){animation-delay:.15s}.row.pop .t:nth-child(5){animation-delay:.2s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes flip{50%{transform:rotateX(90deg)}}
+
+.actions{display:flex;gap:8px}
+.abtn{flex:1;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.abtn.on{border-color:var(--key);background:var(--key);color:var(--key-ink)}
+
+.kb{display:flex;flex-direction:column;gap:6px;user-select:none}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:42px;height:50px;border:none;border-radius:7px;background:var(--key-bg);font-weight:700;font-size:16px;padding:0;touch-action:manipulation}
+.k.wide{max-width:66px;flex:1.5;font-size:12px;letter-spacing:.04em}
+.k:active{filter:brightness(.9)}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.share{height:50px;border:none;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:700;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.more{font-size:14px;font-weight:700;color:var(--accent);text-align:center}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(20,14,8,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:28px}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.ex{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;letter-spacing:.05em;background:var(--bg);border-radius:10px;padding:10px}
+.ex .tiles .t{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dlab{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--key-bg);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--good);color:var(--good-ink)}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Key<span>stone</span></div>
+    <div class="hbtns">
+      <a class="ibtn" href="/games" aria-label="More games" title="More games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="meta"><span id="pNo">No. 1</span><span class="cracks" id="cracks" aria-label="Cracks"></span></div>
+
+  <div>
+    <svg class="arch" id="arch" viewBox="0 0 320 136" role="button" aria-label="Keystone word. Tap to guess it."></svg>
+    <div class="archcap" id="archCap"></div>
+  </div>
+
+  <section class="board" id="board" aria-label="Bridges"></section>
+
+  <section id="play">
+    <div class="actions" style="margin-bottom:10px">
+      <button class="abtn" id="btnHint">Reveal a letter</button>
+      <button class="abtn" id="btnKey">Guess keystone</button>
+    </div>
+    <div class="kb" id="kb"></div>
+  </section>
+
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Each bridge needs the missing middle word that joins both sides.</p>
+    <div class="ex"><span>SEA</span><span class="tiles"><span class="t">G</span><span class="t">R</span><span class="t">A</span><span class="t">S</span><span class="t">S</span></span><span>HOPPER</span></div>
+    <ul>
+      <li>Seagrass and grasshopper. Build all six bridges to win.</li>
+      <li>The first letters of the six answers spell the <b>keystone</b>. Guess it early from the arch to claim it.</li>
+      <li>A wrong guess cracks the bridge. Five cracks and it gives way.</li>
+      <li>Stuck? Reveal a letter. The bridge still counts, but it turns gold instead of green.</li>
+    </ul>
+    <button class="close" data-close>Start building</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dlab">Cracks per win</div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script>
+// Each puzzle: six [left, ANSWER, right] bridges. The answers' first letters spell the keystone.
+const PUZZLES = [
+  [["SEA","GRASS","HOPPER"],["FIRE","ARM","CHAIR"],["BED","ROOM","MATE"],["HOT","DOG","HOUSE"],["NEST","EGG","SHELL"],["PEA","NUT","CRACKER"]],
+  [["WAR","SHIP","WRECK"],["TEA","POT","LUCK"],["EAR","RING","TONE"],["LEFT","OVER","COAT"],["BACK","UP","BEAT"],["SWEET","TOOTH","PASTE"]],
+  [["BOB","CAT","FISH"],["MID","AIR","PLANE"],["SUPER","STAR","LIGHT"],["TIME","TABLE","SPOON"],["WILD","LIFE","GUARD"],["WEEK","END","ZONE"]],
+  [["DUST","PAN","CAKE"],["DRY","ICE","CREAM"],["BUTTER","CUP","BOARD"],["FOOT","NOTE","BOOK"],["SQUID","INK","WELL"],["POP","CORN","BREAD"]],
+  [["ACID","RAIN","BOW"],["TAKE","OFF","SHORE"],["CUP","CAKE","WALK"],["TURN","KEY","HOLE"],["BLACK","EYE","LASH"],["DAY","TIME","LINE"]],
+  [["HONEY","MOON","LIGHT"],["PINE","APPLE","SAUCE"],["WHITE","GOLD","FISH"],["FINGER","NAIL","POLISH"],["MOTHER","EARTH","QUAKE"],["BULLET","TRAIN","STATION"]],
+  [["RAIN","WATER","FALL"],["POISON","IVY","LEAGUE"],["BOTTLE","NECK","LACE"],["LAP","TOP","HAT"],["DOG","EAR","PLUG"],["RAIL","ROAD","TRIP"]],
+  [["CAMP","FIRE","WORKS"],["WORK","OUT","DOOR"],["BED","ROCK","STAR"],["HOW","EVER","GREEN"],["QUICK","SAND","CASTLE"],["FAMILY","TREE","HOUSE"]],
+  [["SIGN","POST","CARD"],["MOON","LIGHT","HOUSE"],["FIRE","ANT","HILL"],["GOOD","NEWS","PAPER"],["EASTER","EGG","PLANT"],["PONY","TAIL","GATE"]],
+  [["TEA","SPOON","FEED"],["DOWN","UNDER","DOG"],["SNOW","MAN","HOLE"],["BUTTER","MILK","SHAKE"],["TENNIS","ELBOW","ROOM"],["LAB","RAT","RACE"]],
+  [["CASH","COW","BOY"],["POP","ART","WORK"],["MID","NIGHT","MARE"],["TRAP","DOOR","BELL"],["MAIN","LAND","SLIDE"],["RED","EYE","BALL"]],
+  [["LUMBER","JACK","POT"],["PICK","UP","TOWN"],["HAIR","NET","WORK"],["BUBBLE","GUM","DROP"],["UPPER","LIP","STICK"],["PRIVATE","EYE","SORE"]],
+  [["PIG","PEN","KNIFE"],["OLIVE","OIL","SPILL"],["STREET","CAR","PET"],["SIDE","KICK","STAND"],["SUPER","EGO","TRIP"],["GREEN","TEA","POT"]],
+  [["LIME","STONE","AGE"],["BACK","HAND","SHAKE"],["FIRE","ALARM","CLOCK"],["EAR","DRUM","STICK"],["LOOK","OUT","LAW"],["DRIFT","WOOD","PECKER"]],
+];
+const MAXC = 5, NB = 6, KS = 6; // KS = selection index for the keystone
+
+// ---- Daily puzzle number (local date, puzzle #1 = Oct 13, 2026)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH = Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo = Math.max(1, dayIndex(new Date()) - EPOCH + 1);
+const P = PUZZLES[(pNo-1) % PUZZLES.length];
+const KEY = P.map(b=>b[1][0]).join("");
+
+// ---- Storage (optional; game works without it)
+const SKEY = "keystone-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,wins:0,cur:0,max:0,keys:0,dist:[0,0,0,0,0],lastWon:0};
+let S = (store.day && store.day.n===pNo) ? store.day : {n:pNo, solved:Array(NB).fill(false), rev:Array(NB).fill(0), tried:Array(NB+1).fill(0).map(()=>[]), cracks:0, keyAt:null, status:"playing"};
+store.day = S;
+
+let sel = S.solved.indexOf(false); if(sel<0) sel=0;
+let buf = "", fx = null; // fx: {type:"shake"|"pop", i}
+const $ = id=>document.getElementById(id);
+
+const keyKnown = i => S.solved[i] || S.rev[i]>0 || S.status==="lost";
+const keyOpen = () => [...Array(NB).keys()].filter(i=>!keyKnown(i));
+const capacity = i => i===KS ? keyOpen().length : P[i][1].length - S.rev[i];
+const solvedCount = () => S.solved.filter(Boolean).length;
+
+// ---- Arch
+function sectorPath(cx,cy,r1,r2,a0,a1){
+  const p=(r,a)=>`${(cx+r*Math.cos(a)).toFixed(1)} ${(cy-r*Math.sin(a)).toFixed(1)}`;
+  return `M${p(r2,a0)}A${r2} ${r2} 0 0 1 ${p(r2,a1)}L${p(r1,a1)}A${r1} ${r1} 0 0 0 ${p(r1,a0)}Z`;
+}
+function renderArch(){
+  const cx=160, cy=126, r1=60, r2=100, step=Math.PI/7, gap=.012;
+  const done=S.status!=="playing", keyDone=S.keyAt!==null || S.status==="won";
+  const open=keyOpen(); let typedAt={}; if(sel===KS && !done) [...buf].forEach((c,j)=>typedAt[open[j]]=c);
+  let s=`<path d="M8 ${cy-30}h${cx-r2-6}v34H8z" fill="var(--stone-edge)" rx="4"/><path d="M${cx+r2-2} ${cy-30}h${320-8-(cx+r2-2)}v34H${cx+r2-2}z" fill="var(--stone-edge)"/>`;
+  let w=`M${cx-r2+4} ${cy+2}`; for(let x=cx-r2+4;x<cx+r2-4;x+=16) w+=`q4 -5 8 0t8 0`;
+  s+=`<path d="${w}" fill="none" stroke="var(--river)" stroke-width="2.5" stroke-linecap="round"/>`;
+  s+=`<g class="${sel===KS&&!done?"sel":""}">`;
+  for(let k=0;k<7;k++){
+    const a0=Math.PI-k*step-gap, a1=Math.PI-(k+1)*step+gap, mid=(a0+a1)/2;
+    const isKey=k===3, i=k<3?k:k-1;
+    let fill="var(--stone)", ink="var(--stone-ink)", ch="";
+    if(isKey){
+      fill = keyDone ? "var(--key)" : "var(--stone)";
+      ink = keyDone ? "var(--key-ink)" : "var(--stone-ink)";
+    } else if(S.solved[i]){
+      fill = S.rev[i] ? "var(--patch)" : "var(--good)"; ink = S.rev[i] ? "var(--patch-ink)" : "var(--good-ink)"; ch=KEY[i];
+    } else if(keyKnown(i)){
+      ch=KEY[i]; if(S.status==="lost"){ fill="var(--bg)"; ink="var(--bad)"; }
+    } else if(typedAt[i]){ ch=typedAt[i]; ink="var(--accent)"; }
+    const R2 = isKey ? r2+12 : r2, R1 = isKey ? r1-2 : r1;
+    s+=`<path class="st" d="${sectorPath(cx,cy,R1,R2,a0,a1)}" fill="${fill}" stroke="var(--stone-edge)" stroke-width="1.5" stroke-linejoin="round"/>`;
+    const rm=(R1+R2)/2, tx=cx+rm*Math.cos(mid), ty=cy-rm*Math.sin(mid);
+    if(isKey){
+      // little key glyph
+      s+=`<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)})" stroke="${ink}" stroke-width="2.4" fill="none" stroke-linecap="round"><circle cx="0" cy="-7" r="5"/><path d="M0 -2V11M0 6h4M0 10h4"/></g>`;
+    } else if(ch){
+      s+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="${ink}">${ch}</text>`;
+    } else {
+      s+=`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="2.5" fill="var(--stone-edge)"/>`;
+    }
+  }
+  s+=`</g>`;
+  $("arch").innerHTML=s;
+  let cap="";
+  if(S.keyAt!==null) cap=`Keystone <b>${KEY}</b> called at ${S.keyAt}/6`;
+  else if(done) cap=`The keystone was <b>${KEY}</b>`;
+  else if(sel===KS) cap= open.length ? "Type the missing letters of the keystone" : "Press Enter to set the keystone";
+  else cap="First letters spell the keystone. Tap the arch to guess it.";
+  $("archCap").innerHTML=cap;
+}
+
+// ---- Board
+function renderBoard(){
+  const done=S.status!=="playing";
+  const b=$("board"); b.innerHTML="";
+  P.forEach(([L,A,R],i)=>{
+    const row=document.createElement("button"); row.className="row"; row.dataset.i=i;
+    if(S.solved[i]) row.classList.add("solved","done");
+    if(S.rev[i]) row.classList.add("patched");
+    if(done){ row.classList.add("done"); if(!S.solved[i]) row.classList.add("missed"); }
+    if(!done && sel===i) row.classList.add("sel");
+    if(fx && fx.i===i) row.classList.add(fx.type);
+    let tiles="";
+    for(let j=0;j<A.length;j++){
+      let ch="", cls="t"+(j===0?" cs":"");
+      if(S.solved[i] || done) ch=A[j];
+      else if(j<S.rev[i]){ ch=A[j]; cls+=" rv"; }
+      else if(sel===i && buf[j-S.rev[i]]){ ch=buf[j-S.rev[i]]; cls+=" ty"; }
+      tiles+=`<span class="${cls}">${ch}</span>`;
+    }
+    row.innerHTML=`<span class="w lw">${L}</span><span class="tiles">${tiles}</span><span class="w rw">${R}</span>`;
+    row.setAttribute("aria-label", `${L}, ${A.length} letters, ${R}` + (S.solved[i]?`: ${A}`:""));
+    row.addEventListener("click",()=>select(i));
+    b.appendChild(row);
+  });
+}
+
+function render(){
+  $("pNo").textContent="No. "+pNo;
+  $("cracks").innerHTML=Array.from({length:MAXC},(_,i)=>`<span class="ck${i<S.cracks?" used":""}"></span>`).join("");
+  renderArch(); renderBoard();
+  const done=S.status!=="playing";
+  $("play").hidden=done;
+  $("btnKey").classList.toggle("on", sel===KS);
+  $("btnKey").textContent = S.keyAt!==null ? "Keystone set ✓" : (sel===KS ? "Back to bridges" : "Guess keystone");
+  $("btnKey").disabled = S.keyAt!==null;
+  renderResult();
+  fx=null;
+}
+
+function nextOpen(from){
+  for(let k=1;k<=NB;k++){ const i=(from+k)%NB; if(!S.solved[i]) return i; }
+  return -1;
+}
+function select(i){
+  if(S.status!=="playing") return;
+  if(i!==KS && S.solved[i]) return;
+  if(i===KS && S.keyAt!==null) return;
+  if(sel!==i){ sel=i; buf=""; }
+  render();
+}
+
+function type(c){
+  if(S.status!=="playing") return;
+  if(buf.length<capacity(sel)){ buf+=c; render(); }
+}
+function back(){ if(buf){ buf=buf.slice(0,-1); render(); } }
+
+function crack(i,msg){
+  S.cracks++; fx={type:"shake",i};
+  if(S.cracks>=MAXC){ finish(false); toast("The bridge gave way"); }
+  else toast(msg + ` · ${MAXC-S.cracks} crack${MAXC-S.cracks===1?"":"s"} left`);
+}
+
+function submit(){
+  if(S.status!=="playing") return;
+  if(buf.length<capacity(sel)){ toast("Not enough letters"); if(sel!==KS){fx={type:"shake",i:sel};} render(); return; }
+  if(sel===KS){
+    const open=keyOpen(); let g=""; let j=0;
+    for(let i=0;i<NB;i++) g += keyKnown(i) ? KEY[i] : buf[j++];
+    if(g===KEY){
+      S.keyAt=solvedCount(); toast("Keystone set! 🗝️");
+      $("arch").classList.remove("pulse"); void $("arch").offsetWidth; $("arch").classList.add("pulse");
+      sel=nextOpen(-1); buf="";
+    } else if(S.tried[NB].includes(g)){ toast("Already tried that"); buf=""; }
+    else { S.tried[NB].push(g); buf=""; crack(-1,"Not the keystone"); }
+    save(); render(); return;
+  }
+  const A=P[sel][1], g=A.slice(0,S.rev[sel])+buf;
+  if(g===A){
+    S.solved[sel]=true; fx={type:"pop",i:sel}; buf="";
+    if(S.solved.every(Boolean)) finish(true);
+    else { toast(["Built!","Solid.","Nice.","That holds."][Math.floor(Math.random()*4)]); sel=nextOpen(sel); }
+  } else if(S.tried[sel].includes(g)){ toast("Already tried that"); buf=""; fx={type:"shake",i:sel}; }
+  else { S.tried[sel].push(g); buf=""; crack(sel,"Doesn't fit"); }
+  save(); render();
+}
+
+function hint(){
+  if(S.status!=="playing") return;
+  if(sel===KS){ toast("Pick a bridge to reveal a letter"); return; }
+  const A=P[sel][1];
+  if(S.rev[sel]>=A.length-1){ toast("The last letter's on you"); return; }
+  S.rev[sel]++; buf=""; save(); render();
+}
+
+function finish(won){
+  S.status = won?"won":"lost";
+  const st=store.stats; st.played++;
+  if(won){
+    st.wins++; st.dist[Math.min(S.cracks,4)]++;
+    st.cur = (st.lastWon===pNo-1) ? st.cur+1 : 1; st.lastWon=pNo; st.max=Math.max(st.max,st.cur);
+    if(S.keyAt!==null) st.keys++;
+  } else st.cur=0;
+}
+
+function shareText(){
+  const grid=P.map((_,i)=>!S.solved[i]?"⬛":S.rev[i]?"🟨":"🟩").join("");
+  const won=S.status==="won";
+  let line2 = S.keyAt!==null ? `🗝️ at ${S.keyAt}/6` : "🗝️ —";
+  line2 += won ? ` · ${S.cracks} crack${S.cracks===1?"":"s"}` : " · collapsed";
+  return `Keystone No. ${pNo}\n${grid}\n${line2}\nplaysproutle.com/keystone`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const won=S.status==="won", patches=S.rev.filter(Boolean).length;
+  const clean = won && !S.cracks && !patches;
+  const head = !won ? "The bridge gave way" : clean ? (S.keyAt!==null ? "Master mason" : "Flawless crossing") : "Bridge built";
+  let sub;
+  if(won){
+    const bits=[`${S.cracks} crack${S.cracks===1?"":"s"}`, `${patches} letter${patches===1?"":"s"} revealed`];
+    sub = `All six bridges standing with ${bits.join(" and ")}. ` + (S.keyAt!==null ? `You called the keystone <b>${KEY}</b> at ${S.keyAt}/6.` : `The keystone was <b>${KEY}</b>.`);
+  } else sub = `You built ${solvedCount()} of 6. The answers are filled in above, and the keystone was <b>${KEY}</b>.`;
+  r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>
+    <a class="more" href="/games">Play more games →</a>`;
+  $("btnShare").onclick = ()=>{
+    const txt=shareText();
+    const ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  let s=Math.max(0,Math.floor((mid-now)/1000));
+  const h=String(Math.floor(s/3600)).padStart(2,"0"), m=String(Math.floor(s%3600/60)).padStart(2,"0"), x=String(s%60).padStart(2,"0");
+  el.textContent=`${h}:${m}:${x}`;
+}
+setInterval(tick,1000);
+
+let toastT;
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(toastT);
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  toastT=setTimeout(()=>t.remove(),1800);
+}
+
+function openStats(){
+  const st=store.stats, pct=st.played?Math.round(st.wins/st.played*100):0;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[pct,"Win %"],[st.cur,"Streak"],[st.keys,"Keystones"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const mx=Math.max(1,...st.dist);
+  $("dist").innerHTML=st.dist.map((v,i)=>`<div class="bar">${i}<i class="${S.status==="won"&&Math.min(S.cracks,4)===i?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+// ---- Keyboard
+const ROWS=["QWERTYUIOP","ASDFGHJKL","+ZXCVBNM-"];
+$("kb").innerHTML=ROWS.map(r=>`<div class="kr">${[...r].map(c=> c==="+"?`<button class="k wide" data-k="Enter">ENTER</button>` : c==="-"?`<button class="k wide" data-k="Backspace" aria-label="Delete">⌫</button>` : `<button class="k" data-k="${c}">${c}</button>`).join("")}</div>`).join("");
+$("kb").addEventListener("click",e=>{
+  const k=e.target.closest("[data-k]"); if(!k) return;
+  const v=k.dataset.k; if(v==="Enter") submit(); else if(v==="Backspace") back(); else type(v);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); return; }
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(document.querySelector(".scrim:not([hidden])")) return;
+  if(e.key==="Enter"){ e.preventDefault(); submit(); }
+  else if(e.key==="Backspace") back();
+  else if(/^[a-zA-Z]$/.test(e.key)) type(e.key.toUpperCase());
+  else if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+    e.preventDefault(); if(S.status!=="playing") return;
+    const d=e.key==="ArrowDown"?1:-1; let i=sel;
+    for(let n=0;n<8;n++){ i=(i+d+8)%7; if(i===KS ? S.keyAt===null : !S.solved[i]) break; }
+    select(i);
+  }
+});
+
+$("arch").addEventListener("click",()=>select(KS));
+$("btnKey").onclick=()=>{ if(sel===KS){ const n=nextOpen(-1); select(n<0?0:n); } else select(KS); };
+$("btnHint").onclick=hint;
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+render();
+</script>
+</body>
+</html>
