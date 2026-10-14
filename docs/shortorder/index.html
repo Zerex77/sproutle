@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#D8392B">
+<meta name="description" content="Short Order: a free daily diner game. Work the grill, fryer and cold rail to fill eight tickets before your customers walk out.">
+<link rel="canonical" href="https://playsproutle.com/shortorder/">
+<meta property="og:title" content="Short Order">
+<meta property="og:description" content="Eight tickets. One grill. Don't let it burn. A new shift every day.">
+<meta property="og:url" content="https://playsproutle.com/shortorder/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/shortorder/icon-512.png">
+<link rel="icon" type="image/png" href="/shortorder/icon-192.png">
+<link rel="apple-touch-icon" href="/shortorder/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Short Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Courier+Prime:wght@400;700&family=Rubik:wght@400;500;700&display=swap">
+<style>
+/* Layout: a kitchen line seen from the cook's spot — ticket rail, the plate on the pass, flat-top grill, cold rail, fryer + fountain */
+:root{
+  --bg:#E4EFE8; --surface:#F7FBF8; --ink:#1E2B26; --muted:#5D6F67; --line:#C3D6CB;
+  --accent:#D8392B; --accent-ink:#FFFFFF; --mustard:#E9B23A; --pickle:#4F8A3A;
+  --ticket:#FFFEF8; --ticket-ink:#2A2620;
+  --steel:#B9C4C0; --steel-dk:#8E9A96;
+  --display:"Bowlby One","Arial Black",Impact,sans-serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Courier Prime","Courier New",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#142320; --surface:#1C2F2B; --ink:#E7F1EC; --muted:#9DB2A9; --line:#2F4741;
+  --accent:#F0584A; --accent-ink:#1A0E0C; --mustard:#F2C14E; --pickle:#7CC15F;
+  --ticket:#F3EFE3; --ticket-ink:#2A2620; --steel:#56625E; --steel-dk:#3E4845; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#142320; --surface:#1C2F2B; --ink:#E7F1EC; --muted:#9DB2A9; --line:#2F4741;
+  --accent:#F0584A; --accent-ink:#1A0E0C; --mustard:#F2C14E; --pickle:#7CC15F;
+  --ticket:#F3EFE3; --ticket-ink:#2A2620; --steel:#56625E; --steel-dk:#3E4845; color-scheme:dark }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 20px}
+.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-family:var(--display);font-weight:400;font-size:1.7rem;margin:0;line-height:1}
+h1 span{color:var(--accent)}
+.meta{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.tips{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;color:var(--pickle)}
+.progress{display:flex;gap:5px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress i.ok{background:var(--pickle)} .progress i.bad{background:var(--accent)} .progress i.now{background:var(--mustard)}
+button{font-family:var(--body);cursor:pointer;border:none;background:none;color:inherit;padding:0;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--mustard);outline-offset:2px}
+.stationlbl{display:flex;justify-content:space-between;align-items:baseline;font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:-4px}
+.stationlbl em{font-style:normal;text-transform:none;letter-spacing:0;font-size:.72rem}
+
+/* ticket rail */
+.rail{display:grid;grid-template-columns:1fr 124px;gap:10px}
+.ticket{background:var(--ticket);color:var(--ticket-ink);font-family:var(--mono);padding:9px 11px 12px;border-radius:2px;position:relative;min-width:0;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,radial-gradient(circle 4px at 6px 100%,transparent 4px,#000 4.5px) bottom left/12px 7px repeat-x;
+          mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,radial-gradient(circle 4px at 6px 100%,transparent 4px,#000 4.5px) bottom left/12px 7px repeat-x}
+.ticket .th{display:flex;justify-content:space-between;font-size:.7rem;border-bottom:1px dashed #9a9384;padding-bottom:4px;margin-bottom:5px}
+.ticket ol{margin:0;padding-left:1.4em;font-size:.92rem;line-height:1.3;font-weight:700}
+.ticket .extra{margin-top:5px;font-size:.82rem;border-top:1px dashed #9a9384;padding-top:4px}
+.ticket .flipped{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:96px;text-align:center;font-size:.78rem}
+.ticket .peek{font-family:var(--body);font-weight:700;font-size:.78rem;background:var(--ticket-ink);color:var(--ticket);padding:6px 12px;border-radius:6px}
+.ticket .rush{position:absolute;top:6px;right:50%;transform:translateX(50%);background:var(--accent);color:#fff;font-family:var(--body);font-size:.6rem;font-weight:700;letter-spacing:.1em;padding:1px 6px;border-radius:3px}
+.cust{display:flex;flex-direction:column;justify-content:space-between;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px}
+.cust .name{font-weight:700}
+.cust .mood{font-size:.72rem;color:var(--muted)}
+.pat{height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.pat b{display:block;height:100%;width:100%;background:var(--pickle)}
+.pat.warn b{background:var(--mustard)} .pat.crit b{background:var(--accent)}
+.secs{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* the plate on the pass */
+.pass{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;position:relative}
+.stack{display:flex;flex-direction:column-reverse;align-items:center;min-height:150px;position:relative}
+.stack::before{content:"";position:absolute;bottom:-4px;width:190px;height:8px;border-radius:50%;background:var(--line)}
+.layer{margin-top:-2px;position:relative}
+.layer.pop{animation:pop .18s ease-out}
+@keyframes pop{from{transform:translateY(-16px);opacity:.3}to{transform:none;opacity:1}}
+.bun-b{width:150px;height:18px;background:#D9973F;border-radius:4px 4px 16px 16px;box-shadow:inset 0 -4px 0 #B87A2B}
+.bun-t{width:150px;height:40px;background:#D9973F;border-radius:75px 75px 6px 6px/40px 40px 6px 6px;box-shadow:inset 0 -5px 0 #B87A2B;
+  background-image:radial-gradient(ellipse 3px 2px at 30% 35%,#FFF4D6 98%,transparent),radial-gradient(ellipse 3px 2px at 55% 22%,#FFF4D6 98%,transparent),radial-gradient(ellipse 3px 2px at 72% 42%,#FFF4D6 98%,transparent),radial-gradient(ellipse 3px 2px at 44% 55%,#FFF4D6 98%,transparent)}
+.patty{width:158px;height:17px;background:#5A3220;border-radius:9px;box-shadow:inset 0 3px 0 #74452E}
+.cheese{width:164px;height:13px;background:#F4C430;clip-path:polygon(0 0,100% 0,100% 50%,86% 50%,82% 100%,78% 50%,40% 50%,35% 100%,30% 50%,0 50%)}
+.lettuce{width:166px;height:10px;background:#6DBE45;clip-path:polygon(0 30%,8% 0,16% 40%,25% 0,34% 40%,43% 0,52% 40%,61% 0,70% 40%,79% 0,88% 40%,96% 0,100% 30%,100% 100%,0 100%)}
+.tomato{width:146px;height:9px;background:#D8392B;border-radius:6px;box-shadow:inset 0 -2px 0 #A82A1F}
+.onion{width:138px;height:8px;border:3px solid #C9A0DC;border-radius:10px}
+.pickles{width:132px;height:8px;background:repeating-linear-gradient(90deg,#5F8A2E 0 24px,transparent 24px 30px);border-radius:5px}
+.bacon{width:160px;height:9px;background:repeating-linear-gradient(90deg,#B5462F 0 11px,#EDB09B 11px 15px);border-radius:3px;transform:skewX(-8deg)}
+.sidekit{display:flex;flex-direction:column;gap:8px;align-items:center}
+.slot{width:78px;min-height:56px;border:2px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding:4px;font-size:.68rem;font-weight:700;color:var(--muted)}
+.slot.full{border-style:solid;border-color:var(--steel-dk);color:var(--ink)}
+.flash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:2rem;border-radius:12px;pointer-events:none;z-index:3}
+.flash.good{background:color-mix(in srgb,var(--pickle) 24%,transparent);color:var(--pickle)}
+.flash.bad{background:color-mix(in srgb,var(--accent) 24%,transparent);color:var(--accent)}
+
+/* mini food for side + cup */
+.mini-fries{width:40px;height:30px;position:relative;background:linear-gradient(#D8392B,#B42A1F);clip-path:polygon(8% 30%,92% 30%,82% 100%,18% 100%);
+  box-shadow:none}
+.fries-wrap{position:relative;width:44px;height:36px}
+.fries-wrap::before{content:"";position:absolute;left:8px;right:8px;top:0;height:16px;background:repeating-linear-gradient(90deg,#F2C14E 0 4px,#E3A93A 4px 6px,transparent 6px 7px)}
+.fries-wrap .mini-fries{position:absolute;left:2px;bottom:0}
+.mini-rings{width:44px;height:28px;background:radial-gradient(circle at 30% 50%,transparent 5px,#C98A3A 6px,#C98A3A 10px,transparent 11px),radial-gradient(circle at 70% 50%,transparent 5px,#B97A2E 6px,#B97A2E 10px,transparent 11px)}
+.mini-salad{width:44px;height:28px;border-radius:0 0 22px 22px;background:linear-gradient(180deg,#6DBE45 0 45%,#E9EEF0 45%);box-shadow:inset 0 -3px 0 #C9D2D6}
+.cup{width:34px;height:42px;position:relative;clip-path:polygon(0 0,100% 0,86% 100%,14% 100%);background:#E9EEF0}
+.cup b{position:absolute;left:0;right:0;bottom:0;height:var(--fill,0%);background:var(--drink,#5a2a14)}
+.cup::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:rgba(0,0,0,.18)}
+
+/* flat-top grill */
+.grillrow{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch}
+.walkin{display:flex;flex-direction:column;gap:6px}
+.pack{width:62px;flex:1;border-radius:8px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.66rem;font-weight:700;padding:5px 2px}
+.pack:active,.tub:active,.basket:active,.nozzle:active{transform:scale(.95)}
+.rawpat{width:30px;height:16px;border-radius:50%;background:#E07F82;box-shadow:0 3px 0 #C9666A,0 6px 0 #E07F82,0 9px 0 #C9666A;margin-bottom:8px}
+.rawbacon{width:34px;height:20px;background:repeating-linear-gradient(0deg,#E58C88 0 4px,#F6D3C8 4px 6px);border-radius:3px;transform:skewY(-6deg)}
+.grill{border-radius:10px;padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  background:repeating-linear-gradient(90deg,#2E2F33 0 7px,#393B40 7px 9px);box-shadow:inset 0 0 0 3px #5B5F66,inset 0 -18px 30px rgba(255,96,32,.22)}
+.spot{aspect-ratio:1;border-radius:50%;position:relative;display:grid;place-items:center;--p:0;--c:var(--mustard)}
+.spot.empty{border:2px dashed rgba(255,255,255,.14)}
+.spot::after{content:"";position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),transparent 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px))}
+.spot.ready{--c:#7CC15F}
+.spot.empty::after,.spot.burnt::after{display:none}
+.spot .item{display:none}
+.spot.patty .item{display:block;width:78%;height:78%;border-radius:50%;
+  background:color-mix(in srgb,#6B3A22 calc(var(--p)*1%),#E07F82)}
+.spot.patty.ready .item{background:#6B3A22;background-image:repeating-linear-gradient(-35deg,transparent 0 7px,rgba(0,0,0,.45) 7px 9px)}
+.spot.bacon .item{display:block;width:90%;height:36%;border-radius:3px;transform:rotate(-20deg);
+  background:repeating-linear-gradient(0deg,color-mix(in srgb,#A8402B calc(var(--p)*1%),#E58C88) 0 3px,color-mix(in srgb,#E9A88F calc(var(--p)*1%),#F6D3C8) 3px 5px)}
+.spot.bacon.ready .item{background:repeating-linear-gradient(0deg,#A8402B 0 3px,#E9A88F 3px 5px)}
+.spot.burnt .item{background:#1E1410!important;box-shadow:0 0 10px 2px rgba(150,150,150,.5)}
+.spot.ready .item{animation:sizzle .5s ease-in-out infinite alternate}
+@keyframes sizzle{to{transform:scale(1.04) rotate(var(--r,0deg))}}
+.spot.bacon.ready .item{--r:-20deg}
+.spot .tag{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:.55rem;font-weight:700;letter-spacing:.06em;padding:1px 4px;border-radius:3px;white-space:nowrap;pointer-events:none}
+.spot.ready .tag{background:#7CC15F;color:#10200A}
+.spot.burnt .tag{background:#000;color:#fff}
+.spot.shake{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* cold rail */
+.coldrail{background:linear-gradient(var(--steel),var(--steel-dk));border-radius:10px;padding:8px;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.tub{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.64rem;font-weight:700;color:var(--ink)}
+.tub .well{width:100%;aspect-ratio:1;border-radius:6px;background:#DCE3E1;box-shadow:inset 0 2px 4px rgba(0,0,0,.35);padding:6px}
+.tub .fill{width:100%;height:100%;border-radius:3px}
+.f-cheese{background:linear-gradient(135deg,#F4C430 48%,#E3B020 48% 52%,#F4C430 52%);background-size:12px 12px}
+.f-lettuce{background:radial-gradient(circle at 30% 30%,#8BD45E 25%,transparent 26%),radial-gradient(circle at 70% 60%,#5FAE3C 30%,transparent 31%),#6DBE45;background-size:14px 14px}
+.f-tomato{background:radial-gradient(circle,#F07B6E 20%,#D8392B 22% 45%,transparent 47%) 0 0/16px 16px,#B42A1F}
+.f-onion{background:radial-gradient(circle,transparent 25%,#D8B7E8 27% 38%,transparent 40%) 0 0/14px 14px,#F2E8F6}
+.f-pickles{background:radial-gradient(circle,#8CB453 30%,#5F8A2E 32% 45%,transparent 47%) 0 0/13px 13px,#4C7024}
+.f-salad{border-radius:50%!important;background:radial-gradient(circle at 35% 40%,#D8392B 10%,transparent 11%),radial-gradient(circle at 65% 60%,#8BD45E 20%,transparent 21%),#6DBE45}
+
+/* fryer + fountain */
+.backline{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fryer{border-radius:10px;padding:8px;background:linear-gradient(var(--steel),var(--steel-dk));display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.basket{border-radius:6px;background:linear-gradient(#E0B44A,#C9922A);min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5px 4px;font-size:.64rem;font-weight:700;color:#3A2A08;position:relative;overflow:hidden;--p:0}
+.basket .mesh{width:84%;height:34px;border:2px solid #555;border-radius:3px;background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(60,60,60,.35) 3px 4px),repeating-linear-gradient(-45deg,transparent 0 3px,rgba(60,60,60,.35) 3px 4px);display:grid;place-items:center}
+.basket .mesh i{display:none;width:80%;height:70%}
+.basket.cooking .mesh i,.basket.ready .mesh i{display:block}
+.basket.fries .mesh i{background:repeating-linear-gradient(90deg,color-mix(in srgb,#F2C14E calc(var(--p)*1%),#F6E8B8) 0 4px,transparent 4px 6px)}
+.basket.rings .mesh i{background:radial-gradient(circle,transparent 30%,color-mix(in srgb,#C98A3A calc(var(--p)*1%),#EED9A8) 32% 62%,transparent 64%) 0 0/16px 16px}
+.basket .bar{width:84%;height:5px;border-radius:3px;background:rgba(0,0,0,.2);overflow:hidden}
+.basket .bar b{display:block;height:100%;width:calc(var(--p)*1%);background:#3A2A08}
+.basket.ready{box-shadow:inset 0 0 0 3px #7CC15F}
+.basket.cooking{animation:bubble .4s infinite alternate}
+@keyframes bubble{to{filter:brightness(1.08)}}
+.fountain{border-radius:10px;padding:8px;background:linear-gradient(var(--steel),var(--steel-dk));display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.nozzle{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.62rem;font-weight:700;color:var(--ink);border-radius:6px;padding:4px 0}
+.nozzle .head{width:26px;height:16px;border-radius:4px 4px 8px 8px;background:#5B5F66;position:relative}
+.nozzle .head::after{content:"";position:absolute;left:50%;top:100%;width:4px;height:0;margin-left:-2px;background:var(--drink)}
+.nozzle.pouring .head::after{height:14px}
+.nozzle .badge{width:26px;height:8px;border-radius:2px;background:var(--drink)}
+.nozzle .cup{width:24px;height:30px}
+
+/* actions */
+.actions{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px}
+.btn{border-radius:10px;padding:13px 10px;font-weight:700;font-size:.95rem;background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-family:var(--display);font-weight:400;letter-spacing:.04em;font-size:1.05rem}
+
+/* screens */
+.screen{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.screen h2{font-family:var(--display);font-weight:400;font-size:1.45rem;margin:0;text-wrap:balance}
+.screen p{margin:0;line-height:1.5;color:var(--muted);max-width:60ch}
+.rules{margin:0;padding-left:1.2em;line-height:1.55}
+.rules li::marker{color:var(--accent);font-weight:700}
+.big{font-family:var(--display);font-size:3rem;line-height:1;color:var(--pickle);font-variant-numeric:tabular-nums}
+.grid{font-size:1.6rem;letter-spacing:.1em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats div{border:1px solid var(--line);border-radius:8px;padding:8px 4px}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.copied{font-size:.8rem;color:var(--pickle);min-height:1.2em}
+textarea.share{width:100%;font-family:var(--mono);font-size:.85rem;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);color:var(--ink)}
+.foot{text-align:center;font-size:.75rem;color:var(--muted)}
+.foot a{color:inherit}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+@media (max-width:380px){.rail{grid-template-columns:1fr 104px}.bun-b,.bun-t{width:128px}.patty,.bacon{width:136px}.cheese,.lettuce{width:140px}.tomato{width:126px}.stack::before{width:160px}
+  .pack{width:52px}.backline{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.layer.pop,.spot.ready .item,.basket.cooking{animation:none}}
+</style>
+<script src="/site.js?v=202610141338" defer></script>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Short <span>Order</span></h1>
+      <div class="meta" id="dayLabel">Daily shift</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="text-align:right">
+        <div class="tips" id="tips">$0</div>
+        <div class="meta">tips</div>
+      </div>
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+    </div>
+  </header>
+
+  <section class="screen" id="startScreen">
+    <h2>You're on the grill. Eight tickets, then you can go home.</h2>
+    <ol class="rules">
+      <li>Tap the patty box or bacon pack to throw one on the flat-top. Tap it again once it turns green to put it on the bun. Wait too long and it burns.</li>
+      <li>Toppings come straight from the cold rail. Build bottom to top in the order on the ticket.</li>
+      <li>Drop fries or rings in the fryer and pull them when they're golden. Salad is on the cold rail. Pour drinks at the fountain.</li>
+      <li>Hit <b>Order up</b> before the customer gives up. Faster serves earn bigger tips.</li>
+      <li>From ticket 6 it's rush hour: tickets flip face down after 4 seconds, and peeking costs 2 seconds.</li>
+    </ol>
+    <p>Anything left on the grill stays there between tickets, so cooking ahead pays off. Just don't let it burn. Everyone gets the same eight orders today.</p>
+    <button class="btn primary" id="startBtn">Fire up the grill</button>
+  </section>
+
+  <section id="game" hidden style="display:flex;flex-direction:column;gap:10px">
+    <div class="progress" id="progress"></div>
+    <div class="rail">
+      <div class="ticket" id="ticket"></div>
+      <div class="cust">
+        <div><div class="name" id="custName"></div><div class="mood" id="custMood"></div></div>
+        <div><div class="pat" id="pat"><b id="patBar"></b></div><div class="secs" id="secs"></div></div>
+      </div>
+    </div>
+
+    <div class="pass" id="pass">
+      <div class="stack" id="stack"></div>
+      <div class="sidekit">
+        <button class="slot" id="sideSlot" aria-label="Side on plate, tap to dump"></button>
+        <button class="slot" id="drinkSlot" aria-label="Drink on plate, tap to dump"></button>
+      </div>
+    </div>
+
+    <div class="stationlbl"><span>Flat-top</span><em id="grillHint">Tap a box to cook</em></div>
+    <div class="grillrow">
+      <div class="walkin">
+        <button class="pack" id="packPatty"><span class="rawpat"></span>Patties</button>
+        <button class="pack" id="packBacon"><span class="rawbacon"></span>Bacon</button>
+      </div>
+      <div class="grill" id="grill"></div>
+    </div>
+
+    <div class="stationlbl"><span>Cold rail</span></div>
+    <div class="coldrail" id="coldrail"></div>
+
+    <div class="backline">
+      <div style="display:flex;flex-direction:column;gap:8px"><div class="stationlbl"><span>Fryer</span></div><div class="fryer" id="fryer"></div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><div class="stationlbl"><span>Fountain</span></div><div class="fountain" id="fountain"></div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="undoBtn">Pull top</button>
+      <button class="btn" id="clearBtn">Toss plate</button>
+      <button class="btn primary" id="serveBtn">Order up</button>
+    </div>
+  </section>
+
+  <section class="screen" id="endScreen" hidden>
+    <div class="meta" id="endLabel">Shift over</div>
+    <div class="big" id="endTips">$0</div>
+    <div class="grid" id="endGrid"></div>
+    <p id="endLine"></p>
+    <div class="stats" id="stats"></div>
+    <button class="btn primary" id="shareBtn">Copy results</button>
+    <div class="copied" id="copied"></div>
+    <textarea class="share" id="shareText" rows="4" readonly hidden></textarea>
+    <button class="btn" id="practiceBtn">Practice shift (doesn't count)</button>
+    <p style="font-size:.8rem">New tickets tomorrow at midnight.</p>
+    <div id="slb"></div>
+  </section>
+
+  <div class="foot">More games at <a href="https://playsproutle.com" target="_blank" rel="noopener">playsproutle.com</a></div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+(function(){
+const FILL=['patty','cheese','lettuce','tomato','onion','pickles','bacon'];
+const NAME={patty:'Patty',cheese:'Cheese',lettuce:'Lettuce',tomato:'Tomato',onion:'Onion',pickles:'Pickles',bacon:'Bacon'};
+const COLD=['cheese','lettuce','tomato','onion','pickles'];
+const SIDES=['Fries','Rings','Salad'], DRINKS=['Cola','Lemonade','Shake'];
+const DRINKCOL={Cola:'#4A2414',Lemonade:'#F3E37A',Shake:'#F2C6D4'};
+const NAMES=['Marge','Dale','Ruthie','Hank','Pearl','Gus','Lou','Bev','Otis','Dot','Earl','June','Walt','Fern','Sal','Opal','Merle','Ida'];
+const MOODS=['in a hurry','on lunch break','just got off shift','very particular','starving','a regular','first time here','tapping the counter'];
+const COOK={patty:3.5,bacon:2.5}, BURN=6, FRY=3, POUR=1.2;
+const N=8, RUSH_AT=5, FLIP_MS=4000, PEEK_COST=2, PEEK_MS=1500;
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function localDate(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+const today=localDate();
+// Shared puzzle number across playsproutle.com daily games (No. 1 = Oct 13, 2026)
+const dayNum=Math.max(1,Math.round((new Date(today+'T00:00:00')-new Date('2026-10-13T00:00:00'))/864e5)+1);
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let a=seed;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+function makeOrders(seed){
+  const r=rng(seed),pick=a=>a[Math.floor(r()*a.length)],out=[],used=new Set();
+  for(let i=0;i<N;i++){
+    const n=Math.min(6,2+Math.floor(i/2)+(r()<.3?1:0));
+    const layers=[];
+    for(let j=0;j<n;j++){
+      // patties more common; at most 3 grilled items per burger
+      const hot=layers.filter(l=>l==='patty'||l==='bacon').length;
+      let f=r()<.3?'patty':pick(FILL); if((f==='patty'||f==='bacon')&&hot>=3)f=pick(COLD);
+      layers.push(f);
+    }
+    if(!layers.includes('patty'))layers[0]='patty';
+    const side=r()<.45+i*.05?pick(SIDES):null, drink=r()<.45+i*.05?pick(DRINKS):null;
+    let name;do{name=pick(NAMES)}while(used.has(name));used.add(name);
+    const hot=layers.filter(l=>l==='patty'||l==='bacon').length;
+    const patience=Math.round(9+n*1.8+4+hot*1.6+(side?2.5:0)+(drink?2:0)-i*.5);
+    out.push({layers,side,drink,name,mood:pick(MOODS),table:1+Math.floor(r()*12),patience});
+  }
+  return out;
+}
+
+let S=null, raf=0;
+const KEY='shortorder-v1', STATS='shortorder:stats';
+
+/* ---- build stations ---- */
+const spots=[];
+for(let i=0;i<4;i++){const b=document.createElement('button');b.className='spot empty';b.setAttribute('aria-label','Grill spot '+(i+1));
+  b.innerHTML='<span class="item"></span><span class="tag"></span>';b.onclick=()=>tapSpot(i);$('grill').appendChild(b);spots.push(b)}
+COLD.concat(['salad']).forEach(id=>{const b=document.createElement('button');b.className='tub';
+  b.innerHTML='<span class="well"><span class="fill f-'+id+'"></span></span>'+(id==='salad'?'Salad':NAME[id]);
+  b.onclick=()=>id==='salad'?plateSide('Salad'):add(id);$('coldrail').appendChild(b)});
+const baskets=['Fries','Rings'].map((t,i)=>{const b=document.createElement('button');b.className='basket empty '+t.toLowerCase();
+  b.innerHTML='<span class="mesh"><i></i></span><span class="lab">'+t+'</span><span class="bar"><b></b></span>';b.onclick=()=>tapBasket(i);$('fryer').appendChild(b);return b});
+const nozzles=DRINKS.map(d=>{const b=document.createElement('button');b.className='nozzle';b.style.setProperty('--drink',DRINKCOL[d]);
+  b.innerHTML='<span class="head"></span><span class="cup" style="--drink:'+DRINKCOL[d]+'"><b></b></span>'+d;b.onclick=()=>pour(d);$('fountain').appendChild(b);return b});
+$('packPatty').onclick=()=>toGrill('patty');$('packBacon').onclick=()=>toGrill('bacon');
+$('sideSlot').onclick=()=>{if(live()){S.side=null;drawPlate()}};
+$('drinkSlot').onclick=()=>{if(live()){S.drink=null;drawPlate()}};
+
+const live=()=>S&&S.phase==='play';
+const now=()=>performance.now();
+function cookState(item,t,cook,burn){const e=(t-item.t0)/1000;
+  if(e<cook)return{st:'cooking',p:e/cook*100};
+  if(burn==null||e<cook+burn)return{st:'ready',p:burn==null?100:100-(e-cook)/burn*100};
+  return{st:'burnt',p:0}}
+
+function toGrill(type){if(!live())return;const i=S.grill.findIndex(g=>!g);
+  if(i<0){hint('Grill is full');return}S.grill[i]={type,t0:now()};drawStations()}
+function tapSpot(i){if(!live())return;const g=S.grill[i];if(!g){toGrill('patty');return}
+  const c=cookState(g,now(),COOK[g.type],BURN);
+  if(c.st==='cooking'){spots[i].classList.remove('shake');void spots[i].offsetWidth;spots[i].classList.add('shake');hint('Not done yet');return}
+  S.grill[i]=null;if(c.st==='burnt'){hint('Scraped into the trash');drawStations();return}
+  add(g.type);drawStations()}
+function tapBasket(i){if(!live())return;const f=S.fry[i],type=i?'Rings':'Fries';
+  if(!f){S.fry[i]={t0:now()};drawStations();return}
+  const c=cookState(f,now(),FRY,null);if(c.st==='cooking')return;
+  S.fry[i]=null;plateSide(type);drawStations()}
+function pour(d){if(!live()||S.pour)return;S.pour={d,t0:now()};drawStations()}
+function plateSide(s){if(!live())return;S.side=s;drawPlate()}
+function hint(t){$('grillHint').textContent=t;clearTimeout(hint.t);hint.t=setTimeout(()=>$('grillHint').textContent='Tap a box to cook',1400)}
+
+function drawStations(){
+  const t=now();
+  S.grill.forEach((g,i)=>{const el=spots[i];let cls='spot empty',p=0,tag='';
+    if(g){const c=cookState(g,t,COOK[g.type],BURN);cls='spot '+g.type+' '+c.st;p=c.p;tag=c.st==='ready'?'READY':c.st==='burnt'?'BURNT':''}
+    if(el.className.replace(' shake','')!==cls)el.className=cls;el.style.setProperty('--p',p.toFixed(1));
+    const tg=el.lastChild;if(tg.textContent!==tag)tg.textContent=tag});
+  S.fry.forEach((f,i)=>{const el=baskets[i],type=i?'rings':'fries';let st='empty',p=0;
+    if(f){const c=cookState(f,t,FRY,null);st=c.st;p=c.p}
+    const cls='basket '+st+' '+type;if(el.className!==cls)el.className=cls;el.style.setProperty('--p',p.toFixed(1));
+    const lab=el.querySelector('.lab'),txt=(i?'Rings':'Fries')+(st==='ready'?' · pull':st==='cooking'?'…':'');if(lab.textContent!==txt)lab.textContent=txt});
+  nozzles.forEach((n,i)=>{const d=DRINKS[i],on=S.pour&&S.pour.d===d;n.classList.toggle('pouring',!!on);
+    n.querySelector('.cup b').style.setProperty('--fill',on?Math.min(100,(t-S.pour.t0)/10/POUR)+'%':'0%')});
+  if(S.pour&&(t-S.pour.t0)/1000>=POUR){S.drink=S.pour.d;S.pour=null;drawPlate()}
+}
+
+/* ---- game flow ---- */
+function start(mode){
+  const seed=mode==='daily'?hash('shortorder-'+today):Math.floor(Math.random()*1e9);
+  S={mode,orders:makeOrders(seed),idx:0,results:[],score:0,phase:'play',grill:[null,null,null,null],fry:[null,null],pour:null};
+  $('dayLabel').textContent=mode==='daily'?'Shift #'+dayNum+' · '+new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}):'Practice shift';
+  $('startScreen').hidden=true;$('endScreen').hidden=true;$('game').hidden=false;$('tips').textContent='$0';
+  if(mode==='daily'&&window.SLB)SLB.start('shortorder',dayNum);
+  nextOrder();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+}
+function nextOrder(){
+  const o=S.orders[S.idx];
+  S.stack=[];S.side=null;S.drink=null;S.topped=false;S.left=o.patience;S.max=o.patience;S.shownAt=now();S.peekUntil=0;S.last=now();S.phase='play';
+  $('custName').textContent=o.name+' · T'+o.table;$('custMood').textContent=o.mood;
+  drawProgress();drawTicket();drawStack();drawPlate();
+}
+function drawProgress(){$('progress').innerHTML=S.orders.map((_,i)=>{const r=S.results[i];return '<i class="'+(r?(r==='late'||r==='wrong'?'bad':'ok'):(i===S.idx?'now':''))+'"></i>'}).join('')}
+function ticketHidden(){if(S.idx<RUSH_AT)return false;const t=now();return t-S.shownAt>FLIP_MS&&t>S.peekUntil}
+function drawTicket(){
+  const o=S.orders[S.idx],hide=ticketHidden();S.hiddenDrawn=hide;
+  let h='<div class="th"><span>#'+String(S.idx+1).padStart(2,'0')+'/'+N+'</span><span>TABLE '+o.table+'</span></div>';
+  if(S.idx>=RUSH_AT)h+='<span class="rush">RUSH</span>';
+  if(hide)h+='<div class="flipped"><b>Ticket flipped</b><button class="peek" id="peekBtn">Peek (−2s)</button></div>';
+  else h+='<ol>'+o.layers.map(l=>'<li>'+NAME[l]+'</li>').join('')+'</ol><div class="extra">'+(o.side?'+ '+o.side:'no side')+' · '+(o.drink?'+ '+o.drink:'no drink')+'</div>';
+  $('ticket').innerHTML=h;const pb=$('peekBtn');if(pb)pb.onclick=peek;
+}
+function drawStack(pop){let h='<div class="layer bun-b"></div>';
+  S.stack.forEach((l,i)=>{h+='<div class="layer '+l+(pop&&i===S.stack.length-1?' pop':'')+'"></div>'});
+  if(S.topped)h+='<div class="layer bun-t pop"></div>';$('stack').innerHTML=h}
+function drawPlate(){
+  const s=S.side,ss=$('sideSlot');ss.classList.toggle('full',!!s);
+  ss.innerHTML=s?(s==='Fries'?'<span class="fries-wrap"><span class="mini-fries"></span></span>':s==='Rings'?'<span class="mini-rings"></span>':'<span class="mini-salad"></span>')+s:'side';
+  const d=S.drink,ds=$('drinkSlot');ds.classList.toggle('full',!!d);
+  ds.innerHTML=d?'<span class="cup" style="--drink:'+DRINKCOL[d]+';--fill:85%"><b></b></span>'+d:'drink';
+}
+function add(id){if(!live()||S.stack.length>=8)return;S.stack.push(id);drawStack(true)}
+function undo(){if(!live())return;S.stack.pop();drawStack()}
+function toss(){if(!live())return;S.stack=[];S.side=null;S.drink=null;drawStack();drawPlate()}
+function peek(){if(!live()||!ticketHidden())return;S.left=Math.max(.1,S.left-PEEK_COST);S.peekUntil=now()+PEEK_MS;drawTicket()}
+function serve(){
+  if(!live())return;const o=S.orders[S.idx];
+  const ok=o.layers.length===S.stack.length&&o.layers.every((l,i)=>l===S.stack[i])&&o.side===S.side&&o.drink===S.drink;
+  if(ok){const tip=Math.round(5+o.layers.length*2+(o.side?2:0)+(o.drink?2:0)+S.left*1.5);
+    S.score+=tip;S.results[S.idx]=S.left/S.max>=.5?'perfect':'ok';S.topped=true;drawStack();finish('+$'+tip,'good')}
+  else{S.results[S.idx]='wrong';finish('Wrong order','bad')}
+}
+function finish(text,cls){
+  S.phase='between';$('tips').textContent='$'+S.score;drawProgress();
+  const f=document.createElement('div');f.className='flash '+cls;f.textContent=text;$('pass').appendChild(f);
+  setTimeout(()=>{f.remove();S.idx++;if(S.idx>=N)end();else nextOrder()},900);
+}
+function tick(t){
+  raf=requestAnimationFrame(tick);if(!S)return;
+  if(S.phase==='play'||S.phase==='between')drawStations();
+  if(S.phase!=='play')return;
+  const dt=Math.min(.25,(t-S.last)/1000);S.last=t;S.left-=dt;
+  if(S.left<=0){S.left=0;S.results[S.idx]='late';updPat();finish('Walked out','bad');return}
+  updPat();if(S.idx>=RUSH_AT&&ticketHidden()!==S.hiddenDrawn)drawTicket();
+}
+function updPat(){const f=S.left/S.max;$('patBar').style.width=(f*100)+'%';$('pat').className='pat'+(f<.25?' crit':f<.5?' warn':'');$('secs').textContent=S.left.toFixed(1)+'s left'}
+
+const EMO={perfect:'🍔',ok:'🟩',wrong:'🟥',late:'⏰'};
+function end(){
+  cancelAnimationFrame(raf);S.phase='done';const res={results:S.results,score:S.score};
+  if(S.mode==='daily'){store.set(KEY,{n:dayNum,results:res.results,score:res.score});if(window.SLB)SLB.stop('shortorder',dayNum);const st=store.get(STATS)||{played:0,best:0,streak:0,last:null};
+    if(st.last!==today){const y=new Date();y.setDate(y.getDate()-1);st.streak=st.last===localDate(y)?st.streak+1:1;st.played++;st.best=Math.max(st.best,S.score);st.last=today;store.set(STATS,st)}}
+  showEnd(res,S.mode);
+}
+function showEnd(res,mode){
+  $('startScreen').hidden=true;$('game').hidden=true;$('endScreen').hidden=false;
+  const served=res.results.filter(r=>r==='perfect'||r==='ok').length,perf=res.results.filter(r=>r==='perfect').length;
+  $('endLabel').textContent=mode==='daily'?'Shift #'+dayNum+' closed':'Practice shift closed';
+  $('endTips').textContent='$'+res.score;$('tips').textContent='$'+res.score;
+  $('endGrid').textContent=res.results.map(r=>EMO[r]).join('');
+  $('endLine').textContent=served+' of '+N+' served, '+perf+' with time to spare. '+(served===N?'Clean shift.':served>=6?'The regulars will be back.':served>=3?'Rough lunch rush.':'The health inspector has questions.');
+  const st=store.get(STATS)||{played:0,best:0,streak:0};
+  $('stats').innerHTML='<div><b>'+st.played+'</b><span>shifts</span></div><div><b>$'+st.best+'</b><span>best</span></div><div><b>'+st.streak+'</b><span>streak</span></div>';
+  $('shareBtn').hidden=mode!=='daily';$('copied').textContent='';$('shareText').hidden=true;
+  $('slb').innerHTML='';
+  if(mode==='daily'&&window.SLB)SLB.mount($('slb'),{game:'shortorder',day:dayNum,score:9999-res.score,eligible:true,fmt:x=>'$'+(9999-x),note:'Most tips wins. Ties go to the fastest.',accent:'var(--accent)',accentInk:'var(--accent-ink)'});
+}
+$('shareBtn').onclick=()=>{const res=store.get(KEY);if(!res||res.n!==dayNum)return;
+  const txt='Short Order #'+dayNum+'\n$'+res.score+' in tips\n'+res.results.map(r=>EMO[r]).join('')+'\nplaysproutle.com/shortorder';
+  const fallback=()=>{const ta=$('shareText');ta.value=txt;ta.hidden=false;ta.select();$('copied').textContent='Select and copy the text above.'};
+  try{navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied. Paste it in the group chat.'},fallback)}catch(e){fallback()}};
+$('startBtn').onclick=()=>start('daily');$('practiceBtn').onclick=()=>start('practice');
+$('undoBtn').onclick=undo;$('clearBtn').onclick=toss;$('serveBtn').onclick=serve;
+document.addEventListener('keydown',e=>{if(!live())return;if(e.key==='Backspace'){undo();e.preventDefault()}else if(e.key==='Enter'){serve();e.preventDefault()}});
+document.addEventListener('visibilitychange',()=>{if(S)S.last=now()});
+const done=store.get(KEY);if(done&&done.n===dayNum)showEnd(done,'daily');
+})();
+</script>
+</body>
+</html>
