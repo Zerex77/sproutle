@@ -40,14 +40,16 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 
 /* top bar */
 .top{display:flex;align-items:center;gap:8px}
-.logo{font-family:var(--display);font-size:1.45rem;line-height:1;color:#fff;-webkit-text-stroke:1.5px var(--ol);text-shadow:0 3px 0 var(--ol);letter-spacing:.01em;white-space:nowrap}
+.logo{font-family:var(--display);font-size:clamp(1.05rem,4.6vw,1.45rem);line-height:1;color:#fff;-webkit-text-stroke:1.5px var(--ol);text-shadow:0 3px 0 var(--ol);letter-spacing:.01em;white-space:nowrap}
 .logo span{color:var(--yellow)}
-.dots{flex:1;display:flex;gap:4px;justify-content:center}
-.dots i{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--ol)}
+.dots{flex:1;display:flex;gap:3px;justify-content:center;min-width:0}
+.dots i{width:10px;height:10px;flex:none;border-radius:50%;background:#fff;border:2px solid var(--ol)}
 .dots i.ok{background:var(--green)} .dots i.bad{background:var(--red)} .dots i.now{background:var(--yellow);transform:scale(1.2)}
 .cash{font-family:var(--display);font-size:1.15rem;background:var(--green);color:#fff;border:var(--o) solid var(--ol);border-radius:999px;padding:2px 10px;box-shadow:0 3px 0 var(--ol);-webkit-text-stroke:.6px var(--ol);font-variant-numeric:tabular-nums}
 .home{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;border:var(--o) solid var(--ol);box-shadow:0 3px 0 var(--ol);flex:none}
 .home svg{width:16px;height:16px}
+.home.trophy{background:var(--yellow)}
+.home.trophy svg{width:20px;height:20px}
 
 /* customer + order bubble */
 .order{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;min-height:118px}
@@ -182,7 +184,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .stats span{font-size:.7rem;color:var(--muted)}
 .note{font-size:.8rem;color:var(--muted);margin:0}
 textarea.share{width:100%;font-family:ui-monospace,monospace;font-size:.85rem;border:2px solid var(--ol);border-radius:8px;padding:8px}
-#slb{width:100%;text-align:left}
+#slb{width:100%;text-align:left;border:2px solid var(--ol);border-radius:12px;padding:10px;background:#FFF8DC}
+#slb:empty{display:none}
 @media (max-height:700px){.order{min-height:100px}.face{width:78px;height:78px}.order{grid-template-columns:82px 1fr}.burger{min-height:7.8em}.bell{width:66px;height:66px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -193,6 +196,7 @@ textarea.share{width:100%;font-family:ui-monospace,monospace;font-size:.85rem;bo
     <div class="logo">Short <span>Order</span></div>
     <div class="dots" id="dots"></div>
     <div class="cash" id="cash">$0</div>
+    <button class="home trophy" id="lbBtn" aria-label="Today's leaderboard"><svg viewBox="0 0 24 24" fill="#fff" stroke="#2B1D16" stroke-width="2.4" stroke-linejoin="round"><path d="M7 3h10v6a5 5 0 0 1-10 0z"/><path d="M7 5H3.5v1.5A3.5 3.5 0 0 0 7 10M17 5h3.5v1.5A3.5 3.5 0 0 1 17 10" fill="none"/><path d="M12 14v4M8 21h8l-1-3H9z"/></svg></button>
     <a class="home" href="/" aria-label="All games"><svg viewBox="0 0 24 24" fill="none" stroke="#2B1D16" stroke-width="3"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></a>
   </div>
 
@@ -240,13 +244,13 @@ textarea.share{width:100%;font-family:ui-monospace,monospace;font-size:.85rem;bo
     <div class="note" id="endLabel"></div>
     <div class="tipbig" id="endTips">$0</div>
     <div class="grid" id="endGrid"></div>
+    <div id="slb"></div>
     <div class="stats" id="stats"></div>
     <button class="big-btn" id="shareBtn">Share</button>
     <div class="note" id="copied"></div>
     <textarea class="share" id="shareText" rows="4" readonly hidden></textarea>
     <button class="sm-btn" id="practiceBtn">Practice shift</button>
     <p class="note">New orders tomorrow</p>
-    <div id="slb"></div>
   </section>
 </div>
 
@@ -427,6 +431,7 @@ function tick(t){
   raf=requestAnimationFrame(tick);if(!S)return;
   if(S.phase==='play'||S.phase==='between')drawStations();
   if(S.phase!=='play')return;
+  if(document.querySelector('.slb-scrim')){const d=t-S.last;S.last=t;S.shownAt+=d;S.peekUntil+=d;for(const g of S.grill)if(g)g.t0+=d;for(const f of S.fry)if(f)f.t0+=d;if(S.pour)S.pour.t0+=d;return}
   const dt=Math.min(.25,(t-S.last)/1000);S.last=t;S.left-=dt;
   if(S.left<=0){S.left=0;S.results[S.idx]='late';updFace();finish('Bye!',true);return}
   updFace();if(S.idx>=RUSH_AT&&hidden()!==S.hidDrawn)drawBubble();
@@ -449,12 +454,15 @@ function showEnd(res,mode){
   const st=store.get(STATS)||{played:0,best:0,streak:0};
   $('stats').innerHTML='<div><b>'+st.played+'</b><span>shifts</span></div><div><b>$'+st.best+'</b><span>best</span></div><div><b>'+st.streak+'</b><span>streak</span></div>';
   $('shareBtn').hidden=mode!=='daily';$('copied').textContent='';$('shareText').hidden=true;$('slb').innerHTML='';
-  if(mode==='daily'&&window.SLB)SLB.mount($('slb'),{game:'shortorder',day:dayNum,score:9999-res.score,eligible:true,fmt:x=>'$'+(9999-x),note:'Most tips wins. Ties go to the fastest.',accent:'var(--red)',accentInk:'#fff'});
+  if(mode==='daily'&&window.SLB)SLB.mount($('slb'),Object.assign({},LB,{score:9999-res.score,eligible:true}));
 }
 $('shareBtn').onclick=()=>{const res=store.get(KEY);if(!res||res.n!==dayNum)return;
   const txt='Short Order #'+dayNum+' 🍳 $'+res.score+'\n'+res.results.map(r=>EMO[r]).join('')+'\nplaysproutle.com/shortorder';
   const fb=()=>{const ta=$('shareText');ta.value=txt;ta.hidden=false;ta.select();$('copied').textContent='Copy the text above'};
   try{navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied!'},fb)}catch(e){fb()}};
+const LB={game:'shortorder',day:dayNum,fmt:x=>'$'+(9999-x),note:'Most tips wins. Ties go to the fastest.',accent:'var(--red)',accentInk:'#fff'};
+$('lbBtn').onclick=()=>{if(!window.SLB)return;const d=store.get(KEY),mine=d&&d.n===dayNum;
+  SLB.open(Object.assign({},LB,{score:mine?9999-d.score:0,eligible:!!mine,title:"Today's top 10",panelBg:'#FFF8DC',panelInk:'#2B1D16'}))};
 $('startBtn').onclick=()=>start('daily');$('practiceBtn').onclick=()=>start('practice');
 document.addEventListener('keydown',e=>{if(!live())return;if(e.key==='Enter'){serve();e.preventDefault()}else if(e.key==='Backspace'){$('burger').click();e.preventDefault()}});
 
