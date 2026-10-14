@@ -17,3 +17,9 @@ Live at https://playsproutle.com
 - `build/almamater/` holds Alma Mater, the daily guess-the-team puzzle: an NFL starting offense drawn as O's in each player's college colors. Lineups are the `L` list in its script, and school colors and codes are the `S` map. Copied to `docs/almamater/`.
 
 Word list based on SCOWL by Kevin Atkinson (MIT-style license).
+
+## Ads, stats and the friends list
+Settings live at the top of `build_site.py`; every page loads the generated `docs/site.js`.
+- `ADSENSE_CLIENT`: paste your `ca-pub-...` ID to turn on Google AdSense (auto ads). This also writes `docs/ads.txt` and switches the "no ads" wording on the homepage, About and Privacy pages. Pages in `NO_AD_PATHS` (the little-kids games) never load ads.
+- `GOATCOUNTER`: your GoatCounter site code for cookie-free visitor stats.
+- `FRIEND_CODE`: anyone who opens `playsproutle.com/?friend=<code>` once never sees ads on that device. `?friend=off` turns ads back on.

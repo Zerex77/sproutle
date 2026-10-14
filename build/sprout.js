@@ -260,7 +260,7 @@ const label=()=>S.end!=="bloom"?"Wilted":score()===0?"Perfect bloom":"Full bloom
 function trail(){return "🌱"+S.log.map(c=>c==="g"?"🟩":c==="x"?"🟥":c==="y"?"🟨":c==="h"?"💡":"✂️").join("")+(S.end==="bloom"?"🌸":"🥀");}
 function shareText(){
   const res=S.end!=="bloom"?"🥀 wilted":score()===0?"🌸 Perfect!":`🌸 +${score()}`;
-  return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}`;
+  return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}\nplaysproutle.com/sproutle`;
 }
 
 /* ---------- modals ---------- */

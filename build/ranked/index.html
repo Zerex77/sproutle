@@ -297,7 +297,7 @@ function finish(won){
 
 function shareText(){
   const score = S.status==="won" ? S.guesses.length : "X";
-  return `Ranked No. ${pNo} · ${score}/${MAX}\n${P.q}\n` + S.guesses.map(g=>g.map(x=>x?"🟩":"⬜").join("")).join("\n");
+  return `Ranked No. ${pNo} · ${score}/${MAX}\n${P.q}\n` + S.guesses.map(g=>g.map(x=>x?"🟩":"⬜").join("")).join("\n") + "\nplaysproutle.com/ranked";
 }
 
 function renderResult(){

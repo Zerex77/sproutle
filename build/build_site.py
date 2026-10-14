@@ -4,6 +4,13 @@ OUT = os.path.join(D, '..', 'docs')
 DOMAIN = 'https://playsproutle.com'
 LAUNCH = (2026, 9, 12)           # puzzle No. 1 (30 bonus archive days before the Oct 12 launch)
 PLUS_ENABLED = False             # flip to True once payments are live
+
+# ---- Money and stats (all off until filled in) ----
+ADSENSE_CLIENT = ''              # e.g. 'ca-pub-1234567890123456' once AdSense approves the site. Turns on ads + writes ads.txt
+GOATCOUNTER = ''                 # e.g. 'sproutle' if your stats page is sproutle.goatcounter.com
+FRIEND_CODE = 'sproutfam'        # friends open playsproutle.com/?friend=sproutfam once and never see ads on that device
+NO_AD_PATHS = ['/animalmatch/', '/bugsquish/']   # pages that never load ads (games for little kids)
+ADS = bool(ADSENSE_CLIENT)
 VERSION = datetime.datetime.now().strftime('%Y%m%d%H%M')
 
 src = open(os.path.join(D, 'sprout.src.html')).read()
@@ -38,7 +45,7 @@ HEAD = f'''<!doctype html>
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{DOMAIN}/og-image.png">
-<!-- Visitor stats: paste your Plausible or GoatCounter snippet on the next line -->
+<!-- Visitor stats and ads are loaded by /site.js (settings at the top of build_site.py) -->
 '''
 RESET = '<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n'
 
@@ -49,6 +56,10 @@ def meta(title, desc, path):
             '<meta property="og:type" content="website">\n')
 
 FOOT = '<nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/">All games</a><span>·</span><a href="/privacy">Privacy</a></nav>'
+
+ADS_PRIVACY = '''<h2>Advertising</h2>
+<p>The site is free because it shows ads from Google AdSense. Google and its partners may use cookies to show ads and measure them, including ads based on your visits to this and other sites. You can turn off personalized ads at <a href="https://adssettings.google.com">Google Ad Settings</a>, and Google explains how it uses data at <a href="https://policies.google.com/technologies/partner-sites">How Google uses information from sites that use its services</a>. Visitors in the EU and UK are asked for consent first. The games for little kids never show ads.</p>
+'''
 
 # ---------- game page ----------
 game = src.replace('<!--SITEFOOT-->', FOOT).replace('/*JS*/', '\n' + js)
@@ -101,7 +112,7 @@ def page(title, desc, path, body, button='<a class="play" href="/sproutle/">Play
             '<div class="page">\n<header class="top"><a class="brand" href="/"><img src="/icon-192.png" alt="">Sproutle</a>'
             + button +'</header>\n' + body + '\n' + FOOT + '\n</div>\n</body>\n</html>\n')
 
-privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, no ads, and your game progress stays on your device.', '/privacy', '''
+privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, and your game progress stays on your device.', '/privacy', '''
 <main class="card">
 <h1>Privacy</h1>
 <p class="muted">Last updated October 12, 2026</p>
@@ -109,10 +120,10 @@ privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, no a
 <h2>What stays on your device</h2>
 <p>Your puzzles, scores, streaks and settings are saved in your browser's local storage. They never leave your device, and we can't see them. Clearing your browser data erases them.</p>
 <h2>What we don't collect</h2>
-<ul><li>No accounts, names or email addresses.</li><li>No advertising and no ad trackers.</li><li>We don't sell or share personal data.</li></ul>
+<ul><li>No accounts, names or email addresses.</li>''' + ('' if ADS else '<li>No advertising and no ad trackers.</li>') + '''<li>We don't sell or share personal data.</li></ul>
 <h2>Leaderboards</h2>
 <p>If you choose to post a score, we store the three initials you enter, your score, how long the puzzle took, and a random ID created on your device so you can only post once per puzzle. Leaderboard data is stored with our database provider, Supabase. Nothing is posted unless you press Post.</p>
-<h2>Visitor counts</h2>
+''' + (ADS_PRIVACY if ADS else '') + '''<h2>Visitor counts</h2>
 <p>We may use a privacy-friendly analytics service to count visits and see which pages are popular. It doesn't use cookies and doesn't identify you personally.</p>
 <h2>Fonts</h2>
 <p>The site loads its fonts from Google Fonts, which receives your IP address when the fonts download.</p>
@@ -224,7 +235,7 @@ HOME_BODY = ('''
 <section class="hero">
 <div class="date" id="today">Today's puzzles</div>
 <h1>Quick, free games with a new puzzle every day</h1>
-<p>No accounts and no ads. Your progress and streaks stay on your device.</p>
+<p>''' + ('No accounts. Your progress and streaks stay on your device.' if ADS else 'No accounts and no ads. Your progress and streaks stay on your device.') + '''</p>
 <p class="progress" id="progress"></p>
 </section>
 <h2 class="sect">Daily puzzles</h2>
@@ -262,7 +273,7 @@ def about_item(g):
     slug, name, tag, blurb, btn, icon, daily = g
     return (f'<li><img src="{icon}" alt="" width="48" height="48"><div><a href="/{slug}/">{name}</a>'
             f'<div class="t">{tag}</div><p>{blurb}</p></div></li>')
-about = page('About | Sproutle', 'About playsproutle.com: free, quick daily puzzle games with no accounts and no ads, from word puzzles to NFL trivia.', '/about', '''
+about = page('About | Sproutle', 'About playsproutle.com: free, quick daily puzzle games with no accounts, from word puzzles to NFL trivia.', '/about', '''
 <main class="card">
 <h1>Small games, new every day</h1>
 <p>playsproutle.com is an independent collection of free games. Most are daily puzzles: everyone gets the same puzzle, a new one arrives at midnight in your time zone, and a game takes a few minutes. There's a word puzzle, a number puzzle, a couple of football games and more, plus one game you can play anytime.</p>
@@ -279,7 +290,7 @@ about = page('About | Sproutle', 'About playsproutle.com: free, quick daily puzz
 </ul>
 <h2>Leaderboards</h2>
 <p>When you finish a daily puzzle you can add three initials to that day's top 10. Ties go to whoever finished faster. Posting is optional, and nothing is shared unless you press Post. In Gridiron Golf you can tap a player on the board to see the round they played.</p>
-<h2>No accounts, no ads</h2>
+<h2>''' + ('No accounts' if ADS else 'No accounts, no ads') + '''</h2>
 <p>You don't sign up for anything. Your scores, streaks and settings stay in your browser on your device. The <a href="/privacy">privacy page</a> has the details.</p>
 <h2>Play it like an app</h2>
 <p>On your phone, open the site and choose Add to Home Screen from your browser's share or menu button. It opens full screen, like an app.</p>
@@ -381,4 +392,52 @@ for f in ('icon-192.png', 'icon-512.png', 'apple-touch-icon.png'):
     shutil.copy(os.path.join(G, f), os.path.join(OUT, 'gridiron', f))
 # Critter Collector is a separate game, copied as-is from build/critter/
 shutil.copytree(os.path.join(D, 'critter'), os.path.join(OUT, 'critter-collector'), dirs_exist_ok=True)
+
+# ---------- shared site script: friend no-ads link, visitor stats, ads ----------
+site_cfg = json.dumps({'ads': ADSENSE_CLIENT, 'goat': GOATCOUNTER, 'friend': FRIEND_CODE, 'noAds': NO_AD_PATHS})
+site_js = '(function(){var C=' + site_cfg + r''';
+var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
+  set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
+var q=new URLSearchParams(location.search),f=q.get("friend"),msg=null;
+if(f!==null){
+  if(f==="off"){ls.set(false);msg="Ads are back on for this device";}
+  else if(f===C.friend){ls.set(true);msg="You're on the friends list. No ads on this device 💚";}
+  q.delete("friend");var u=location.pathname+(q.toString()?"?"+q:"")+location.hash;
+  try{history.replaceState(null,"",u)}catch(e){}
+}
+var adFree=ls.get()==="1";
+window.psSite={adFree:adFree};
+function toast(t){var d=document.createElement("div");d.textContent=t;
+  d.style.cssText="position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2147483647;background:#1f7a3a;color:#fff;font:600 15px/1.3 system-ui,sans-serif;padding:10px 18px;border-radius:999px;width:max-content;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center";
+  document.body.appendChild(d);setTimeout(function(){d.style.transition="opacity .4s";d.style.opacity="0"},2600);setTimeout(function(){d.remove()},3100);}
+function add(src,attrs){var s=document.createElement("script");s.async=true;s.src=src;for(var a in attrs)s.setAttribute(a,attrs[a]);document.head.appendChild(s);}
+function go(){
+  if(msg)toast(msg);
+  if(C.goat)add("https://gc.zgo.at/count.js",{"data-goatcounter":"https://"+C.goat+".goatcounter.com/count"});
+  var kids=C.noAds.some(function(p){return location.pathname.indexOf(p)===0});
+  if(C.ads&&!adFree&&!kids)add("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+C.ads,{crossorigin:"anonymous"});
+}
+if(document.body)go();else document.addEventListener("DOMContentLoaded",go);
+})();
+'''
+open(os.path.join(OUT, 'site.js'), 'w').write(site_js)
+ads_txt = os.path.join(OUT, 'ads.txt')
+if ADS:
+    open(ads_txt, 'w').write(f"google.com, {ADSENSE_CLIENT.replace('ca-', '')}, DIRECT, f08c47fec0942fa0\n")
+elif os.path.exists(ads_txt):
+    os.remove(ads_txt)
+# Load it on every page (idempotent, so rebuilding never adds it twice)
+TAG = f'<script src="/site.js?v={VERSION}" defer></script>'
+for root, _, names in os.walk(OUT):
+    for n in names:
+        if not n.endswith('.html'):
+            continue
+        fp = os.path.join(root, n)
+        h = open(fp).read()
+        h2 = re.sub(r'<script src="/site\.js[^"]*" defer></script>\n?', '', h)
+        if '</head>' in h2:
+            h2 = h2.replace('</head>', TAG + '\n</head>', 1)
+            if h2 != h:
+                open(fp, 'w').write(h2)
+
 print('built', sorted(os.listdir(OUT)))

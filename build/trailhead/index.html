@@ -367,9 +367,9 @@ function renderEndless(ec){
   $('dailyBtn').onclick=toDaily;
 }
 function shareText(){
-  if(S.run)return 'Trailhead endless ⛰\n'+climbed()+' mountain'+(climbed()===1?'':'s')+' · '+S.run.words+' words solved';
+  if(S.run)return 'Trailhead endless ⛰\n'+climbed()+' mountain'+(climbed()===1?'':'s')+' · '+S.run.words+' words solved\nplaysproutle.com/trailhead';
   const lines=S.path.map(id=>{const c=S.res[id]==='failed'?TRIES:S.g[id].length;return (S.res[id]==='failed'?'🌧 ':'🌼 ')+M[id].cat+' '+'●'.repeat(c)+'○'.repeat(TRIES-c)});
-  return 'Trailhead '+(S.daily?S.seed:'practice')+' ⛰\n'+total()+' guesses to the summit\n'+lines.join('\n');
+  return 'Trailhead '+(S.daily?S.seed:'practice')+' ⛰\n'+total()+' guesses to the summit\n'+lines.join('\n')+'\nplaysproutle.com/trailhead';
 }
 function copy(){
   const txt=shareText(), pre=$('shareTxt');

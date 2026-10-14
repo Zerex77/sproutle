@@ -13,7 +13,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://playsproutle.com/og-image.png">
-<!-- Visitor stats: paste your Plausible or GoatCounter snippet on the next line -->
+<!-- Visitor stats and ads are loaded by /site.js (settings at the top of build_site.py) -->
 <title>Sproutle: grow a word, one letter at a time</title>
 <meta name="description" content="A free daily word game. Grow today's seed into a long word one letter at a time, without rearranging. New puzzle every day.">
 <link rel="canonical" href="https://playsproutle.com/sproutle/">
@@ -350,6 +350,7 @@ header h1{font-size:1.7rem}
 @media (max-width:400px){header{gap:6px;padding-inline:0}header h1{font-size:1.32rem}.mark{gap:4px}.mark svg{width:24px;height:24px}.hbtns{gap:4px}.icon{padding:7px 9px;font-size:.72rem}.icon.round,.icon.plusb{width:30px;padding:6px 0}.icon.gamesb{font-size:.9rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<script src="/site.js?v=202610140902" defer></script>
 </head>
 <body>
 
@@ -646,7 +647,7 @@ const label=()=>S.end!=="bloom"?"Wilted":score()===0?"Perfect bloom":"Full bloom
 function trail(){return "🌱"+S.log.map(c=>c==="g"?"🟩":c==="x"?"🟥":c==="y"?"🟨":c==="h"?"💡":"✂️").join("")+(S.end==="bloom"?"🌸":"🥀");}
 function shareText(){
   const res=S.end!=="bloom"?"🥀 wilted":score()===0?"🌸 Perfect!":`🌸 +${score()}`;
-  return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}`;
+  return `Sproutle No. ${MODE.num} · ${PAR} letters · ${res}\n${trail()}\nplaysproutle.com/sproutle`;
 }
 
 /* ---------- modals ---------- */

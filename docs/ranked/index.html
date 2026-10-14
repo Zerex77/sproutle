@@ -109,6 +109,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
+<script src="/site.js?v=202610140902" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -297,7 +298,7 @@ function finish(won){
 
 function shareText(){
   const score = S.status==="won" ? S.guesses.length : "X";
-  return `Ranked No. ${pNo} · ${score}/${MAX}\n${P.q}\n` + S.guesses.map(g=>g.map(x=>x?"🟩":"⬜").join("")).join("\n");
+  return `Ranked No. ${pNo} · ${score}/${MAX}\n${P.q}\n` + S.guesses.map(g=>g.map(x=>x?"🟩":"⬜").join("")).join("\n") + "\nplaysproutle.com/ranked";
 }
 
 function renderResult(){
