@@ -1,4 +1,4 @@
-(function(){var C={"ads": "", "goat": "", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/"]};
+(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/"]};
 var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
   set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
 var q=new URLSearchParams(location.search),f=q.get("friend"),msg=null;

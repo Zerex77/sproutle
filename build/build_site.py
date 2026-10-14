@@ -7,7 +7,7 @@ PLUS_ENABLED = False             # flip to True once payments are live
 
 # ---- Money and stats (all off until filled in) ----
 ADSENSE_CLIENT = ''              # e.g. 'ca-pub-1234567890123456' once AdSense approves the site. Turns on ads + writes ads.txt
-GOATCOUNTER = ''                 # e.g. 'sproutle' if your stats page is sproutle.goatcounter.com
+GOATCOUNTER = 'sproutle'                 # e.g. 'sproutle' if your stats page is sproutle.goatcounter.com
 FRIEND_CODE = 'sproutfam'        # friends open playsproutle.com/?friend=sproutfam once and never see ads on that device
 NO_AD_PATHS = ['/animalmatch/', '/bugsquish/']   # pages that never load ads (games for little kids)
 ADS = bool(ADSENSE_CLIENT)
