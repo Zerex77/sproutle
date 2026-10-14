@@ -144,7 +144,7 @@ GAMES = [
 # Games for little kids get their own homepage section
 KIDS = [
     ('animalmatch', 'Animal Match', 'Memory game for ages 2 to 4', 'Flip big cards to find matching dinosaurs, unicorns, fairies and animals. Each card says its name, and every finish ends in a dance party.', 'Play Animal Match', '/animalmatch/icon-192.png', False),
-    ('bugsquish', 'Bug Squish', 'Tapping game for ages 2 to 4', "Pesky ants, roaches and hornets are munching the unicorn's flowers. Squish them, tap the watering can to grow a garden, and win a dance party.", 'Play Bug Squish', '/bugsquish/icon-192.png', False),
+    ('bugsquish', 'Bug Squish', 'Tapping game for ages 2 to 4', "Pesky ants, roaches and hornets are munching the unicorn's flowers. Squish them, catch sparkly surprise bugs for rainbows and fireworks, and tap the watering can to grow a garden.", 'Play Bug Squish', '/bugsquish/icon-192.png', False),
 ]
 
 def card(g):
