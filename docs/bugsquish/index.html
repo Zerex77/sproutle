@@ -558,7 +558,7 @@ function drawPlant(p) {
   }
 }
 function updatePlant(p, dt) {
-  p.grow = Math.min(1, p.grow + dt * 1.6);
+  p.grow = Math.min(1, p.grow + dt * (p.growing ? 4 : 1.6));
   p.bounce = Math.max(0, p.bounce - dt);
   p.wet = Math.max(0, (p.wet || 0) - dt * .4);
   const want = p.munchers ? 1 : 0;
@@ -600,7 +600,7 @@ function water() {
   audio();
   canBtn.classList.add('pour'); setTimeout(() => canBtn.classList.remove('pour'), 250);
   if (!playing) return;
-  const open = plants.filter(p => p.stage + pending(p) < 4);
+  const open = plants.filter(p => p.stage === 0 && !pending(p) && !p.growing);
   if (!open.length) {
     // everything is blooming: a sprinkle over every flower
     plants.forEach(p => { p.bounce = .6; const [tx, ty] = plantTip(p); burst(tx, ty - PS * .3, '#ffd23f', 10, false); });
@@ -608,8 +608,7 @@ function water() {
     return;
   }
   if (cans.filter(c => !c.done).length >= 3) return;
-  open.sort((a, b) => (a.stage + pending(a)) - (b.stage + pending(b)) || Math.random() - .5);
-  cans.push({ p: open[0], t: 0, done: false });
+  cans.push({ p: open[Math.floor(Math.random() * open.length)], t: 0, done: false });
   waterSnd();
 }
 canBtn.addEventListener('click', water);
@@ -618,10 +617,16 @@ function drawCan(c, dt) {
   c.t += dt;
   const p = c.p, T = c.t;
   if (T > .55 && !c.done) {
-    c.done = true; p.stage++; p.grow = 0; p.bounce = .4; p.wet = 1;
-    if (p.stage === 4) { bloomSnd(); const [tx, ty] = plantTip(p); burst(tx, ty - PS * .8, p.color, 26, false); syncButterflies(); unicorn(BLOOM[Math.floor(Math.random() * BLOOM.length)], 'happy'); }
-    else growSnd(p.stage);
-    if (plants.every(q => q.stage === 4)) setTimeout(() => unicorn('All my flowers are blooming!', 'happy', true), 900);
+    // one watering grows the seed all the way: sprout, stem, bud, flower in quick steps
+    c.done = true; p.wet = 1; p.growing = true;
+    [1, 2, 3, 4].forEach((st, i) => setTimeout(() => {
+      p.stage = st; p.grow = 0; p.bounce = .3;
+      if (st < 4) { growSnd(st); return; }
+      p.growing = false; bloomSnd();
+      const [tx, ty] = plantTip(p); burst(tx, ty - PS * .8, p.color, 26, false); syncButterflies();
+      if (plants.every(q => q.stage === 4)) unicorn('All my flowers are blooming!', 'happy', true);
+      else unicorn(BLOOM[Math.floor(Math.random() * BLOOM.length)], 'happy');
+    }, i * 300));
   }
   const alpha = T < .15 ? T / .15 : T > .85 ? Math.max(0, 1 - (T - .85) / .2) : 1;
   const [tx, ty] = plantTip(p);
