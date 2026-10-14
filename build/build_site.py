@@ -144,6 +144,7 @@ GAMES = [
 # Games for little kids get their own homepage section
 KIDS = [
     ('animalmatch', 'Animal Match', 'Memory game for ages 2 to 4', 'Flip big cards to find matching dinosaurs, unicorns, fairies and animals. Each card says its name, and every finish ends in a dance party.', 'Play Animal Match', '/animalmatch/icon-192.png', False),
+    ('bugsquish', 'Bug Squish', 'Tapping game for ages 2 to 4', 'Silly googly-eyed bugs crawl around the garden. Tap them to squish them, fill the jar, and win a bug dance party.', 'Play Bug Squish', '/bugsquish/icon-192.png', False),
 ]
 
 def card(g):
@@ -241,7 +242,7 @@ HOME_BODY = ('''
 </main>''')
 
 home = page('Sproutle: free daily puzzle games',
-            'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, name the team from its colleges in Alma Mater, merge animals in Critter Collector, and match dinosaurs and unicorns in Animal Match for little kids.',
+            'Free daily puzzle games: grow a word in Sproutle, put things in order in Ranked, climb a mountain in Trailhead, build bridges in Keystone, guess the number in Ballpark, spot the odd one out in Imposter, play NFL trivia golf in Gridiron Golf, name the team from its colleges in Alma Mater, merge animals in Critter Collector, and match dinosaurs and unicorns in Animal Match or squish silly bugs in Bug Squish for little kids.',
             '/', HOME_BODY, button='<a class="zb" href="/zachbox/" aria-label="Zach Box party games"><span class="zb-eye" aria-hidden="true"><i></i></span><span class="zb-t"><b>Zach Box</b><small>party games!</small></span></a>')
 home = home.replace('</head>', HOME_CSS + '</head>', 1).replace('</body>', HOME_JS + '</body>', 1)
 
@@ -322,7 +323,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/bugsquish/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -348,7 +349,7 @@ shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), di
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
 # Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
-for g in ('ballpark', 'imposter', 'almamater', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat', 'animalmatch'):
+for g in ('ballpark', 'imposter', 'almamater', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat', 'animalmatch', 'bugsquish'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')
