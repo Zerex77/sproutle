@@ -106,20 +106,30 @@ a{color:var(--leaf-deep)}
 .hero{display:flex;flex-direction:column;gap:8px;padding-top:4px}
 .hero .date{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero p{color:var(--muted);max-width:52ch}
-.sect{font:700 1.1rem var(--f-display);color:var(--leaf-deep);margin:4px 0 -6px}
-a.game{color:var(--ink);text-decoration:none;transition:transform .15s ease}
-a.game:hover{transform:translateY(-3px)}
+.page{max-width:1040px}
+.hero h1{font-size:clamp(1.5rem,5vw,2.1rem)}
+.sect{font:700 1.1rem var(--f-display);color:var(--leaf-deep);margin:4px 0 -8px;display:flex;align-items:baseline;gap:8px}
+.sect small{font:600 .8rem var(--f-body);color:var(--muted)}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+@media (max-width:520px){.games{grid-template-columns:1fr 1fr;gap:8px}}
+a.game{position:relative;flex-direction:row;align-items:center;gap:10px;padding:10px;border-radius:16px;color:var(--ink);text-decoration:none;transition:transform .15s ease;min-width:0}
+a.game:hover{transform:translateY(-2px)}
 a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
-.game-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.badge{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--leaf-soft);color:var(--leaf-deep)}
+.game img{width:52px;height:52px;border-radius:13px;flex:none}
+.gt{min-width:0}
+.game h2{margin:0;font:700 1rem/1.15 var(--f-body);color:var(--ink);overflow-wrap:anywhere}
+.game .tm{white-space:nowrap}
+.game .tag{font-size:.74rem;line-height:1.25;color:var(--muted);font-weight:600;margin-top:2px}
+.badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;font:800 .75rem/1 var(--f-body);padding:0 6px;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.badge:empty{display:none}
 .badge.done{background:var(--leaf);color:#fff}
 .badge.prog{background:var(--bloom-soft);color:var(--bloom-deep)}
-.badge.any{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
 .hero .progress{font-weight:700;color:var(--leaf-deep)}
 .hero .progress:empty{display:none}
+@media (max-width:520px){.game img{width:44px;height:44px;border-radius:11px}.game h2{font-size:.95rem}a.game{padding:9px;gap:9px}}
 @media (prefers-reduced-motion:reduce){a.game{transition:none}a.game:hover{transform:none}}
 </style>
-<script src="/site.js?v=202610150841" defer></script>
+<script src="/site.js?v=202610150846" defer></script>
 </head>
 <body>
 <div class="page">
@@ -132,29 +142,29 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
 <p>No accounts and no ads. Your progress and streaks stay on your device.</p>
 <p class="progress" id="progress"></p>
 </section>
-<h2 class="sect">Daily puzzles</h2>
+<h2 class="sect">Daily puzzles <small>New every day at midnight</small></h2>
 <div class="games">
-<a class="game" href="/sproutle/"><div class="game-head"><img src="/icon-192.png" alt="" width="64" height="64"><div><h2>Sproutle</h2><div class="tag">Daily word puzzle · 2 min</div></div></div><p>Grow today's seed into a long word one letter at a time, without rearranging.</p><div class="game-foot"><span class="badge" data-status="sproutle">New today</span><span class="play">Play Sproutle</span></div></a>
-<a class="game" href="/ranked/"><div class="game-head"><img src="/ranked/icon-192.png" alt="" width="64" height="64"><div><h2>Ranked</h2><div class="tag">Daily ordering puzzle · 3 min</div></div></div><p>Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries.</p><div class="game-foot"><span class="badge" data-status="ranked">New today</span><span class="play">Play Ranked</span></div></a>
-<a class="game" href="/trailhead/"><div class="game-head"><img src="/trailhead/icon-192.png" alt="" width="64" height="64"><div><h2>Trailhead</h2><div class="tag">Daily word climb · 3 min</div></div></div><p>Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.</p><div class="game-foot"><span class="badge" data-status="trailhead">New today</span><span class="play">Play Trailhead</span></div></a>
-<a class="game" href="/keystone/"><div class="game-head"><img src="/keystone/icon-192.png" alt="" width="64" height="64"><div><h2>Keystone</h2><div class="tag">Daily missing-word puzzle · 3 min</div></div></div><p>Find the word that joins both sides of six bridges. Their first letters spell the keystone.</p><div class="game-foot"><span class="badge" data-status="keystone">New today</span><span class="play">Play Keystone</span></div></a>
-<a class="game" href="/daisychain/"><div class="game-head"><img src="/daisychain/icon-192.png" alt="" width="64" height="64"><div><h2>Daisy Chain</h2><div class="tag">Daily word chain · 3 min</div></div></div><p>Snowball, ballpark, park bench... Every word links to the next. Fill in the six missing links of the chain.</p><div class="game-foot"><span class="badge" data-status="daisychain">New today</span><span class="play">Play Daisy Chain</span></div></a>
-<a class="game" href="/waterworks/"><div class="game-head"><img src="/waterworks/icon-192.png" alt="" width="64" height="64"><div><h2>Waterworks</h2><div class="tag">Daily garden puzzle · 3 min</div></div></div><p>Turn the soil to channel water from the spring to every wilted flower, without spilling a drop. Beat par for a perfect garden.</p><div class="game-foot"><span class="badge" data-status="waterworks">New today</span><span class="play">Play Waterworks</span></div></a>
-<a class="game" href="/ballpark/"><div class="game-head"><img src="/ballpark/icon-192.png" alt="" width="64" height="64"><div><h2>Ballpark</h2><div class="tag">Daily number puzzle · 1 min</div></div></div><p>One question, five guesses. Get close enough to the real number and you're in the ballpark.</p><div class="game-foot"><span class="badge" data-status="ballpark">New today</span><span class="play">Play Ballpark</span></div></a>
-<a class="game" href="/imposter/"><div class="game-head"><img src="/imposter/icon-192.png" alt="" width="64" height="64"><div><h2>Imposter</h2><div class="tag">Daily odd-one-out · 2 min</div></div></div><p>Five rows of four suspects. Three share a secret. Spot the one that doesn't belong.</p><div class="game-foot"><span class="badge" data-status="imposter">New today</span><span class="play">Play Imposter</span></div></a>
-<a class="game" href="/gridiron/"><div class="game-head"><img src="/gridiron/icon-192.png" alt="" width="64" height="64"><div><h2>Gridiron Golf</h2><div class="tag">Daily NFL trivia · 3 min</div></div></div><p>One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.</p><div class="game-foot"><span class="badge" data-status="gridiron">New today</span><span class="play">Play Gridiron Golf</span></div></a>
-<a class="game" href="/almamater/"><div class="game-head"><img src="/almamater/icon-192.png" alt="" width="64" height="64"><div><h2>Alma Mater</h2><div class="tag">Daily NFL puzzle · 2 min</div></div></div><p>Eleven starters drawn up in their college colors. Name the NFL team in four guesses. Endless mode too.</p><div class="game-foot"><span class="badge" data-status="almamater">New today</span><span class="play">Play Alma Mater</span></div></a>
-<a class="game" href="/shortorder/"><div class="game-head"><img src="/shortorder/icon-192.png" alt="" width="64" height="64"><div><h2>Short Order</h2><div class="tag">Daily diner game · 3 min</div></div></div><p>Cook, stack and ring the bell. Fill eight cartoon customers' orders before they storm off, and don't burn the patties.</p><div class="game-foot"><span class="badge" data-status="shortorder">New today</span><span class="play">Play Short Order</span></div></a>
+<a class="game" href="/sproutle/" title="Grow today&#x27;s seed into a long word one letter at a time, without rearranging."><img src="/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Sproutle</h2><div class="tag">Word puzzle <span class="tm">· 2 min</span></div></div><span class="badge" data-status="sproutle"></span></a>
+<a class="game" href="/ranked/" title="Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries."><img src="/ranked/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Ranked</h2><div class="tag">Ordering puzzle <span class="tm">· 3 min</span></div></div><span class="badge" data-status="ranked"></span></a>
+<a class="game" href="/trailhead/" title="Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop."><img src="/trailhead/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Trailhead</h2><div class="tag">Word climb <span class="tm">· 3 min</span></div></div><span class="badge" data-status="trailhead"></span></a>
+<a class="game" href="/keystone/" title="Find the word that joins both sides of six bridges. Their first letters spell the keystone."><img src="/keystone/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Keystone</h2><div class="tag">Missing-word puzzle <span class="tm">· 3 min</span></div></div><span class="badge" data-status="keystone"></span></a>
+<a class="game" href="/daisychain/" title="Snowball, ballpark, park bench... Every word links to the next. Fill in the six missing links of the chain."><img src="/daisychain/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Daisy Chain</h2><div class="tag">Word chain <span class="tm">· 3 min</span></div></div><span class="badge" data-status="daisychain"></span></a>
+<a class="game" href="/waterworks/" title="Turn the soil to channel water from the spring to every wilted flower, without spilling a drop. Beat par for a perfect garden."><img src="/waterworks/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Waterworks</h2><div class="tag">Garden puzzle <span class="tm">· 3 min</span></div></div><span class="badge" data-status="waterworks"></span></a>
+<a class="game" href="/ballpark/" title="One question, five guesses. Get close enough to the real number and you&#x27;re in the ballpark."><img src="/ballpark/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Ballpark</h2><div class="tag">Number puzzle <span class="tm">· 1 min</span></div></div><span class="badge" data-status="ballpark"></span></a>
+<a class="game" href="/imposter/" title="Five rows of four suspects. Three share a secret. Spot the one that doesn&#x27;t belong."><img src="/imposter/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Imposter</h2><div class="tag">Odd-one-out <span class="tm">· 2 min</span></div></div><span class="badge" data-status="imposter"></span></a>
+<a class="game" href="/gridiron/" title="One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too."><img src="/gridiron/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Gridiron Golf</h2><div class="tag">NFL trivia <span class="tm">· 3 min</span></div></div><span class="badge" data-status="gridiron"></span></a>
+<a class="game" href="/almamater/" title="Eleven starters drawn up in their college colors. Name the NFL team in four guesses. Endless mode too."><img src="/almamater/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Alma Mater</h2><div class="tag">NFL puzzle <span class="tm">· 2 min</span></div></div><span class="badge" data-status="almamater"></span></a>
+<a class="game" href="/shortorder/" title="Cook, stack and ring the bell. Fill eight cartoon customers&#x27; orders before they storm off, and don&#x27;t burn the patties."><img src="/shortorder/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Short Order</h2><div class="tag">Diner game <span class="tm">· 3 min</span></div></div><span class="badge" data-status="shortorder"></span></a>
 </div>
 <h2 class="sect">Play anytime</h2>
 <div class="games">
-<a class="game" href="/critter-collector/"><div class="game-head"><img src="/critter-collector/icon-192.png" alt="" width="64" height="64"><div><h2>Critter Collector</h2><div class="tag">Zoo merge game · play anytime</div></div></div><p>Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you're away.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Critter Collector</span></div></a>
+<a class="game" href="/critter-collector/" title="Merge chicks into bunnies and lions into elephants, and grow a zoo that earns while you&#x27;re away."><img src="/critter-collector/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Critter Collector</h2><div class="tag">Zoo merge game</div></div></a>
 </div>
 <h2 class="sect">For little kids</h2>
 <div class="games">
-<a class="game" href="/animalmatch/"><div class="game-head"><img src="/animalmatch/icon-192.png" alt="" width="64" height="64"><div><h2>Animal Match</h2><div class="tag">Memory game for ages 2 to 4</div></div></div><p>Flip big cards to find matching dinosaurs, unicorns, fairies and animals. Each card says its name, and every finish ends in a dance party.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Animal Match</span></div></a>
-<a class="game" href="/bugsquish/"><div class="game-head"><img src="/bugsquish/icon-192.png" alt="" width="64" height="64"><div><h2>Bug Squish</h2><div class="tag">Tapping game for ages 2 to 4</div></div></div><p>Lava has trapped the unicorn and all her seeds! Cool it with the watering can, grow her garden, squish pesky bugs, and catch sparkly surprise bugs.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Bug Squish</span></div></a>
-<a class="game" href="/superrescue/"><div class="game-head"><img src="/superrescue/icon-192.png" alt="" width="64" height="64"><div><h2>Super Rescue</h2><div class="tag">Superhero game for ages 2 to 5</div></div></div><p>Pick a hero and fly around the city! Tap the sneaky bad guys to catch them and tap the people shouting for help to save them.</p><div class="game-foot"><span class="badge any">Play anytime</span><span class="play">Play Super Rescue</span></div></a>
+<a class="game" href="/animalmatch/" title="Flip big cards to find matching dinosaurs, unicorns, fairies and animals. Each card says its name, and every finish ends in a dance party."><img src="/animalmatch/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Animal Match</h2><div class="tag">Memory game for ages 2 to 4</div></div></a>
+<a class="game" href="/bugsquish/" title="Lava has trapped the unicorn and all her seeds! Cool it with the watering can, grow her garden, squish pesky bugs, and catch sparkly surprise bugs."><img src="/bugsquish/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Bug Squish</h2><div class="tag">Tapping game for ages 2 to 4</div></div></a>
+<a class="game" href="/superrescue/" title="Pick a hero and fly around the city! Tap the sneaky bad guys to catch them and tap the people shouting for help to save them."><img src="/superrescue/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Super Rescue</h2><div class="tag">Superhero game for ages 2 to 5</div></div></a>
 </div>
 </main>
 <nav class="sitefoot"><a href="/about">About</a><span>·</span><a href="/">All games</a><span>·</span><a href="/privacy">Privacy</a></nav>
@@ -184,8 +194,8 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
   let done=0,total=0;
   document.querySelectorAll("[data-status]").forEach(b=>{
     total++; let v=0; try{v=status[b.dataset.status]()}catch(e){}
-    if(v===2){b.textContent="✓ Done today";b.classList.add("done");done++}
-    else if(v===1){b.textContent="In progress";b.classList.add("prog")}
+    if(v===2){b.textContent="✓";b.title="Done today";b.classList.add("done");done++}
+    else if(v===1){b.textContent="…";b.title="In progress";b.classList.add("prog")}
   });
   document.getElementById("today").textContent=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
   document.getElementById("progress").textContent = done===total ? "You've finished every daily puzzle today. See you tomorrow!" : done ? done+" of "+total+" daily puzzles done today." : "";

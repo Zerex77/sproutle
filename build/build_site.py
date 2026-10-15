@@ -1,4 +1,4 @@
-import json, os, re, shutil, datetime
+import json, os, re, shutil, datetime, html
 D = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(D, '..', 'docs')
 DOMAIN = 'https://playsproutle.com'
@@ -163,11 +163,17 @@ KIDS = [
 ]
 
 def card(g):
+    # Compact tile: icon, name and a short line. The full blurb shows on hover and to screen readers.
     slug, name, tag, blurb, btn, icon, daily = g
-    status = f'<span class="badge" data-status="{slug}">New today</span>' if daily else '<span class="badge any">Play anytime</span>'
-    return (f'<a class="game" href="/{slug}/"><div class="game-head"><img src="{icon}" alt="" width="64" height="64">'
-            f'<div><h2>{name}</h2><div class="tag">{tag}</div></div></div><p>{blurb}</p>'
-            f'<div class="game-foot">{status}<span class="play">{btn}</span></div></a>')
+    short = tag[6:] if tag.startswith('Daily ') else tag
+    short = short[:1].upper() + short[1:]
+    short = short.replace(' · play anytime', '')
+    if ' · ' in short:
+        kind, time = short.rsplit(' · ', 1)
+        short = f'{kind} <span class="tm">· {time}</span>'
+    badge = f'<span class="badge" data-status="{slug}"></span>' if daily else ''
+    return (f'<a class="game" href="/{slug}/" title="{html.escape(blurb, quote=True)}"><img src="{icon}" alt="" width="52" height="52">'
+            f'<div class="gt"><h2>{name}</h2><div class="tag">{short}</div></div>{badge}</a>')
 
 HOME_CSS = """<style>
 .zb{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;text-decoration:none;background:#1f1240;color:#fff8ec;border:3px solid #120a24;
@@ -187,17 +193,27 @@ HOME_CSS = """<style>
 .hero{display:flex;flex-direction:column;gap:8px;padding-top:4px}
 .hero .date{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .hero p{color:var(--muted);max-width:52ch}
-.sect{font:700 1.1rem var(--f-display);color:var(--leaf-deep);margin:4px 0 -6px}
-a.game{color:var(--ink);text-decoration:none;transition:transform .15s ease}
-a.game:hover{transform:translateY(-3px)}
+.page{max-width:1040px}
+.hero h1{font-size:clamp(1.5rem,5vw,2.1rem)}
+.sect{font:700 1.1rem var(--f-display);color:var(--leaf-deep);margin:4px 0 -8px;display:flex;align-items:baseline;gap:8px}
+.sect small{font:600 .8rem var(--f-body);color:var(--muted)}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+@media (max-width:520px){.games{grid-template-columns:1fr 1fr;gap:8px}}
+a.game{position:relative;flex-direction:row;align-items:center;gap:10px;padding:10px;border-radius:16px;color:var(--ink);text-decoration:none;transition:transform .15s ease;min-width:0}
+a.game:hover{transform:translateY(-2px)}
 a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
-.game-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.badge{font-size:.8rem;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--leaf-soft);color:var(--leaf-deep)}
+.game img{width:52px;height:52px;border-radius:13px;flex:none}
+.gt{min-width:0}
+.game h2{margin:0;font:700 1rem/1.15 var(--f-body);color:var(--ink);overflow-wrap:anywhere}
+.game .tm{white-space:nowrap}
+.game .tag{font-size:.74rem;line-height:1.25;color:var(--muted);font-weight:600;margin-top:2px}
+.badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;font:800 .75rem/1 var(--f-body);padding:0 6px;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.badge:empty{display:none}
 .badge.done{background:var(--leaf);color:#fff}
 .badge.prog{background:var(--bloom-soft);color:var(--bloom-deep)}
-.badge.any{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
 .hero .progress{font-weight:700;color:var(--leaf-deep)}
 .hero .progress:empty{display:none}
+@media (max-width:520px){.game img{width:44px;height:44px;border-radius:11px}.game h2{font-size:.95rem}a.game{padding:9px;gap:9px}}
 @media (prefers-reduced-motion:reduce){a.game{transition:none}a.game:hover{transform:none}}
 </style>
 """
@@ -227,8 +243,8 @@ HOME_JS = """<script>
   let done=0,total=0;
   document.querySelectorAll("[data-status]").forEach(b=>{
     total++; let v=0; try{v=status[b.dataset.status]()}catch(e){}
-    if(v===2){b.textContent="✓ Done today";b.classList.add("done");done++}
-    else if(v===1){b.textContent="In progress";b.classList.add("prog")}
+    if(v===2){b.textContent="✓";b.title="Done today";b.classList.add("done");done++}
+    else if(v===1){b.textContent="…";b.title="In progress";b.classList.add("prog")}
   });
   document.getElementById("today").textContent=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
   document.getElementById("progress").textContent = done===total ? "You've finished every daily puzzle today. See you tomorrow!" : done ? done+" of "+total+" daily puzzles done today." : "";
@@ -245,7 +261,7 @@ HOME_BODY = ('''
 <p>''' + ('No accounts. Your progress and streaks stay on your device.' if ADS else 'No accounts and no ads. Your progress and streaks stay on your device.') + '''</p>
 <p class="progress" id="progress"></p>
 </section>
-<h2 class="sect">Daily puzzles</h2>
+<h2 class="sect">Daily puzzles <small>New every day at midnight</small></h2>
 <div class="games">
 ''' + '\n'.join(card(g) for g in GAMES if g[6]) + '''
 </div>
