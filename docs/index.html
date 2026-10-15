@@ -129,7 +129,7 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
 @media (max-width:520px){.game img{width:44px;height:44px;border-radius:11px}.game h2{font-size:.95rem}a.game{padding:9px;gap:9px}}
 @media (prefers-reduced-motion:reduce){a.game{transition:none}a.game:hover{transform:none}}
 </style>
-<script src="/site.js?v=202610150846" defer></script>
+<script src="/site.js?v=202610150856" defer></script>
 </head>
 <body>
 <div class="page">
@@ -150,6 +150,7 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
 <a class="game" href="/keystone/" title="Find the word that joins both sides of six bridges. Their first letters spell the keystone."><img src="/keystone/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Keystone</h2><div class="tag">Missing-word puzzle <span class="tm">· 3 min</span></div></div><span class="badge" data-status="keystone"></span></a>
 <a class="game" href="/daisychain/" title="Snowball, ballpark, park bench... Every word links to the next. Fill in the six missing links of the chain."><img src="/daisychain/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Daisy Chain</h2><div class="tag">Word chain <span class="tm">· 3 min</span></div></div><span class="badge" data-status="daisychain"></span></a>
 <a class="game" href="/waterworks/" title="Turn the soil to channel water from the spring to every wilted flower, without spilling a drop. Beat par for a perfect garden."><img src="/waterworks/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Waterworks</h2><div class="tag">Garden puzzle <span class="tm">· 3 min</span></div></div><span class="badge" data-status="waterworks"></span></a>
+<a class="game" href="/greenhouse/" title="Swipe to slide your plants and merge matching ones to grow seeds into flowers and trees. Pull the weeds and grow a Mighty Oak."><img src="/greenhouse/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Greenhouse</h2><div class="tag">Merge puzzle <span class="tm">· 5 min</span></div></div><span class="badge" data-status="greenhouse"></span></a>
 <a class="game" href="/ballpark/" title="One question, five guesses. Get close enough to the real number and you&#x27;re in the ballpark."><img src="/ballpark/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Ballpark</h2><div class="tag">Number puzzle <span class="tm">· 1 min</span></div></div><span class="badge" data-status="ballpark"></span></a>
 <a class="game" href="/imposter/" title="Five rows of four suspects. Three share a secret. Spot the one that doesn&#x27;t belong."><img src="/imposter/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Imposter</h2><div class="tag">Odd-one-out <span class="tm">· 2 min</span></div></div><span class="badge" data-status="imposter"></span></a>
 <a class="game" href="/gridiron/" title="One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too."><img src="/gridiron/icon-192.png" alt="" width="52" height="52"><div class="gt"><h2>Gridiron Golf</h2><div class="tag">NFL trivia <span class="tm">· 3 min</span></div></div><span class="badge" data-status="gridiron"></span></a>
@@ -184,6 +185,7 @@ a.game:focus-visible{outline:3px solid var(--leaf);outline-offset:3px}
     keystone(){const s=get("keystone-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.cracks||d.solved.some(Boolean)||d.rev.some(Boolean))?1:0},
     daisychain(){const s=get("daisychain-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.lost||d.solved.slice(1,-1).some(Boolean))?1:0},
     waterworks(){const s=get("waterworks-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.taps?1:0},
+    greenhouse(){const s=get("greenhouse-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.moves?1:0},
     trailhead(){const s=get("trailhead-daily")||get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
     ballpark(){const s=get("ballpark-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     imposter(){const s=get("imposter-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2C3A23">
+<meta name="description" content="Greenhouse: a free daily merge puzzle. Swipe to slide your plants, merge matching ones to grow them, pull the weeds, and grow a Mighty Oak.">
+<link rel="canonical" href="https://playsproutle.com/greenhouse/">
+<meta property="og:title" content="Greenhouse">
+<meta property="og:description" content="Swipe, merge and grow. Seeds become sprouts, flowers, and a Mighty Oak. Watch out for weeds. A new garden every day.">
+<meta property="og:url" content="https://playsproutle.com/greenhouse/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/greenhouse/icon-512.png">
+<link rel="icon" type="image/png" href="/greenhouse/icon-192.png">
+<link rel="apple-touch-icon" href="/greenhouse/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Greenhouse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
+<style>
+/* Layout: one narrow column. Header, score strip, the 4x4 planter, then the result card. */
+:root{
+  --bg:#F1F5E9; --surface:#FFFFF9; --ink:#2C3A23; --muted:#68745D; --line:#DCE4CF;
+  --frame:#9A6B45; --frame-dk:#7C5233; --bed:#6E4A30; --cell:#87603F;
+  --accent:#4E9A3A; --accent-ink:#FFFFFF; --good:#4E9A3A; --good-ink:#FFFFFF; --warn:#C9533C;
+  --display:"Young Serif", Georgia, serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gap:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141A10; --surface:#1E261A; --ink:#EDF2E4; --muted:#A2AD95; --line:#334028;
+  --frame:#6E4C31; --frame-dk:#523722; --bed:#3E2A1B; --cell:#553A26;
+  --accent:#6DBA55; --accent-ink:#0C1A08; --good:#6DBA55; --good-ink:#0C1A08; --warn:#F07B5C; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#141A10; --surface:#1E261A; --ink:#EDF2E4; --muted:#A2AD95; --line:#334028;
+  --frame:#6E4C31; --frame-dk:#523722; --bed:#3E2A1B; --cell:#553A26;
+  --accent:#6DBA55; --accent-ink:#0C1A08; --good:#6DBA55; --good-ink:#0C1A08; --warn:#F07B5C; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:4px 10px}
+.mark{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:.01em}
+.mark span{color:var(--accent)}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.tabs{display:flex;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.tab{flex:1;height:34px;border:none;border-radius:9px;background:transparent;font-weight:700;font-size:14px;color:var(--muted)}
+.tab.on{background:var(--accent);color:var(--accent-ink)}
+
+.strip{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;text-align:center}
+.strip div{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:6px 4px;min-width:0}
+.strip b{display:block;font-family:var(--display);font-weight:400;font-size:22px;line-height:1.15;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.strip .best b{font-size:18px;line-height:1.35}
+
+.planter{background:var(--frame);border-radius:18px;padding:8px;border-bottom:7px solid var(--frame-dk);box-shadow:0 10px 24px -14px rgba(0,0,0,.5)}
+.board{position:relative;aspect-ratio:1;background:var(--bed);border-radius:12px;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+.cells,.tiles{position:absolute;inset:0;padding:var(--gap)}
+.cells{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:var(--gap)}
+.cells i{background:var(--cell);border-radius:10px;box-shadow:inset 0 3px 0 rgba(0,0,0,.15)}
+.tile{position:absolute;left:var(--gap);top:var(--gap);width:calc((100% - 5*var(--gap))/4);height:calc((100% - 5*var(--gap))/4);
+  transform:translate(calc(var(--x)*(100% + var(--gap))),calc(var(--y)*(100% + var(--gap))));transition:transform .11s ease-in-out;z-index:1}
+.tile .in{width:100%;height:100%;border-radius:10px;background:var(--tc);color:var(--ti,#2C3A23);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.14);overflow:hidden}
+.tile .e{font-size:clamp(26px,9.5vw,40px);line-height:1}
+.tile .n{font-size:clamp(9px,2.6vw,11px);font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;opacity:.85}
+.tile.new .in{animation:appear .18s ease .08s both}
+.tile.pop .in{animation:pop .2s ease}
+.tile.gone{z-index:0}
+.tile.wither .in{animation:wither .25s ease forwards}
+@keyframes appear{from{transform:scale(0)}}
+@keyframes pop{50%{transform:scale(1.16)}}
+@keyframes wither{to{transform:scale(0) rotate(40deg);opacity:0}}
+.over{position:absolute;inset:0;display:grid;place-items:center;background:rgba(30,20,10,.45);color:#fff;font-family:var(--display);font-size:32px;z-index:3;border-radius:12px;text-align:center;padding:16px}
+.cap{text-align:center;font-size:13px;color:var(--muted);min-height:18px}
+.cap b{color:var(--ink)}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.share{height:50px;border:none;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:700;font-size:16px}
+.sec{height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:15px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.more{font-size:14px;font-weight:700;color:var(--accent);text-align:center}
+.fallback{width:100%;min-height:90px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(10,16,6,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:28px}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.ladder{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;font-size:22px;background:var(--bg);border-radius:10px;padding:10px}
+.ladder i{font-style:normal;font-size:12px;color:var(--muted)}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;white-space:nowrap}
+@media (max-width:380px){:root{--gap:7px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Green<span>house</span></div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" id="tDaily" role="tab">Daily garden</button>
+    <button class="tab" id="tFree" role="tab">Free play</button>
+  </div>
+
+  <div class="strip">
+    <div><b id="score">0</b><span>Score</span></div>
+    <div><b id="moves">0</b><span>Moves</span></div>
+    <div class="best"><b id="top">🌰</b><span>Best plant</span></div>
+  </div>
+
+  <div class="planter">
+    <div class="board" id="board" aria-label="Greenhouse. Swipe or use the arrow keys to slide your plants." tabindex="0">
+      <div class="cells">${16}</div>
+      <div class="tiles" id="tiles"></div>
+      <div class="over" id="over" hidden></div>
+    </div>
+  </div>
+  <div class="cap" id="cap">Swipe to slide every plant. Matching plants merge and grow.</div>
+
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Swipe (or use the arrow keys) to slide every plant in the greenhouse. When two matching plants bump into each other, they merge and grow into the next plant.</p>
+    <div class="ladder" id="ladder"></div>
+    <ul>
+      <li>After every move a new seed is planted somewhere. Fill the greenhouse with no merges left and the game is over.</li>
+      <li><b>Weeds</b> 🌾 sprout now and then and take up space. They slide like plants but never merge with them. Push two weeds together to pull them both, or wait them out: each weed withers on its own after 12 moves.</li>
+      <li>Grow a <b>Mighty Oak</b> 🌳 to win, then keep going for a high score.</li>
+      <li>Everyone gets the same seeds in the Daily garden, so scores on the leaderboard are fair. Free play is endless and random.</li>
+    </ul>
+    <button class="close" data-close>Start growing</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// Growth ladder. Tier t is worth 2^t points when it's grown (a Mighty Oak is the 2048 tile).
+const T=[null,
+  ["Seed","🌰","#E9DCC4"],["Sprout","🌱","#D9EFBF"],["Clover","☘️","#BCE59E"],["Fern","🌿","#98D581"],
+  ["Tulip","🌷","#FFCBDC"],["Daisy","🌼","#FFF1AE"],["Rose","🌹","#FFB0B5"],["Hibiscus","🌺","#FF9CCB"],
+  ["Sunflower","🌻","#FFD65A"],["Pine","🌲","#5DB878","#fff"],["Mighty Oak","🌳","#2F8A4A","#fff"],
+  ["Cherry Tree","🌸","#F59ACB"],["Apple Tree","🍎","#E8574B","#fff"],["Palm","🌴","#2BA59B","#fff"],["Island","🏝️","#3C7DD8","#fff"],["World","🌍","#5B4BC4","#fff"]];
+const WEED=["Weed","🌾","#6E6A3A","#F3EFC8"];
+const GOAL=11, BASE=10000000, WEED_LIFE=12; // leaderboard ranks lowest first, so we post BASE - points
+const tierOf=t=>t<0?WEED:(T[Math.min(t,T.length-1)]);
+
+function mulberry(seed){ let s=seed>>>0; return {next(){ s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }, get state(){return s;}, set state(v){s=v>>>0;}}; }
+
+// ---- Daily puzzle number (local date, puzzle #1 = Oct 13, 2026, shared with the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH=Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo=Math.max(1, dayIndex(new Date())-EPOCH+1);
+
+// ---- Storage (optional; game works without it)
+const SKEY="greenhouse-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(store)); }catch(e){} }
+const store=load();
+store.stats=store.stats||{played:0,best:0,top:0,oaks:0,freeBest:0,cur:0,max:0,lastDone:0};
+
+const $=id=>document.getElementById(id);
+let mode="daily", G, R, tiles=[], nextId=1, busy=false;
+
+function fresh(seed){ return {n:pNo, cells:Array(16).fill(0), score:0, moves:0, top:1, weedsPulled:0, rng:seed, status:"playing", oak:false}; }
+function startMode(m){
+  mode=m;
+  $("tDaily").classList.toggle("on",m==="daily"); $("tFree").classList.toggle("on",m==="free");
+  if(m==="daily"){
+    if(!store.day || store.day.n!==pNo){ store.day=fresh(pNo*2654435761%4294967296); R=mulberry(store.day.rng); spawn(store.day); spawn(store.day); store.day.rng=R.state; save(); }
+    G=store.day;
+  } else {
+    if(!store.free || store.free.status!=="playing"){ store.free=fresh(Math.floor(Math.random()*4294967296)); R=mulberry(store.free.rng); spawn(store.free); spawn(store.free); store.free.rng=R.state; save(); }
+    G=store.free;
+  }
+  R=mulberry(G.rng);
+  drawAll();
+}
+
+// cells hold 0 (empty), a tier 1..16, or a weed stored as minus the move it sprouted on (it withers WEED_LIFE moves later)
+function spawn(g, fx){
+  const empty=[...g.cells.keys()].filter(i=>!g.cells[i]); if(!empty.length) return -1;
+  const i=empty[Math.floor(R.next()*empty.length)];
+  const weeds=g.cells.filter(v=>v<0).length, roll=R.next();
+  let t = roll<.1 ? 2 : 1;
+  if(g.moves>=12 && weeds<2 && R.next() < (weeds===1 ? .06 : .04)) t=-Math.max(1,g.moves);
+  g.cells[i]=t;
+  return i;
+}
+
+// ---- Drawing
+const weedLeft=t=>Math.max(1, WEED_LIFE-(G.moves+t));
+function tileEl(t,i,cls){
+  const [name,emo,bg,ink]=tierOf(t), el=document.createElement("div");
+  el.className="tile"+(cls?" "+cls:"");
+  el.style.setProperty("--x",i%4); el.style.setProperty("--y",Math.floor(i/4));
+  const label = t<0 ? `${weedLeft(t)} left` : name;
+  el.innerHTML=`<div class="in" style="--tc:${bg};${ink?`--ti:${ink}`:""}"><span class="e">${emo}</span><span class="n">${label}</span></div>`;
+  el.setAttribute("aria-hidden","true");
+  $("tiles").appendChild(el); return el;
+}
+function drawAll(){
+  $("tiles").innerHTML=""; tiles=Array(16).fill(null);
+  G.cells.forEach((t,i)=>{ if(t) tiles[i]={t,el:tileEl(t,i)}; });
+  hud();
+}
+function hud(){
+  $("score").textContent=G.score.toLocaleString();
+  $("moves").textContent=G.moves;
+  const tt=tierOf(G.top); $("top").textContent=`${tt[1]} ${tt[0]}`;
+  const over=$("over");
+  if(G.status==="over"){ over.hidden=false; over.textContent=mode==="daily"?"The greenhouse is full":"Out of room!"; } else over.hidden=true;
+  const w=G.cells.filter(v=>v<0).length;
+  $("cap").innerHTML = G.status==="over" ? "" : w===1 ? "A <b>weed</b> 🌾 sprouted. It withers in a few moves, or push a second weed into it." : w>=2 ? "Two <b>weeds</b>! Slide them together to clear them out." : "Swipe to slide every plant. Matching plants merge and grow.";
+  renderResult();
+}
+
+// ---- The move. Slide toward dir, merging each pair once.
+const VEC={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};
+function move(dir){
+  if(G.status!=="playing" || busy) return;
+  const [dx,dy]=VEC[dir];
+  const xs=[0,1,2,3], ys=[0,1,2,3]; if(dx===1) xs.reverse(); if(dy===1) ys.reverse();
+  const cells=G.cells.slice(), merged=Array(16).fill(false), anims=[];
+  let moved=false, gained=0, pulled=0;
+  for(const y of ys) for(const x of xs){
+    const i=y*4+x, t=cells[i]; if(!t) continue;
+    let cx=x, cy=y;
+    while(true){
+      const nx=cx+dx, ny=cy+dy; if(nx<0||ny<0||nx>3||ny>3) break;
+      if(cells[ny*4+nx]) break; cx=nx; cy=ny;
+    }
+    const nx=cx+dx, ny=cy+dy, ni=ny*4+nx;
+    const canMerge = nx>=0&&ny>=0&&nx<4&&ny<4 && !merged[ni] && (t<0 ? cells[ni]<0 : cells[ni]===t && t<T.length-1);
+    if(canMerge){
+      cells[i]=0;
+      if(t<0){ cells[ni]=0; pulled++; anims.push({from:i,to:ni,kind:"weed"}); }
+      else { cells[ni]=t+1; merged[ni]=true; gained+=2**(t+1); anims.push({from:i,to:ni,kind:"merge",t:t+1}); }
+      moved=true;
+    } else {
+      const ti=cy*4+cx;
+      if(ti!==i){ cells[ti]=t; cells[i]=0; moved=true; anims.push({from:i,to:ti,kind:"slide"}); }
+    }
+  }
+  if(!moved) return;
+  if(mode==="daily") window.SLB && SLB.start("greenhouse", pNo);
+  // Animate: slide every tile to its spot, then swap in the grown plant
+  const nt=Array(16).fill(null);
+  tiles.forEach((o,i)=>{ if(o && !anims.some(a=>a.from===i)) nt[i]=o; });
+  const after=[];
+  for(const a of anims){
+    const o=tiles[a.from]; if(!o) continue;
+    o.el.style.setProperty("--x",a.to%4); o.el.style.setProperty("--y",Math.floor(a.to/4));
+    if(a.kind==="slide"){ nt[a.to]=o; continue; }
+    // Tiles nearer the wall are handled first, so whatever ends up at the target spot is already in nt
+    const target=nt[a.to];
+    after.push(()=>{
+      o.el.remove();
+      if(a.kind==="weed"){ if(target){ target.el.classList.add("wither"); setTimeout(()=>target.el.remove(),260); } if(nt[a.to]===target) nt[a.to]=null; }
+      else { if(target) target.el.remove(); nt[a.to]={t:a.t,el:tileEl(a.t,a.to,"pop")}; }
+    });
+  }
+  G.cells=cells; G.score+=gained; G.moves++; G.weedsPulled+=pulled;
+  const aged=[]; for(let k=0;k<16;k++) if(cells[k]<0 && G.moves+cells[k]>=WEED_LIFE){ cells[k]=0; aged.push(k); }
+  const topNow=Math.max(...cells); const grewNew = topNow>G.top; if(grewNew) G.top=topNow;
+  const si=spawn(G); G.rng=R.state;
+  busy=true;
+  setTimeout(()=>{
+    after.forEach(f=>f());
+    aged.forEach(k=>{ const o=nt[k]; if(o){ o.el.classList.add("wither"); setTimeout(()=>o.el.remove(),260); nt[k]=null; } });
+    if(si>=0) nt[si]={t:G.cells[si],el:tileEl(G.cells[si],si,"new")};
+    nt.forEach((o,k)=>{ if(o && G.cells[k]<0) o.el.querySelector(".n").textContent=`${weedLeft(G.cells[k])} left`; });
+    tiles=nt; busy=false;
+    if(pulled) toast(pulled>1?"Weeds pulled! 🌾🌾":"Weeds pulled! 🌾");
+    else if(aged.length) toast("A weed withered away 🍂");
+    else if(G.cells[si]<0) toast("A weed sprouted 🌾");
+    else if(grewNew && G.top>=6) toast(`You grew a ${tierOf(G.top)[0]}! ${tierOf(G.top)[1]}`);
+    if(G.top>=GOAL && !G.oak){ G.oak=true; toast("A Mighty Oak! 🌳 Keep growing!"); }
+    if(!canMove(G.cells)) gameOver();
+    if(mode==="free" && G.score>store.stats.freeBest) store.stats.freeBest=G.score;
+    hud(); save();
+  },115);
+}
+function canMove(c){
+  for(let i=0;i<16;i++){
+    if(!c[i]) return true;
+    const x=i%4;
+    const same=(a,b)=>a<0?b<0:a===b;
+    if(x<3 && same(c[i],c[i+1])) return true;
+    if(i<12 && same(c[i],c[i+4])) return true;
+  }
+  return false;
+}
+function gameOver(){
+  G.status="over";
+  if(mode!=="daily") return;
+  window.SLB && SLB.stop("greenhouse", pNo);
+  const st=store.stats; st.played++; st.best=Math.max(st.best,G.score); st.top=Math.max(st.top,G.top); if(G.oak) st.oaks++;
+  st.cur=(st.lastDone===pNo-1)?st.cur+1:1; st.lastDone=pNo; st.max=Math.max(st.max,st.cur);
+}
+
+function shareText(){
+  const tt=tierOf(G.top);
+  return `Greenhouse No. ${pNo} ${tt[1]}\nGrew a ${tt[0]} · ${G.score.toLocaleString()} pts in ${G.moves} moves\nplaysproutle.com/greenhouse`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(G.status!=="over"){ r.hidden=true; return; }
+  r.hidden=false;
+  const tt=tierOf(G.top);
+  const head = G.top>=GOAL ? "Mighty gardener" : G.top>=9 ? "Green thumb" : G.top>=7 ? "In full bloom" : "Room to grow";
+  const sub = `Your biggest plant was a <b>${tt[1]} ${tt[0]}</b>. You scored <b>${G.score.toLocaleString()}</b> in ${G.moves} moves${G.weedsPulled?` and pulled ${G.weedsPulled*2} weeds`:""}.`;
+  if(mode==="free"){
+    r.innerHTML=`<h2>${head}</h2><p>${sub} Your best free-play score is ${store.stats.freeBest.toLocaleString()}.</p><button class="share" id="btnAgain">Plant a new garden</button><a class="more" href="/">Play more games →</a>`;
+    $("btnAgain").onclick=()=>{ store.free=null; startMode("free"); }; return;
+  }
+  r.innerHTML=`<h2>${head}</h2><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <button class="sec" id="btnFree">Keep playing in Free play</button>
+    <div class="next"><span>Next garden in</span><b id="cd">--:--:--</b></div>
+    <div id="slb"></div>
+    <a class="more" href="/">Play more games →</a>`;
+  $("btnFree").onclick=()=>{ startMode("free"); window.scrollTo({top:0,behavior:"smooth"}); };
+  if(window.SLB) SLB.mount($("slb"), {game:"greenhouse", day:pNo, score:BASE-G.score, eligible:G.score>0, fmt:n=>(BASE-n).toLocaleString()+" pts", note:"Highest score wins; ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
+  $("btnShare").onclick=()=>{
+    const txt=shareText(), ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  let s=Math.max(0,Math.floor((mid-now)/1000));
+  el.textContent=[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(v=>String(v).padStart(2,"0")).join(":");
+}
+setInterval(tick,1000);
+
+let toastT;
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(toastT);
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  toastT=setTimeout(()=>t.remove(),1800);
+}
+
+function openStats(){
+  const st=store.stats, tt=tierOf(Math.max(1,st.top));
+  $("statsGrid").innerHTML=[[st.played,"Daily games"],[st.best.toLocaleString(),"Best daily"],[st.oaks,"Oaks grown"],[tt[1],"Best plant"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("")
+    + `<div style="grid-column:1/-1"><b>${st.freeBest.toLocaleString()}</b><span>Best free-play score</span></div>`;
+  $("statsModal").hidden=false;
+}
+
+// ---- Input: swipes and arrow keys
+document.querySelector(".cells").innerHTML="<i></i>".repeat(16);
+let sx=0, sy=0, tracking=false;
+const bd=$("board");
+bd.addEventListener("touchstart",e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; tracking=true; },{passive:true});
+bd.addEventListener("touchmove",e=>{ if(tracking) e.preventDefault(); },{passive:false});
+bd.addEventListener("touchend",e=>{
+  if(!tracking) return; tracking=false;
+  const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<24) return;
+  move(Math.abs(dx)>Math.abs(dy) ? (dx>0?"right":"left") : (dy>0?"down":"up"));
+});
+// Mouse drag for desktop
+let md=null;
+bd.addEventListener("mousedown",e=>{ md=[e.clientX,e.clientY]; });
+window.addEventListener("mouseup",e=>{
+  if(!md) return; const dx=e.clientX-md[0], dy=e.clientY-md[1]; md=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<24) return;
+  move(Math.abs(dx)>Math.abs(dy) ? (dx>0?"right":"left") : (dy>0?"down":"up"));
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); return; }
+  if(document.querySelector(".scrim:not([hidden])")) return;
+  const k={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"}[e.key];
+  if(k){ e.preventDefault(); move(k); }
+});
+
+$("tDaily").onclick=()=>startMode("daily");
+$("tFree").onclick=()=>startMode("free");
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+$("ladder").innerHTML=T.slice(1,12).map(x=>`<span title="${x[0]}">${x[1]}</span>`).join("<i>→</i>");
+
+startMode(store.day && store.day.n===pNo && store.day.status==="over" && store.free && store.free.status==="playing" ? "free" : "daily");
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+</script>
+</body>
+</html>
