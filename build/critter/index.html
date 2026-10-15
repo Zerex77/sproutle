@@ -1338,6 +1338,33 @@ function start(data){
   if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(()=>({state:S}));
   requestAnimationFrame(()=>{ layout(); });
 }
+/* ---------- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player. ---------- */
+function crPower(fn){
+  if (!S) return {ok:false, msg:"The zoo wasn't open yet, so this one fizzled."};
+  const msg=fn(); if (msg && msg.ok===false) return msg;
+  updateHud(); save(); return msg;
+}
+window.PSPowers = {
+  "critter.rush":{emoji:"🏃", label:"Zoo rush", run:()=>crPower(()=>{ S.fx.frenzy=Math.max(now(),S.fx.frenzy)+77000; sfx.fanfare(); return "7× income for the next 77 seconds!"; })},
+  "critter.coins":{emoji:"💰", label:"Coin shower", run:()=>crPower(()=>{ const c=Math.max(500, income(true)*600); gain(c); sfx.coin(); return `+${fmt(c)} coins, about ten minutes' worth.`; })},
+  "critter.gems":{emoji:"💎", label:"Gem gift", run:()=>crPower(()=>{ S.pearls+=25; sfx.coin(); return "+25 gems!"; })},
+  "critter.energy":{emoji:"🍎", label:"Snack refill", run:()=>crPower(()=>{ S.energy=Math.max(S.energy,eMax()); S.lastEnergy=now(); return "Your snacks are full."; })},
+  "critter.golden":{emoji:"✨", label:"Golden critter", run:()=>crPower(()=>{ if (goldLive) return {ok:false, msg:"A golden critter is already out there. Catch it!"}; setTimeout(spawnGold, 1800); return "A golden critter is about to run by. Tap it quick!"; })},
+  // The jump scare uses a scary critter from their current zoo when there is one (a T. rex, a croc, a wolf...), otherwise a random monster
+  "critter.scare":{emoji:"🦖", label:"Jump scare", good:false, run:()=>crPower(()=>{
+    const SCARY=["🦖","🐊","🐺","🐻","🐅","🦁","🐍","🕷️","🦂","🦈","🐉","🦍","🐲","👾"];
+    const mine=CREATURES.filter(c=>c && SCARY.includes(c.e)).map(c=>c.e);
+    const pool=mine.length?mine:SCARY, big=pool[Math.floor(Math.random()*pool.length)];
+    if (window.PSLive && PSLive.scare) PSLive.scare(big, !S.sound);
+    buzz("heavy");
+    return {ok:true, quiet:true}; })},
+  "critter.shuffle":{emoji:"🌪️", label:"Zoo shuffle", good:false, run:()=>crPower(()=>{
+    const idx=[...S.board.keys()].filter(i=>!locked(i)), vals=idx.map(i=>S.board[i]);
+    for (let i=vals.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vals[i],vals[j]]=[vals[j],vals[i]]; }
+    idx.forEach((i,k)=>S.board[i]=vals[k]); renderBoard(); buzz("medium");
+    return "A tornado blew through and mixed up every enclosure!"; })},
+  "critter.snacks":{emoji:"🦝", label:"Snack thief", good:false, run:()=>crPower(()=>{ if (S.energy<=0) return {ok:false, msg:"A raccoon came for your snacks, but you were already out."}; S.energy=0; S.lastEnergy=now(); sfx.nope(); return "A raccoon stole all your snacks! They'll refill over time."; })},
+};
 const hot = window.claude && window.claude.hot;
 if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
 })();

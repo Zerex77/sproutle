@@ -101,6 +101,13 @@
 .psl-shout{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;pointer-events:none;padding:16px}
 .psl-shout span{font:900 clamp(40px,13vw,120px)/1 system-ui,sans-serif;color:#fff;text-align:center;-webkit-text-stroke:3px #1f7a3a;paint-order:stroke fill;text-shadow:0 8px 0 #1f7a3a,0 14px 30px rgba(0,0,0,.4);animation:psl-shout 3.2s ease-out forwards;word-break:break-word}
 .psl-emoji{position:fixed;top:-60px;z-index:2147483645;pointer-events:none;font-size:36px;line-height:1;will-change:transform}
+.psl-scare{position:fixed;inset:0;z-index:2147483647;background:radial-gradient(circle,#3a0000 0%,#000 70%);display:grid;place-items:center;overflow:hidden;animation:psl-flash .12s steps(2) 3}
+.psl-scare.out{transition:opacity .35s;opacity:0}
+.psl-scare-e{font-size:min(80vw,80vh);line-height:1;animation:psl-lunge 1.5s cubic-bezier(.2,1.6,.4,1) forwards;filter:drop-shadow(0 0 40px rgba(255,0,0,.6))}
+.psl-scare-t{position:absolute;bottom:12vh;left:0;right:0;text-align:center;font:900 clamp(44px,14vw,110px)/1 system-ui,sans-serif;color:#ff2a2a;-webkit-text-stroke:2px #000;animation:psl-jitter .08s infinite}
+@keyframes psl-lunge{0%{transform:scale(.15) rotate(-10deg)}18%{transform:scale(1.25) rotate(4deg)}24%{transform:scale(1.1) rotate(-3deg)}30%{transform:scale(1.2) rotate(2deg)}100%{transform:scale(1.15) rotate(0)}}
+@keyframes psl-jitter{50%{transform:translate(3px,-2px)}}
+@keyframes psl-flash{50%{background:#fff}}
 @keyframes psl-in{from{opacity:0;transform:translate(-50%,-12px)}}
 @keyframes psl-drop{from{transform:translateY(-100%)}}
 @keyframes psl-fade{from{opacity:0}}
@@ -183,16 +190,52 @@
     invert(){ onRoot("invert(1) hue-rotate(180deg)", 8000); },
     blur(){ onRoot("blur(5px)", 5000); },
     gray(){ onRoot("grayscale(1)", 10000); },
-    rainbow(){
+    jumpscare(p){ scare(p.emoji, p.quiet); },
+  rainbow(){
       const h = document.documentElement;
       try{ h.animate([{filter:"hue-rotate(0deg) saturate(1.6)"},{filter:"hue-rotate(360deg) saturate(1.6)"}], {duration:2000, iterations:5}); }catch(e){}
     },
   };
+  // Little-kids games never get the jump scare
+  const KIDS = ["animalmatch", "bugsquish", "superrescue"];
   function effect(name, p){
     const f = EFFECTS[name]; if(!f) return;
+    if(name === "jumpscare" && KIDS.includes(GAME)) return;
     if(fxBusy && name !== "confetti" && name !== "emoji"){ setTimeout(()=>effect(name, p), 1500); return; }
     fxBusy = true; setTimeout(()=>{ fxBusy = false; }, 1200);
     f(p || {});
+  }
+  // Jump scare: the screen goes dark, a giant critter lunges at them with a roar, then it's gone
+  function scare(emoji, quiet){
+    if(KIDS.includes(GAME)) return;
+    css();
+    const o = el("div", "psl psl-scare"), e = el("div", "psl-scare-e", String(emoji || "👹").slice(0, 8)), t = el("div", "psl-scare-t", "RAAAWR!");
+    o.append(e, t); document.body.appendChild(o);
+    if(!quiet) roar();
+    try{ navigator.vibrate && navigator.vibrate([400, 60, 300]); }catch(err){}
+    setTimeout(()=>o.classList.add("out"), 1500);
+    setTimeout(()=>o.remove(), 1900);
+  }
+  let actx = null;
+  function roar(){
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state === "suspended") actx.resume();
+      const a = actx, t = a.currentTime, len = 1.3;
+      const out = a.createGain(); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.55, t + 0.04); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      out.connect(a.destination);
+      // Growl: two detuned saws sliding down, through a crunchy wave shaper
+      const shaper = a.createWaveShaper(), curve = new Float32Array(256);
+      for(let i = 0; i < 256; i++){ const x = i / 128 - 1; curve[i] = Math.tanh(x * 4); }
+      shaper.curve = curve; shaper.connect(out);
+      [95, 101].forEach(f=>{ const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f * .45, t + len);
+        o.connect(shaper); o.start(t); o.stop(t + len); });
+      // Breath: filtered noise
+      const buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
+      for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const n = a.createBufferSource(), lp = a.createBiquadFilter(); n.buffer = buf; lp.type = "lowpass"; lp.frequency.setValueAtTime(1800, t); lp.frequency.exponentialRampToValueAtTime(300, t + len);
+      n.connect(lp).connect(out); n.start(t);
+    }catch(err){}
   }
   function rain(emoji){
     css();
@@ -226,7 +269,7 @@
 
   // ---------- Power-ups. Each one belongs to a game; if the player is somewhere else it waits for them.
   const QK = "pslive-q";
-  const NAMES = {sproutle:"Sproutle", greenhouse:"Greenhouse", waterworks:"Waterworks", keystone:"Keystone", daisychain:"Daisy Chain"};
+  const NAMES = {sproutle:"Sproutle", greenhouse:"Greenhouse", waterworks:"Waterworks", keystone:"Keystone", daisychain:"Daisy Chain", "critter-collector":"Critter Collector"};
   function power(p){
     if(!p.game || !p.id) return;
     if(p.game === GAME && window.PSPowers && window.PSPowers[p.id]) return usePower(p);
@@ -240,6 +283,7 @@
     const pw = window.PSPowers[p.id];
     let r;
     try{ r = pw.run(); }catch(e){ r = {ok:false, msg:"Something went wrong, so this one fizzled."}; }
+    if(r && r.quiet) return;
     const ok = !(r && r.ok === false), msg = r && typeof r === "object" ? r.msg : r;
     card({big: ok ? (pw.emoji || "🎁") : "💨", title: ok ? (pw.label || "Power-up!") : "It fizzled", body: msg || "", note: p.note});
     if(ok && !REDUCED && pw.good !== false) confetti();
@@ -253,7 +297,7 @@
     mine.forEach((x, i)=>setTimeout(()=>{ if(window.PSPowers[x.id]) usePower(x); }, 600 + i*200));
   }
 
-  window.PSLive = {device: DEV, game: GAME, test: handle};
+  window.PSLive = {device: DEV, game: GAME, test: handle, scare};
   const start = ()=>{ drainQueue(); setTimeout(checkin, 600); setTimeout(realtime, 1500); };
   if(document.readyState === "complete") start(); else addEventListener("load", start);
 })();
