@@ -147,6 +147,7 @@ GAMES = [
     ('trailhead', 'Trailhead', 'Daily word climb · 3 min', 'Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.', 'Play Trailhead', '/trailhead/icon-192.png', True),
     ('keystone', 'Keystone', 'Daily missing-word puzzle · 3 min', 'Find the word that joins both sides of six bridges. Their first letters spell the keystone.', 'Play Keystone', '/keystone/icon-192.png', True),
     ('daisychain', 'Daisy Chain', 'Daily word chain · 3 min', 'Snowball, ballpark, park bench... Every word links to the next. Fill in the six missing links of the chain.', 'Play Daisy Chain', '/daisychain/icon-192.png', True),
+    ('waterworks', 'Waterworks', 'Daily pipe puzzle · 3 min', 'Turn the pipes so water reaches every sprout, with no open ends spilling. Beat par for a perfect run.', 'Play Waterworks', '/waterworks/icon-192.png', True),
     ('ballpark', 'Ballpark', 'Daily number puzzle · 1 min', 'One question, five guesses. Get close enough to the real number and you\'re in the ballpark.', 'Play Ballpark', '/ballpark/icon-192.png', True),
     ('imposter', 'Imposter', 'Daily odd-one-out · 2 min', 'Five rows of four suspects. Three share a secret. Spot the one that doesn\'t belong.', 'Play Imposter', '/imposter/icon-192.png', True),
     ('gridiron', 'Gridiron Golf', 'Daily NFL trivia · 3 min', 'One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.', 'Play Gridiron Golf', '/gridiron/icon-192.png', True),
@@ -215,6 +216,7 @@ HOME_JS = """<script>
     ranked(){const s=get("ranked-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     keystone(){const s=get("keystone-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.cracks||d.solved.some(Boolean)||d.rev.some(Boolean))?1:0},
     daisychain(){const s=get("daisychain-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:(d.lost||d.solved.slice(1,-1).some(Boolean))?1:0},
+    waterworks(){const s=get("waterworks-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.taps?1:0},
     trailhead(){const s=get("trailhead-daily")||get("fogline-climb");return !s||!s.daily||s.seed!==iso?0:s.path.length>=5?2:s.path.length?1:0},
     ballpark(){const s=get("ballpark-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.guesses.length?1:0},
     imposter(){const s=get("imposter-v1");const d=s&&s.day;return !d||d.n!==dailyNo?0:d.status!=="playing"?2:d.picks.length?1:0},
@@ -339,7 +341,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/daisychain/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/shortorder/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/bugsquish/', '/superrescue/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/daisychain/', '/waterworks/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/shortorder/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/bugsquish/', '/superrescue/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -365,7 +367,7 @@ shutil.copytree(os.path.join(D, 'trailhead'), os.path.join(OUT, 'trailhead'), di
 # Keystone is a separate daily game, copied as-is from build/keystone/
 shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs_exist_ok=True)
 # Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
-for g in ('daisychain', 'ballpark', 'imposter', 'almamater', 'shortorder', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat', 'animalmatch', 'bugsquish', 'superrescue'):
+for g in ('daisychain', 'waterworks', 'ballpark', 'imposter', 'almamater', 'shortorder', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat', 'animalmatch', 'bugsquish', 'superrescue'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')

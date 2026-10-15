@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1F2A33">
+<meta name="description" content="Waterworks: a free daily pipe puzzle. Turn the pipes so water reaches every sprout without spilling from an open end.">
+<link rel="canonical" href="https://playsproutle.com/waterworks/">
+<meta property="og:title" content="Waterworks">
+<meta property="og:description" content="Turn the pipes, water every sprout, spill nothing. A new pipe puzzle every day.">
+<meta property="og:url" content="https://playsproutle.com/waterworks/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/waterworks/icon-512.png">
+<link rel="icon" type="image/png" href="/waterworks/icon-192.png">
+<link rel="apple-touch-icon" href="/waterworks/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Waterworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
+<style>
+/* Layout: one narrow column. Header, a counter strip, the square pipe grid, then the result card. */
+:root{
+  --bg:#ECF1F3; --surface:#FBFDFE; --ink:#1F2A33; --muted:#5E6E7A; --line:#D0DBE1;
+  --soil:#E4DCCB; --soil-edge:#CDBFA6; --pipe:#8A939B; --pipe-hi:#B7BEC4;
+  --water:#2B8BD6; --water-hi:#7CC4F5; --leak:#E0603F;
+  --sprout:#5E9A45; --bloom:#F06A9B; --sun:#F2B724;
+  --accent:#2B8BD6; --accent-ink:#FFFFFF; --good:#3F9A57; --good-ink:#FFFFFF;
+  --display:"Young Serif", Georgia, serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#12181D; --surface:#1B232A; --ink:#E6EEF3; --muted:#93A3AF; --line:#2E3A44;
+  --soil:#2D2A24; --soil-edge:#463F33; --pipe:#6E7880; --pipe-hi:#9AA4AC;
+  --water:#47A6EE; --water-hi:#9AD3FA; --leak:#F07B5C;
+  --sprout:#7FC064; --bloom:#F58AB2; --sun:#F4C84A;
+  --accent:#47A6EE; --accent-ink:#06131D; --good:#5DB874; --good-ink:#08170C; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#12181D; --surface:#1B232A; --ink:#E6EEF3; --muted:#93A3AF; --line:#2E3A44;
+  --soil:#2D2A24; --soil-edge:#463F33; --pipe:#6E7880; --pipe-hi:#9AA4AC;
+  --water:#47A6EE; --water-hi:#9AD3FA; --leak:#F07B5C;
+  --sprout:#7FC064; --bloom:#F58AB2; --sun:#F4C84A;
+  --accent:#47A6EE; --accent-ink:#06131D; --good:#5DB874; --good-ink:#08170C; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:4px 10px}
+.mark{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:.01em}
+.mark span{color:var(--water)}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.meta{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;font-variant-numeric:tabular-nums}
+.meta b{color:var(--ink)}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.strip div{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:6px 4px}
+.strip b{display:block;font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.strip span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.strip .over b{color:var(--leak)}
+
+.grid{display:grid;gap:3px;padding:6px;background:var(--soil-edge);border-radius:14px;touch-action:manipulation;user-select:none}
+.tile{aspect-ratio:1;border:none;padding:0;border-radius:7px;background:var(--soil);display:block;position:relative}
+.tile svg{display:block;width:100%;height:100%}
+.tile .rot{transform-box:view-box;transform-origin:50px 50px;transition:transform .16s ease}
+.tile .p{stroke:var(--pipe);stroke-width:22;stroke-linecap:butt;fill:none;transition:stroke .2s}
+.tile .ph{stroke:var(--pipe-hi);stroke-width:6;fill:none;transition:stroke .2s}
+.tile .hub{fill:var(--pipe);transition:fill .2s}
+.tile.wet .p{stroke:var(--water)}
+.tile.wet .ph{stroke:var(--water-hi)}
+.tile.wet .hub{fill:var(--water)}
+.tile .fl .pet{fill:var(--soil-edge);transition:fill .3s}
+.tile .fl .ctr{fill:var(--muted);transition:fill .3s}
+.tile .fl .leaf{fill:var(--sprout)}
+.tile.wet .fl .pet{fill:var(--bloom)}
+.tile.wet .fl .ctr{fill:var(--sun)}
+.tile .lk circle,.tile .lk path{fill:var(--leak)}
+.tile:active{filter:brightness(.95)}
+.grid.won .tile{cursor:default}
+.grid.won .tile.wet .p{animation:shimmer 1.2s ease}
+@keyframes shimmer{40%{stroke:var(--water-hi)}}
+.cap{text-align:center;font-size:13px;color:var(--muted);min-height:18px}
+.cap b{color:var(--ink)}
+.actions{display:flex;gap:8px}
+.abtn{flex:1;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:14px}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.share{height:50px;border:none;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:700;font-size:16px}
+.practice{height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:15px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.more{font-size:14px;font-weight:700;color:var(--accent);text-align:center}
+.fallback{width:100%;min-height:90px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(8,14,20,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:28px}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.legend{display:flex;justify-content:center;gap:14px}
+.legend div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+.legend .tile{width:56px;height:56px}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dlab{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--line);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--good);color:var(--good-ink)}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="/site.js?v=202610150836" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">Water<span>works</span></div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="meta"><span id="pNo">No. 1</span><span id="mode"></span></div>
+
+  <div class="strip">
+    <div id="cTaps"><b id="taps">0</b><span>Taps</span></div>
+    <div><b id="par">0</b><span>Par</span></div>
+    <div><b id="wet">0/0</b><span>Watered</span></div>
+  </div>
+
+  <section class="grid" id="grid" aria-label="Pipe grid"></section>
+  <div class="cap" id="cap"></div>
+  <div class="actions" id="acts">
+    <button class="abtn" id="btnReset">Start over</button>
+  </div>
+
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Tap a pipe to turn it a quarter turn. Get water from the tank to every sprout.</p>
+    <div class="legend" id="legend"></div>
+    <ul>
+      <li>Water flows through every pipe joined to the tank. Wet pipes turn blue and watered sprouts bloom.</li>
+      <li>An open pipe end that isn't joined to another pipe spills, shown in orange. You win when every sprout blooms and nothing spills.</li>
+      <li>Par is the number of taps the puzzle needs. Try to finish at or under it.</li>
+    </ul>
+    <button class="close" data-close>Turn on the water</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dlab">Taps compared to par</div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// Pipe sides are bits: N=1, E=2, S=4, W=8. Turning a tile clockwise shifts the bits around.
+const N=1,E=2,S_=4,W=8, DIRS=[[0,-1,N,S_],[1,0,E,W],[0,1,S_,N],[-1,0,W,E]];
+const rotm=(m,k)=>{ for(let i=0;i<(k%4+4)%4;i++) m=((m<<1)|(m>>3))&15; return m; };
+const bits=m=>[N,E,S_,W].filter(b=>m&b);
+const SIZE=6;
+
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+// Build a random tree of pipes covering every cell from the tank, then twist each tile.
+// Dead-end tiles of the tree are the sprouts. Any arrangement that waters all of them without a spill wins.
+function generate(seed, n){
+  for(let attempt=0;;attempt++){
+    const R=rng(seed+attempt*1013), cells=n*n, sol=Array(cells).fill(0), inT=Array(cells).fill(false);
+    const src=Math.floor(R()*cells); inT[src]=true;
+    const front=[];
+    const addFront=c=>{ const x=c%n,y=Math.floor(c/n); for(const [dx,dy,b,o] of DIRS){ const nx=x+dx,ny=y+dy; if(nx>=0&&ny>=0&&nx<n&&ny<n&&!inT[ny*n+nx]) front.push([c,ny*n+nx,b,o]); } };
+    addFront(src);
+    while(front.length){
+      const k=Math.floor(R()*front.length), [a,b,da,db]=front[k]; front[k]=front[front.length-1]; front.pop();
+      if(inT[b]) continue;
+      // Avoid four-way crosses: they can't be turned, so they make dull tiles
+      if(bits(sol[a]).length>=3 && R()<.85) { continue; }
+      sol[a]|=da; sol[b]|=db; inT[b]=true; addFront(b);
+    }
+    if(inT.some(v=>!v)) continue; // a skipped edge stranded a cell; try again
+    const sprouts=[...sol.keys()].filter(i=>i!==src&&bits(sol[i]).length===1);
+    if(sprouts.length<5) continue;
+    const base=sol.map(m=>rotm(m,Math.floor(R()*4)));
+    const par=base.reduce((t,m,i)=>{ for(let k=0;k<4;k++) if(rotm(m,k)===sol[i]) return t+k; return t; },0);
+    const P={n,src,sol,base,sprouts,par};
+    if(par<8 || check(P, Array(cells).fill(0)).won) continue;
+    return P;
+  }
+}
+
+// Flow water from the tank. Returns which tiles are wet, which sides spill, and whether it's solved.
+function check(P, rot){
+  const n=P.n, m=P.base.map((b,i)=>rotm(b,rot[i])), wet=Array(n*n).fill(false), leaks=Array(n*n).fill(0);
+  const q=[P.src]; wet[P.src]=true;
+  while(q.length){
+    const c=q.pop(), x=c%n, y=Math.floor(c/n);
+    for(const [dx,dy,b,o] of DIRS){
+      if(!(m[c]&b)) continue;
+      const nx=x+dx, ny=y+dy;
+      if(nx<0||ny<0||nx>=n||ny>=n){ leaks[c]|=b; continue; }
+      const d=ny*n+nx;
+      if(!(m[d]&o)){ leaks[c]|=b; continue; }
+      if(!wet[d]){ wet[d]=true; q.push(d); }
+    }
+  }
+  const watered=P.sprouts.filter(i=>wet[i]).length;
+  const won = wet.every(Boolean) && leaks.every(v=>!v);
+  return {wet,leaks,watered,won};
+}
+
+// ---- Daily puzzle number (local date, puzzle #1 = Oct 13, 2026, shared with the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH=Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo=Math.max(1, dayIndex(new Date())-EPOCH+1);
+
+// ---- Storage (optional; game works without it)
+const SKEY="waterworks-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(store)); }catch(e){} }
+const store=load();
+store.stats=store.stats||{played:0,cur:0,max:0,par:0,dist:[0,0,0,0,0],lastDone:0};
+
+let practice=false, P, G, ang; // G = current game state, ang = cumulative turn per tile for smooth animation
+function startDaily(){
+  practice=false;
+  P=generate(pNo*7919+17, SIZE);
+  G=(store.day&&store.day.n===pNo&&store.day.rot&&store.day.rot.length===SIZE*SIZE) ? store.day : {n:pNo, rot:Array(SIZE*SIZE).fill(0), taps:0, status:"playing"};
+  store.day=G; ang=G.rot.slice(); build();
+}
+function startPractice(){
+  practice=true;
+  P=generate(Math.floor(Math.random()*1e9), SIZE+1);
+  G={rot:Array(P.n*P.n).fill(0), taps:0, status:"playing"}; ang=G.rot.slice(); build();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+const $=id=>document.getElementById(id);
+
+// ---- Tile drawing. Pipes sit in a group that turns; the hub, tank, sprout and spill marks don't turn.
+const ARM={[N]:"M50 50V0",[E]:"M50 50H100",[S_]:"M50 50V100",[W]:"M50 50H0"};
+function pipeSVG(m){
+  const arms=bits(m).map(b=>ARM[b]).join("");
+  return `<path class="p" d="${arms}"/><path class="ph" d="${arms}" opacity=".55"/><circle class="hub" cx="50" cy="50" r="11"/>`;
+}
+const TANK=`<circle cx="50" cy="50" r="27" fill="var(--water)" stroke="var(--ink)" stroke-width="3"/><path d="M30 52q5-6 10 0t10 0t10 0t10 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="38" r="4" fill="#fff" opacity=".8"/>`;
+const SPROUT=`<g class="fl"><path class="leaf" d="M50 62q-14-2-16-14q12 0 16 14z"/><path class="leaf" d="M50 62q14-2 16-14q-12 0-16 14z"/>${[0,72,144,216,288].map(a=>`<ellipse class="pet" cx="50" cy="39" rx="6" ry="9" transform="rotate(${a} 50 50)"/>`).join("")}<circle class="ctr" cx="50" cy="50" r="7"/></g>`;
+function leakSVG(l){
+  const at={[N]:[50,8],[E]:[92,50],[S_]:[50,92],[W]:[8,50]};
+  return bits(l).map(b=>{ const [x,y]=at[b]; return `<circle cx="${x}" cy="${y}" r="8"/><circle cx="${x+(b===E?6:b===W?-6:7)}" cy="${y+(b===N?-5:b===S_?6:7)}" r="4"/>`; }).join("");
+}
+function tileHTML(i,m,deg){
+  const top = i===P.src ? TANK : P.sprouts.includes(i) ? SPROUT : "";
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><g class="rot" style="transform:rotate(${deg}deg)">${pipeSVG(m)}</g>${top}<g class="lk"></g></svg>`;
+}
+
+function build(){
+  const g=$("grid"); g.style.gridTemplateColumns=`repeat(${P.n},1fr)`; g.innerHTML="";
+  for(let i=0;i<P.n*P.n;i++){
+    const t=document.createElement("button"); t.className="tile"; t.dataset.i=i;
+    t.innerHTML=tileHTML(i,P.base[i],ang[i]*90);
+    t.addEventListener("click",()=>tap(i));
+    g.appendChild(t);
+  }
+  update();
+}
+
+function update(){
+  const r=check(P,G.rot), tiles=$("grid").children;
+  for(let i=0;i<tiles.length;i++){
+    tiles[i].classList.toggle("wet", r.wet[i]);
+    tiles[i].querySelector(".rot").style.transform=`rotate(${ang[i]*90}deg)`;
+    tiles[i].querySelector(".lk").innerHTML = r.wet[i] ? leakSVG(r.leaks[i]) : "";
+    tiles[i].setAttribute("aria-label", (i===P.src?"Tank":P.sprouts.includes(i)?"Sprout":"Pipe")+(r.wet[i]?", wet":"")+". Tap to turn.");
+  }
+  $("grid").classList.toggle("won", G.status!=="playing");
+  $("pNo").textContent = practice ? "Practice" : "No. "+pNo;
+  $("mode").innerHTML = practice ? "Doesn't count toward stats" : `${P.n}×${P.n} grid`;
+  $("taps").textContent=G.taps; $("par").textContent=P.par;
+  $("cTaps").classList.toggle("over", G.taps>P.par);
+  $("wet").textContent=`${r.watered}/${P.sprouts.length}`;
+  const spills=r.leaks.filter(Boolean).length;
+  $("cap").innerHTML = G.status!=="playing" ? "" : r.watered===P.sprouts.length && spills ? `Every sprout is watered, but <b>${spills} pipe${spills===1?" is":"s are"} still spilling</b>` : "Tap a pipe to turn it";
+  $("acts").hidden = G.status!=="playing" ? true : false;
+  renderResult();
+  return r;
+}
+
+function tap(i){
+  if(G.status!=="playing") return;
+  if(!practice) window.SLB && SLB.start("waterworks", pNo);
+  // Four-way crosses look the same at every turn, so they're free
+  if(bits(P.base[i]).length===4){ return; }
+  G.rot[i]=(G.rot[i]+1)%4; ang[i]++; G.taps++;
+  const r=update();
+  if(r.won){
+    G.status="won";
+    if(!practice) finish();
+    setTimeout(()=>{ toast(G.taps<=P.par?"Perfect plumbing! 💧":"Water's flowing! 💧"); update(); $("result").scrollIntoView({behavior:"smooth",block:"nearest"}); }, 220);
+  }
+  if(!practice) save();
+}
+
+function finish(){
+  if(!practice) window.SLB && SLB.stop("waterworks", pNo);
+  const st=store.stats, d=G.taps-P.par; st.played++;
+  st.dist[d<=0?0:d<=4?1:d<=10?2:d<=20?3:4]++;
+  if(d<=0) st.par++;
+  st.cur=(st.lastDone===pNo-1)?st.cur+1:1; st.lastDone=pNo; st.max=Math.max(st.max,st.cur);
+}
+
+function shareText(){
+  const d=G.taps-P.par, rel = d<=0 ? (d<0?`${-d} under par`:"at par") : `+${d} over par`;
+  return `Waterworks No. ${pNo} 💧\n${G.taps} taps (${rel})\n${"🌸".repeat(P.sprouts.length)}\nplaysproutle.com/waterworks`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(G.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const d=G.taps-P.par;
+  const head = d<0 ? "Under par!" : d===0 ? "Perfect plumbing" : d<=6 ? "Water's flowing" : "Leak-free at last";
+  const sub = `All ${P.sprouts.length} sprouts watered in <b>${G.taps}</b> taps. Par was ${P.par}.`;
+  if(practice){
+    r.innerHTML=`<h2>${head}</h2><p>${sub}</p><button class="practice" id="btnPrac">Another practice puzzle</button><a class="more" href="/">Play more games →</a>`;
+    $("btnPrac").onclick=startPractice; return;
+  }
+  r.innerHTML=`<h2>${head}</h2><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <button class="practice" id="btnPrac">Play a practice puzzle</button>
+    <div class="next"><span>Next puzzle in</span><b id="cd">--:--:--</b></div>
+    <div id="slb"></div>
+    <a class="more" href="/">Play more games →</a>`;
+  $("btnPrac").onclick=startPractice;
+  if(window.SLB) SLB.mount($("slb"), {game:"waterworks", day:pNo, score:G.taps, eligible:true, fmt:n=>n+" taps", note:"Fewest taps wins; ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
+  $("btnShare").onclick=()=>{
+    const txt=shareText(), ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  let s=Math.max(0,Math.floor((mid-now)/1000));
+  el.textContent=[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(v=>String(v).padStart(2,"0")).join(":");
+}
+setInterval(tick,1000);
+
+let toastT;
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(toastT);
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  toastT=setTimeout(()=>t.remove(),1800);
+}
+
+function openStats(){
+  const st=store.stats;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[st.par,"At par"],[st.cur,"Streak"],[st.max,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const labels=["At par","+1 to 4","+5 to 10","+11 to 20","+21 or more"], mx=Math.max(1,...st.dist);
+  const mine = !practice && G.status==="won" ? (d=>d<=0?0:d<=4?1:d<=10?2:d<=20?3:4)(G.taps-P.par) : -1;
+  $("dist").innerHTML=st.dist.map((v,i)=>`<div class="bar">${labels[i]}<i class="${i===mine?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+$("btnReset").onclick=()=>{
+  if(G.status!=="playing") return;
+  // Turn every tile forward to its starting angle so the animation keeps spinning one way. Taps still count.
+  for(let i=0;i<G.rot.length;i++){ if(G.rot[i]){ ang[i]+=4-G.rot[i]; G.rot[i]=0; } }
+  update(); if(!practice) save(); toast("Pipes reset. Your taps still count.");
+};
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); });
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+
+startDaily();
+// Legend in the help box, drawn with the real tile art
+$("legend").innerHTML=[["Tank",P.src,E|S_,true,0],["Dry sprout",P.sprouts[0],N,false,0],["Watered",P.sprouts[0],N,true,0],["Spilling",-1,E|W,true,E]].map(([lab,i,m,wet,lk])=>
+  `<div><span class="tile${wet?" wet":""}">${tileHTML(i,m,0).replace('<g class="lk"></g>',`<g class="lk">${leakSVG(lk)}</g>`)}</span>${lab}</div>`).join("");
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+</script>
+</body>
+</html>
