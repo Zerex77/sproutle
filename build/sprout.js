@@ -384,3 +384,31 @@ addEventListener("resize",()=>{if(S)renderPlant();});
 buildKB();load({kind:"daily",num:TODAY});
 if(!store.get("sproutle-seen")){store.set("sproutle-seen",1);help();}
 else if(S.done)setTimeout(showResults,300);
+// ---- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player.
+window.PSPowers={
+  "sproutle.letter":{emoji:"💡",label:"Free letter",run(){
+    if(!S||S.done||dead())return{ok:false,msg:"Your plant is already finished, so the letter blew away."};
+    hintFor=cur();hintMove=findHint();
+    if(!hintMove)return{ok:false,msg:"There's no way to grow from here, so the letter blew away."};
+    hintStage=2;typed="";save();render();
+    return `The next letter is ${hintMove.c.toUpperCase()}. This one's free, no penalty.`;}},
+  "sproutle.grow":{emoji:"🌿",label:"Growth spurt",run(){
+    if(!S||S.done||dead())return{ok:false,msg:"Your plant is already finished, so the growth spurt fizzled."};
+    const m=findHint();if(!m)return{ok:false,msg:"There's no way to grow from here, so the growth spurt fizzled."};
+    if(isToday()&&window.SLB)SLB.start("sproutle",TODAY);
+    typed=m.w;grow();
+    return `Your plant grew on its own: ${m.w.toUpperCase()}.`;}},
+  "sproutle.heal":{emoji:"🍃",label:"Leaf regrowth",run(){
+    if(!S||S.done)return{ok:false,msg:"Your plant is already finished, so the leaf blew away."};
+    if(!(S.misses||S.wilts))return{ok:false,msg:"You haven't lost any leaves, so there was nothing to regrow."};
+    if(S.wilts>0)S.wilts--;else S.misses--;
+    const k=Math.max(S.log.lastIndexOf("y"),S.log.lastIndexOf("x"));if(k>=0)S.log.splice(k,1);
+    S.tried=[];save();render();
+    return "A fallen leaf grew back. Your last mistake is erased.";}},
+  "sproutle.bug":{emoji:"🐛",label:"Hungry caterpillar",good:false,run(){
+    if(!S||S.done)return{ok:false,msg:"A caterpillar came by, but your plant was already finished."};
+    S.wilts=(S.wilts||0)+1;S.log.push("y");dropLeaf();buzz([30,40,30]);save();render();
+    if(bounces()>=MAX_BOUNCES){setTimeout(()=>finish("wilted"),500);return "A caterpillar ate your last leaf!";}
+    return "A caterpillar ate one of your leaves!";}},
+};
+/*end powers*/

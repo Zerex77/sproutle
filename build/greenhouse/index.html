@@ -422,6 +422,37 @@ $("ladder").innerHTML=T.slice(1,12).map(x=>`<span title="${x[0]}">${x[1]}</span>
 
 startMode(store.day && store.day.n===pNo && store.day.status==="over" && store.free && store.free.status==="playing" ? "free" : "daily");
 if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+// ---- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player.
+function ghPower(fn){
+  if(!G||G.status!=="playing") return {ok:false, msg:"Your greenhouse is already finished, so this one fizzled."};
+  if(busy) return {ok:false, msg:"It arrived mid-swipe and fizzled."};
+  const msg=fn(); if(msg && msg.ok===false) return msg;
+  G.top=Math.max(G.top, ...G.cells.filter(v=>v>0));
+  if(G.top>=GOAL && !G.oak) G.oak=true;
+  if(!canMove(G.cells)) gameOver();
+  drawAll(); save(); return msg;
+}
+window.PSPowers={
+  "greenhouse.fertilizer":{emoji:"🧪", label:"Fertilizer", run:()=>ghPower(()=>{
+    const p=G.cells.filter(v=>v>0); if(!p.length) return {ok:false, msg:"There were no plants to feed."};
+    const lo=Math.min(...p); let n=0;
+    G.cells=G.cells.map(v=>{ if(v===lo){ n++; return v+1; } return v; });
+    return `Your smallest plants grew! ${n} ${tierOf(lo)[0]}${n===1?"":"s"} became ${n===1?"a ":""}${tierOf(lo+1)[0]}${n===1?"":"s"} ${tierOf(lo+1)[1]}`; })},
+  "greenhouse.weedkiller":{emoji:"🧴", label:"Weed killer", run:()=>ghPower(()=>{
+    const n=G.cells.filter(v=>v<0).length; if(!n) return {ok:false, msg:"There weren't any weeds, so the weed killer went to waste."};
+    G.cells=G.cells.map(v=>v<0?0:v); G.weedsPulled+=n;
+    return `Every weed is gone! 🌾 ×${n}`; })},
+  "greenhouse.shovel":{emoji:"⛏️", label:"Shovel", run:()=>ghPower(()=>{
+    const idx=[...G.cells.keys()].filter(i=>G.cells[i]>0).sort((a,b)=>G.cells[a]-G.cells[b]).slice(0,3);
+    if(!idx.length) return {ok:false, msg:"There was nothing to dig up."};
+    idx.forEach(i=>G.cells[i]=0);
+    return `Dug up your ${idx.length} smallest plant${idx.length===1?"":"s"} to make room.`; })},
+  "greenhouse.weeds":{emoji:"🌾", label:"Weed invasion", good:false, run:()=>ghPower(()=>{
+    const empty=[...G.cells.keys()].filter(i=>!G.cells[i]); if(!empty.length) return {ok:false, msg:"Some weeds tried to move in, but there was no room."};
+    let n=0; for(let k=0;k<2&&empty.length;k++){ const j=empty.splice(Math.floor(Math.random()*empty.length),1)[0]; G.cells[j]=-Math.max(1,G.moves); n++; }
+    return n===1 ? "A weed sneaked into your greenhouse!" : "Two weeds sneaked into your greenhouse! Push them together to clear them."; })},
+};
+/*end powers*/
 </script>
 </body>
 </html>

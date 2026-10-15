@@ -27,3 +27,11 @@ Settings live at the top of `build_site.py`; every page loads the generated `doc
 - `ADSENSE_CLIENT`: paste your `ca-pub-...` ID to turn on Google AdSense (auto ads). This also writes `docs/ads.txt` and switches the "no ads" wording on the homepage, About and Privacy pages. Pages in `NO_AD_PATHS` (the little-kids games) never load ads.
 - `GOATCOUNTER`: your GoatCounter site code for cookie-free visitor stats.
 - `FRIEND_CODE`: anyone who opens `playsproutle.com/?friend=<code>` once never sees ads on that device. `?friend=off` turns ads back on.
+
+## Live messages, effects and power-ups
+`build/live.js` runs on every page (loaded by `site.js`). Each browser checks in with Supabase about once a minute and listens on its own realtime channel, so you can reach a specific player from the private page at `playsproutle.com/live-admin/`.
+- **Setup (once):** open `build/live_setup.sql`, put your passphrase in the marked line at the bottom, and run the whole file in Supabase's SQL Editor. That passphrase unlocks the admin page.
+- **Messages** show as a pop-up, a banner, a toast or a giant shout. **Effects** (confetti, emoji rain, upside down, spin and more) play once and undo themselves.
+- **Power-ups** live in each game's own code, in the block marked "Power-ups sent from the live admin page". To add one, register it in that game's `window.PSPowers` and add a matching line to `POWERS` in `build/live-admin/index.html`. Sproutle, Greenhouse, Waterworks, Keystone and Daisy Chain have them so far.
+- A power-up sent for a different game than the one they have open waits for them in that game for 3 days.
+- Players are matched by the same random device ID the leaderboards use, and show their leaderboard initials once they've posted a score. Rename anyone on the admin page (only you see the names).

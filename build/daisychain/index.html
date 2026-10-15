@@ -458,6 +458,28 @@ document.querySelectorAll(".scrim").forEach(s=>{
 fixSel();
 if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
 render();
+// ---- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player.
+function dcPower(fn){
+  if(S.status!=="playing") return {ok:false, msg:"Your chain is already finished, so this one fizzled."};
+  const msg=fn(); if(msg && msg.ok===false) return msg;
+  save(); render(); return msg;
+}
+window.PSPowers={
+  "daisychain.letter":{emoji:"🔤", label:"Free letter", run:()=>dcPower(()=>{
+    fixSel(); const i=sel; if(i<0) return {ok:false, msg:"There were no open links."};
+    if(S.rev[i]>=W[i].length-1) return {ok:false, msg:"Only one letter is left in that word, so you're on your own!"};
+    S.rev[i]++; buf=""; return "A free letter, and no petal lost."; })},
+  "daisychain.link":{emoji:"🔗", label:"Free link", run:()=>dcPower(()=>{
+    fixSel(); const i=sel; if(i<0) return {ok:false, msg:"There were no open links."};
+    S.rev[i]=W[i].length; S.solved[i]=true; fx={type:"pop",i}; afterSolve(i, false);
+    return `${W[i]} linked itself into your chain.`; })},
+  "daisychain.petal":{emoji:"🌼", label:"Petal back", run:()=>dcPower(()=>{
+    if(!S.lost) return {ok:false, msg:"You haven't lost any petals, so there was nothing to give back."};
+    S.lost--; return "One petal grew back."; })},
+  "daisychain.wilt":{emoji:"🥀", label:"Wilted petal", good:false, run:()=>dcPower(()=>{
+    S.lost++; return "Oops, one of your petals wilted!"; })},
+};
+/*end powers*/
 </script>
 </body>
 </html>

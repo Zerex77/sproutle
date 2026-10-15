@@ -115,7 +115,7 @@ def page(title, desc, path, body, button='<a class="play" href="/sproutle/">Play
 privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, and your game progress stays on your device.', '/privacy', '''
 <main class="card">
 <h1>Privacy</h1>
-<p class="muted">Last updated October 12, 2026</p>
+<p class="muted">Last updated October 15, 2026</p>
 <p>Sproutle is built to need as little of your information as possible.</p>
 <h2>What stays on your device</h2>
 <p>Your puzzles, scores, streaks and settings are saved in your browser's local storage. They never leave your device, and we can't see them. Clearing your browser data erases them.</p>
@@ -123,6 +123,8 @@ privacy = page('Privacy | Sproutle', 'Sproutle privacy policy. No accounts, and 
 <ul><li>No accounts, names or email addresses.</li>''' + ('' if ADS else '<li>No advertising and no ad trackers.</li>') + '''<li>We don't sell or share personal data.</li></ul>
 <h2>Leaderboards</h2>
 <p>If you choose to post a score, we store the three initials you enter, your score, how long the puzzle took, and a random ID created on your device so you can only post once per puzzle. Leaderboard data is stored with our database provider, Supabase. Nothing is posted unless you press Post.</p>
+<h2>Live messages and surprises</h2>
+<p>While you play, your browser checks in with Supabase about once a minute so we can send you a message, a screen effect or a power-up. Each check-in sends the same random device ID, the game you have open and, if you've posted a score before, your initials. We keep when you last checked in and how many visits you've made, and delete delivered messages after 30 days.</p>
 ''' + (ADS_PRIVACY if ADS else '') + '''<h2>Visitor counts</h2>
 <p>We may use a privacy-friendly analytics service to count visits and see which pages are popular. It doesn't use cookies and doesn't identify you personally.</p>
 <h2>Fonts</h2>
@@ -378,6 +380,9 @@ for name, text in files.items():
     open(os.path.join(OUT, name), 'w').write(text)
 # Shared leaderboard script used by every game
 shutil.copy(os.path.join(D, 'lb.js'), os.path.join(OUT, 'lb.js'))
+# Live messages, effects and power-ups (build/live.js), plus the private page that sends them (build/live-admin/)
+shutil.copy(os.path.join(D, 'live.js'), os.path.join(OUT, 'live.js'))
+shutil.copytree(os.path.join(D, 'live-admin'), os.path.join(OUT, 'live-admin'), dirs_exist_ok=True)
 # Ranked is a separate daily game, copied as-is from build/ranked/
 shutil.copytree(os.path.join(D, 'ranked'), os.path.join(OUT, 'ranked'), dirs_exist_ok=True)
 # Trailhead is a separate daily game, copied as-is from build/trailhead/
@@ -419,7 +424,7 @@ for f in ('icon-192.png', 'icon-512.png', 'apple-touch-icon.png'):
 shutil.copytree(os.path.join(D, 'critter'), os.path.join(OUT, 'critter-collector'), dirs_exist_ok=True)
 
 # ---------- shared site script: friend no-ads link, visitor stats, ads ----------
-site_cfg = json.dumps({'ads': ADSENSE_CLIENT, 'goat': GOATCOUNTER, 'friend': FRIEND_CODE, 'noAds': NO_AD_PATHS})
+site_cfg = json.dumps({'ads': ADSENSE_CLIENT, 'goat': GOATCOUNTER, 'friend': FRIEND_CODE, 'noAds': NO_AD_PATHS, 'v': VERSION})
 site_js = '(function(){var C=' + site_cfg + r''';
 var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
   set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
@@ -439,7 +444,8 @@ function add(src,attrs){var s=document.createElement("script");s.async=true;s.sr
 function go(){
   if(msg)toast(msg);
   if(C.goat)add("https://gc.zgo.at/count.js",{"data-goatcounter":"https://"+C.goat+".goatcounter.com/count"});
-  var kids=C.noAds.some(function(p){return location.pathname.indexOf(p)===0});
+  var kids=C.noAds.some(function(p){return location.pathname.indexOf(p)===0})||location.pathname.indexOf("/live-admin")===0;
+  if(location.pathname.indexOf("/live-admin")!==0)add("/live.js?v="+C.v,{});
   if(C.ads&&!adFree&&!kids)add("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+C.ads,{crossorigin:"anonymous"});
 }
 if(document.body)go();else document.addEventListener("DOMContentLoaded",go);

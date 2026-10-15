@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f7a3a">
+<title>Live Control</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<style>
+:root{
+  --bg:#f3f7ee; --card:#ffffff; --ink:#17301f; --muted:#5f7466; --line:#dce6d6;
+  --accent:#1f7a3a; --accent-2:#2fc25f; --accent-ink:#ffffff; --soft:#e6f2df;
+  --mean:#b23a5a; --mean-soft:#fbe7ee; --on:#2fc25f; --idle:#f2b724; --off:#b9c4bb;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1712; --card:#18231c; --ink:#e7f1e9; --muted:#9db0a3; --line:#2a3a2f;
+    --accent:#2fc25f; --accent-2:#5fdc87; --accent-ink:#06210f; --soft:#1f3326; --mean:#ff7fa2; --mean-soft:#3a1c26; --off:#4f5d53; }
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 16px calc(24px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+main{max-width:640px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(16px,env(safe-area-inset-top)) 0 10px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--accent)}
+h2{font-size:15px;margin:0;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.ghost{background:none;border:1px solid var(--line);border-radius:10px;height:38px;padding:0 12px;color:var(--muted);font-weight:600}
+.primary{height:48px;border:none;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:800;padding:0 18px}
+.primary:disabled{opacity:.45}
+input[type=text],input[type=password],textarea,select{width:100%;border:2px solid var(--line);border-radius:12px;background:transparent;padding:10px 12px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:84px;resize:vertical}
+label.small{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+.row{display:flex;gap:8px;align-items:center}
+.row > *{flex:1}
+.err{color:var(--mean);font-weight:600;font-size:14px;min-height:1.2em;margin:8px 0 0}
+
+/* Players */
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:none;background:none;height:32px;padding:0 12px;border-radius:8px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.players{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.p{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 10px 10px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);cursor:pointer;user-select:none}
+.p.sel{border-color:var(--accent);background:var(--soft)}
+.p .ck{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-size:15px;font-weight:900;color:var(--accent-ink)}
+.p.sel .ck{background:var(--accent);border-color:var(--accent)}
+.p .nm{font-weight:800;display:flex;align-items:center;gap:6px;min-width:0}
+.p .nm b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--off)}
+.dot.on{background:var(--on);box-shadow:0 0 0 3px color-mix(in srgb,var(--on) 30%,transparent)}
+.dot.idle{background:var(--idle)}
+.tag{font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--soft);color:var(--accent)}
+.p .sub{font-size:13px;color:var(--muted)}
+.p .act{display:flex;gap:4px}
+.p .act button{width:38px;height:38px;border:none;border-radius:10px;background:transparent;font-size:17px}
+.p .act button:hover{background:var(--soft)}
+.empty{color:var(--muted);text-align:center;padding:18px 8px;font-size:15px}
+
+/* Composer */
+.who{font-size:14px;color:var(--muted);margin:0 0 10px}
+.who b{color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:12px}
+.tabs button{border:none;background:none;height:40px;border-radius:9px;font-weight:800;font-size:14px;white-space:nowrap;color:var(--muted);padding:0 4px}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.styles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.styles button{height:56px;border:2px solid var(--line);border-radius:12px;background:transparent;font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.styles button span{font-size:18px}
+.styles button.on{border-color:var(--accent);background:var(--soft)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.fxb{min-height:72px;border:2px solid var(--line);border-radius:14px;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:700;font-size:13px;padding:6px}
+.fxb span{font-size:26px;line-height:1.1}
+.fxb:active{transform:scale(.96)}
+.fxb.mean{border-color:color-mix(in srgb,var(--mean) 40%,var(--line));background:var(--mean-soft)}
+.fxb:disabled{opacity:.4}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.sect{font-size:13px;font-weight:800;color:var(--muted);margin:14px 0 6px}
+.send{width:100%;margin-top:12px}
+
+.snack{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:50;max-width:90vw;text-align:center;transition:opacity .3s}
+</style>
+<script src="/site.js?v=202610151108" defer></script>
+</head>
+<body>
+<main>
+<header>
+  <h1>🌱 Live <span>Control</span></h1>
+  <button class="ghost" id="lock" hidden>Lock</button>
+</header>
+
+<section class="card" id="login">
+  <h2>Admin passphrase</h2>
+  <form id="loginForm">
+    <label class="small" for="key">The passphrase you set in Supabase</label>
+    <input type="password" id="key" autocomplete="current-password" required>
+    <div class="row" style="margin-top:12px"><button class="primary" type="submit" id="go">Unlock</button></div>
+    <p class="err" id="loginErr"></p>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <section class="card">
+    <div class="ph">
+      <h2>Players</h2>
+      <div class="seg" id="filter"><button class="on" data-f="online">Online</button><button data-f="today">Today</button><button data-f="all">All</button></div>
+    </div>
+    <ul class="players" id="list"><li class="empty">Loading…</li></ul>
+    <p class="hint" id="meHint"></p>
+  </section>
+
+  <section class="card" id="composer">
+    <p class="who" id="who">Tap players above to pick who gets it.</p>
+    <div class="tabs" id="tabs"><button class="on" data-t="msg">💬 Message</button><button data-t="fx">✨ Effects</button><button data-t="pw">🎁 Power-ups</button></div>
+
+    <div data-p="msg">
+      <div class="styles" id="styles">
+        <button class="on" data-s="popup"><span>🪟</span>Pop-up</button>
+        <button data-s="banner"><span>📢</span>Banner</button>
+        <button data-s="toast"><span>💊</span>Toast</button>
+        <button data-s="shout"><span>📣</span>Shout</button>
+      </div>
+      <label class="small" for="text">Message</label>
+      <textarea id="text" maxlength="500" placeholder="Nice streak! 🔥"></textarea>
+      <label class="small" for="from">From (optional)</label>
+      <input type="text" id="from" maxlength="40" placeholder="Zach">
+      <button class="primary send" id="sendMsg" disabled>Send message</button>
+    </div>
+
+    <div data-p="fx" hidden>
+      <div class="grid" id="fxGrid"></div>
+      <label class="small" for="emoji">Emoji for the emoji rain</label>
+      <input type="text" id="emoji" maxlength="8" value="💩">
+      <p class="hint">Effects play right away and undo themselves after a few seconds.</p>
+    </div>
+
+    <div data-p="pw" hidden>
+      <label class="small" for="pgame">Game</label>
+      <select id="pgame"></select>
+      <div class="sect">Help them out</div>
+      <div class="grid" id="pwGood"></div>
+      <div class="sect">Mess with them 😈</div>
+      <div class="grid" id="pwMean"></div>
+      <label class="small" for="note">Note to show with it (optional)</label>
+      <input type="text" id="note" maxlength="120" placeholder="Don't say I never did anything for you">
+      <p class="hint">If they're in a different game, they'll get a pop-up and the power-up waits for them in this game for 3 days.</p>
+    </div>
+  </section>
+</div>
+</main>
+
+<script>
+(function(){
+const API="https://eiftinbzwcuxalnnmjra.supabase.co/rest/v1/rpc/";
+const KEY="sb_publishable_w64F-Z-J_Gx0rwIPMl-V3w_e5BJmUE0";
+const $=id=>document.getElementById(id);
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// Keep in step with the power-ups each game registers (search the game code for "Power-ups sent from the live admin page")
+const GAMES={sproutle:"Sproutle",greenhouse:"Greenhouse",waterworks:"Waterworks",keystone:"Keystone",daisychain:"Daisy Chain",ranked:"Ranked",trailhead:"Trailhead",ballpark:"Ballpark",imposter:"Imposter",gridiron:"Gridiron Golf",almamater:"Alma Mater",shortorder:"Short Order","critter-collector":"Critter Collector",zachbox:"Zach Box",groupchat:"Group Chat Disaster",blendin:"Blend In",badtranslation:"Bad Translation",whosaidthat:"Who Said That",animalmatch:"Animal Match",bugsquish:"Bug Squish",superrescue:"Super Rescue",home:"Homepage",about:"About",privacy:"Privacy"};
+const POWERS={
+  sproutle:[["sproutle.letter","💡","Free letter"],["sproutle.grow","🌿","Growth spurt"],["sproutle.heal","🍃","Leaf regrowth"],["sproutle.bug","🐛","Caterpillar",1]],
+  greenhouse:[["greenhouse.fertilizer","🧪","Fertilizer"],["greenhouse.weedkiller","🧴","Weed killer"],["greenhouse.shovel","⛏️","Shovel"],["greenhouse.weeds","🌾","Weed invasion",1]],
+  waterworks:[["waterworks.fix","🔧","Plumber"],["waterworks.refund","🪙","Tap refund"],["waterworks.quake","🫨","Earthquake",1]],
+  keystone:[["keystone.build","🏗️","Free bridge"],["keystone.repair","🧱","Crack repair"],["keystone.zap","⚡","Lightning",1]],
+  daisychain:[["daisychain.letter","🔤","Free letter"],["daisychain.link","🔗","Free link"],["daisychain.petal","🌼","Petal back"],["daisychain.wilt","🥀","Wilted petal",1]],
+};
+const EFFECTS=[["confetti","🎉","Confetti"],["emoji","🌧️","Emoji rain"],["shake","🫨","Shake"],["flip","🙃","Upside down"],["spin","🌀","Spin"],["mirror","🪞","Mirror"],["tiny","🐜","Tiny"],["rainbow","🌈","Rainbow"],["invert","🔄","Invert"],["blur","🌫️","Blur"],["gray","⚫","Grayscale"]];
+
+let key=ls.get("pslive-admin-key"), players=[], sel=new Set(), filter="online", tab="msg", style="popup", pollT=0;
+const ME=ls.get("slb-device");
+
+async function rpc(name, body){
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),12000);
+  try{
+    const res=await fetch(API+name,{method:"POST",signal:ctl.signal,headers:{"apikey":KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const txt=await res.text();
+    if(!res.ok){ let m=""; try{ m=JSON.parse(txt).message; }catch(e){} const e=new Error(m||("HTTP "+res.status)); e.msg=m; e.status=res.status; throw e; }
+    return txt?JSON.parse(txt):null;
+  } finally { clearTimeout(t); }
+}
+
+let snackT;
+function snack(t){ let s=document.querySelector(".snack"); if(!s){ s=document.createElement("div"); s.className="snack"; document.body.appendChild(s); }
+  s.textContent=t; s.style.opacity="1"; clearTimeout(snackT); snackT=setTimeout(()=>{ s.style.opacity="0"; },2200); }
+
+// ---------- Login
+function showLogin(msg){ $("login").hidden=false; $("app").hidden=true; $("lock").hidden=true; $("loginErr").textContent=msg||""; clearTimeout(pollT); setTimeout(()=>$("key").focus(),50); }
+$("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const k=$("key").value; $("go").disabled=true; $("go").textContent="Checking…"; $("loginErr").textContent="";
+  try{ await rpc("live_admin_players",{p_key:k}); key=k; ls.set("pslive-admin-key",k); $("key").value=""; enter(); }
+  catch(ex){ $("loginErr").textContent = ex.msg==="bad key" ? "That passphrase didn't match." : /live_admin_players|function/.test(ex.msg||"") ? "The database isn't set up yet. Run live_setup.sql in Supabase first." : "Couldn't reach the database. Check your connection."; }
+  $("go").disabled=false; $("go").textContent="Unlock";
+});
+$("lock").onclick=()=>{ key=null; ls.set("pslive-admin-key",null); sel.clear(); showLogin(); };
+function enter(){ $("login").hidden=true; $("app").hidden=false; $("lock").hidden=false; load(); }
+
+// ---------- Players
+const ago=ts=>{ const s=Math.max(0,(Date.now()-new Date(ts))/1000); if(s<60) return "just now"; if(s<3600) return Math.floor(s/60)+"m ago"; if(s<86400) return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago"; };
+const state=ts=>{ const s=(Date.now()-new Date(ts))/1000; return s<150?"on":s<1800?"idle":""; };
+const nameOf=p=>p.nick || p.initials || ("Player "+p.device.slice(0,4).toUpperCase());
+async function load(){
+  clearTimeout(pollT);
+  try{ players=await rpc("live_admin_players",{p_key:key})||[]; draw(); }
+  catch(ex){ if(ex.msg==="bad key") return showLogin("The passphrase changed. Enter it again."); $("list").innerHTML=`<li class="empty">Couldn't load players. Retrying…</li>`; }
+  pollT=setTimeout(()=>{ if(!document.hidden && key) load(); else pollT=setTimeout(load,10000); }, 10000);
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && key && !$("app").hidden) load(); });
+function shown(){
+  const now=Date.now();
+  return players.filter(p=>{ const s=(now-new Date(p.last_seen))/1000;
+    return filter==="all" || (filter==="online" ? s<150 : s<86400) || sel.has(p.device); });
+}
+function draw(){
+  const list=shown();
+  if(!list.length){
+    $("list").innerHTML=`<li class="empty">${filter==="online"?"Nobody's playing right now.":"No players yet."} ${filter!=="all"?"Try <b>All</b>.":""}</li>`;
+  } else {
+    $("list").innerHTML=list.map(p=>{
+      const st=state(p.last_seen), me=p.device===ME;
+      return `<li class="p${sel.has(p.device)?" sel":""}" data-d="${esc(p.device)}" role="checkbox" aria-checked="${sel.has(p.device)}" tabindex="0">
+        <span class="ck">${sel.has(p.device)?"✓":""}</span>
+        <span><span class="nm"><i class="dot ${st}"></i><b>${esc(nameOf(p))}</b>${me?'<span class="tag">You</span>':""}${p.nick&&p.initials?`<span class="tag">${esc(p.initials)}</span>`:""}</span>
+        <span class="sub">${esc(GAMES[p.game]||p.game||"?")} · ${ago(p.last_seen)} · ${p.visits} visit${p.visits===1?"":"s"}${p.waiting?` · <b>${p.waiting} waiting</b>`:""}</span></span>
+        <span class="act"><button type="button" data-a="nick" aria-label="Rename">✏️</button><button type="button" data-a="forget" aria-label="Remove">🗑️</button></span></li>`;
+    }).join("");
+  }
+  $("meHint").textContent = ME ? "" : "Tip: open any game on this phone once and you'll show up as “You”, handy for testing.";
+  who();
+}
+$("list").addEventListener("click", async e=>{
+  const li=e.target.closest(".p"); if(!li) return;
+  const d=li.dataset.d, p=players.find(x=>x.device===d), a=e.target.closest("button[data-a]");
+  if(a && a.dataset.a==="nick"){
+    const n=prompt("Name for this player (only you see it):", p.nick||"");
+    if(n===null) return;
+    try{ await rpc("live_admin_nick",{p_key:key,p_device:d,p_nick:n}); p.nick=n.trim()||null; draw(); }catch(ex){ snack("Couldn't rename."); }
+    return;
+  }
+  if(a && a.dataset.a==="forget"){
+    if(!confirm(`Remove ${nameOf(p)} from this list? They'll show up again next time they play.`)) return;
+    try{ await rpc("live_admin_forget",{p_key:key,p_device:d}); players=players.filter(x=>x.device!==d); sel.delete(d); draw(); }catch(ex){ snack("Couldn't remove."); }
+    return;
+  }
+  sel.has(d)?sel.delete(d):sel.add(d); draw();
+});
+$("list").addEventListener("keydown", e=>{ if((e.key===" "||e.key==="Enter") && e.target.classList.contains("p")){ e.preventDefault(); e.target.click(); } });
+$("filter").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; filter=b.dataset.f;
+  [...$("filter").children].forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+
+// ---------- Composer
+function chosen(){ return players.filter(p=>sel.has(p.device)); }
+function who(){
+  const c=chosen();
+  $("who").innerHTML = !c.length ? "Tap players above to pick who gets it." :
+    "Sending to <b>" + esc(c.length<=3 ? c.map(nameOf).join(", ") : c.length+" players") + "</b>";
+  $("sendMsg").disabled = !c.length || !$("text").value.trim();
+  document.querySelectorAll(".fxb").forEach(b=>b.disabled=!c.length);
+  // Default the power-up game to where the picked players are
+  const games=[...new Set(c.map(p=>p.game))].filter(g=>POWERS[g]);
+  if(games.length===1 && $("pgame").dataset.auto!=="0" && $("pgame").value!==games[0]){ $("pgame").value=games[0]; drawPowers(); }
+}
+$("tabs").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; tab=b.dataset.t;
+  [...$("tabs").children].forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("[data-p]").forEach(p=>p.hidden=p.dataset.p!==tab); });
+$("styles").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; style=b.dataset.s;
+  [...$("styles").children].forEach(x=>x.classList.toggle("on",x===b)); });
+$("text").addEventListener("input", who);
+$("from").value = ls.get("pslive-admin-from") || "";
+$("from").addEventListener("change", ()=>ls.set("pslive-admin-from",$("from").value.trim()));
+
+async function send(kind, payload, label){
+  const c=chosen(); if(!c.length){ snack("Pick at least one player first."); return false; }
+  try{
+    const n=await rpc("live_admin_send",{p_key:key,p_devices:c.map(p=>p.device),p_kind:kind,p_payload:payload});
+    const off=c.filter(p=>state(p.last_seen)!=="on").length;
+    snack(`${label} sent to ${n===1?nameOf(c[0]):n+" players"} ✓${off?` (${off} offline, they'll get it next visit)`:""}`);
+    setTimeout(load, 1500);
+    return true;
+  }catch(ex){ if(ex.msg==="bad key") showLogin("The passphrase changed. Enter it again."); else snack("Couldn't send. Try again."); return false; }
+}
+$("sendMsg").onclick=async ()=>{
+  const text=$("text").value.trim(); if(!text) return;
+  $("sendMsg").disabled=true;
+  if(await send("message",{text,style,from:$("from").value.trim()},"Message")) $("text").value="";
+  who();
+};
+
+$("fxGrid").innerHTML=EFFECTS.map(([id,emo,label])=>`<button class="fxb" type="button" data-fx="${id}" disabled><span>${emo}</span>${label}</button>`).join("");
+$("fxGrid").addEventListener("click", e=>{ const b=e.target.closest(".fxb"); if(!b) return;
+  const id=b.dataset.fx, p={name:id}; if(id==="emoji") p.emoji=$("emoji").value.trim()||"🌱";
+  send("effect",p,EFFECTS.find(x=>x[0]===id)[2]); });
+
+$("pgame").innerHTML=Object.keys(POWERS).map(g=>`<option value="${g}">${GAMES[g]}</option>`).join("");
+$("pgame").addEventListener("change", ()=>{ $("pgame").dataset.auto="0"; drawPowers(); });
+function drawPowers(){
+  const g=$("pgame").value, list=POWERS[g]||[];
+  const btn=([id,emo,label,mean])=>`<button class="fxb${mean?" mean":""}" type="button" data-pw="${id}"${chosen().length?"":" disabled"}><span>${emo}</span>${label}</button>`;
+  $("pwGood").innerHTML=list.filter(x=>!x[3]).map(btn).join("");
+  $("pwMean").innerHTML=list.filter(x=>x[3]).map(btn).join("");
+}
+document.querySelector('[data-p="pw"]').addEventListener("click", e=>{ const b=e.target.closest("[data-pw]"); if(!b) return;
+  const g=$("pgame").value, pw=POWERS[g].find(x=>x[0]===b.dataset.pw);
+  send("power",{game:g,id:pw[0],label:pw[1]+" "+pw[2],note:$("note").value.trim(),from:$("from").value.trim()},pw[2]); });
+drawPowers();
+
+if(key) enter(); else showLogin();
+})();
+</script>
+</body>
+</html>

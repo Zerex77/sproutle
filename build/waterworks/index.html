@@ -421,6 +421,40 @@ startDaily();
 $("legend").innerHTML=[["Spring",P.src,E|S_,true,0],["Wilted",P.sprouts[0],N,false,0],["Blooming",P.sprouts[0],N,true,0],["Puddle",-1,E|W,true,E]].map(([lab,i,m,wet,lk])=>
   `<div><span class="lgbg"><span class="tile${wet?" wet":""}">${tileHTML(i,m,0).replace('<g class="lk"></g>',`<g class="lk">${leakSVG(lk)}</g>`)}</span></span>${lab}</div>`).join("");
 if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+// ---- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player.
+const wwRight=i=>rotm(P.base[i],G.rot[i])===P.sol[i];
+const wwTurnable=i=>bits(P.base[i]).length<4;
+function wwPower(fn){
+  if(!P||!G||G.status!=="playing") return {ok:false, msg:"Your garden is already finished, so this one fizzled."};
+  const msg=fn(); if(msg && msg.ok===false) return msg;
+  const r=update();
+  if(r.won){
+    G.status="won";
+    if(!practice) finish();
+    setTimeout(()=>{ update(); $("result").scrollIntoView({behavior:"smooth",block:"nearest"}); }, 220);
+  }
+  if(!practice) save();
+  return msg;
+}
+function wwShuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+window.PSPowers={
+  "waterworks.fix":{emoji:"🔧", label:"Plumber", run:()=>wwPower(()=>{
+    const wrong=wwShuffle([...G.rot.keys()].filter(i=>wwTurnable(i)&&!wwRight(i))).slice(0,4);
+    if(!wrong.length) return {ok:false, msg:"Every channel was already turned the right way."};
+    wrong.forEach(i=>{ for(let d=1;d<4;d++) if(rotm(P.base[i],(G.rot[i]+d)%4)===P.sol[i]){ G.rot[i]=(G.rot[i]+d)%4; ang[i]+=d; break; } });
+    return `A plumber turned ${wrong.length} channel${wrong.length===1?"":"s"} the right way, and it didn't cost you a tap.`; })},
+  "waterworks.refund":{emoji:"🪙", label:"Tap refund", run:()=>wwPower(()=>{
+    if(!G.taps) return {ok:false, msg:"You haven't used any taps yet, so there was nothing to refund."};
+    const n=Math.min(6,G.taps); G.taps-=n;
+    return `${n} tap${n===1?"":"s"} refunded!`; })},
+  "waterworks.quake":{emoji:"🫨", label:"Earthquake", good:false, run:()=>wwPower(()=>{
+    const ok=wwShuffle([...G.rot.keys()].filter(i=>wwTurnable(i)&&wwRight(i))).slice(0,4);
+    if(!ok.length) return {ok:false, msg:"The ground shook, but nothing moved."};
+    ok.forEach(i=>{ G.rot[i]=(G.rot[i]+1)%4; ang[i]++; });
+    try{ document.body.animate([{transform:"translate(0)"},{transform:"translate(-8px,3px)"},{transform:"translate(8px,-3px)"},{transform:"translate(0)"}],{duration:300,iterations:3}); }catch(e){}
+    return `An earthquake knocked ${ok.length} channel${ok.length===1?"":"s"} out of place!`; })},
+};
+/*end powers*/
 </script>
 </body>
 </html>

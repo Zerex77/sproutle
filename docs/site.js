@@ -1,4 +1,4 @@
-(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"]};
+(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"], "v": "202610151108"};
 var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
   set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
 var q=new URLSearchParams(location.search),f=q.get("friend"),msg=null;
@@ -17,7 +17,8 @@ function add(src,attrs){var s=document.createElement("script");s.async=true;s.sr
 function go(){
   if(msg)toast(msg);
   if(C.goat)add("https://gc.zgo.at/count.js",{"data-goatcounter":"https://"+C.goat+".goatcounter.com/count"});
-  var kids=C.noAds.some(function(p){return location.pathname.indexOf(p)===0});
+  var kids=C.noAds.some(function(p){return location.pathname.indexOf(p)===0})||location.pathname.indexOf("/live-admin")===0;
+  if(location.pathname.indexOf("/live-admin")!==0)add("/live.js?v="+C.v,{});
   if(C.ads&&!adFree&&!kids)add("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+C.ads,{crossorigin:"anonymous"});
 }
 if(document.body)go();else document.addEventListener("DOMContentLoaded",go);

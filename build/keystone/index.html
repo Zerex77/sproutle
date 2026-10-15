@@ -496,6 +496,27 @@ document.querySelectorAll(".scrim").forEach(s=>{
 
 if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
 render();
+// ---- Power-ups sent from the live admin page (/live-admin/). /live.js runs them; each returns what to tell the player.
+function ksPower(fn){
+  if(S.status!=="playing") return {ok:false, msg:"Your bridges are already finished, so this one fizzled."};
+  const msg=fn(); if(msg && msg.ok===false) return msg;
+  save(); render(); return msg;
+}
+window.PSPowers={
+  "keystone.build":{emoji:"🏗️", label:"Free bridge", run:()=>ksPower(()=>{
+    const i=(sel!==KS && !S.solved[sel]) ? sel : S.solved.indexOf(false);
+    if(i<0) return {ok:false, msg:"Every bridge was already built."};
+    S.solved[i]=true; fx={type:"pop",i}; buf="";
+    if(S.solved.every(Boolean)) finish(true); else sel=nextOpen(i);
+    return `A bridge built itself: ${P[i][0]} ${P[i][1]} ${P[i][2]}.`; })},
+  "keystone.repair":{emoji:"🧱", label:"Crack repair", run:()=>ksPower(()=>{
+    if(!S.cracks) return {ok:false, msg:"There weren't any cracks to repair."};
+    S.cracks--; return "One crack is patched up."; })},
+  "keystone.zap":{emoji:"⚡", label:"Lightning strike", good:false, run:()=>ksPower(()=>{
+    crack(-1, "⚡ Lightning!");
+    return S.status==="lost" ? "Lightning struck and the bridge gave way!" : "Lightning struck and cracked your bridge!"; })},
+};
+/*end powers*/
 </script>
 </body>
 </html>
