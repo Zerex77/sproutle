@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1F2A33">
-<meta name="description" content="Waterworks: a free daily pipe puzzle. Turn the pipes so water reaches every sprout without spilling from an open end.">
+<meta name="description" content="Waterworks: a free daily garden puzzle. Turn the soil to channel water from the spring to every flower, without spilling a drop.">
 <link rel="canonical" href="https://playsproutle.com/waterworks/">
 <meta property="og:title" content="Waterworks">
-<meta property="og:description" content="Turn the pipes, water every sprout, spill nothing. A new pipe puzzle every day.">
+<meta property="og:description" content="Channel water from the spring to every flower. Spill nothing. A new garden every day.">
 <meta property="og:url" content="https://playsproutle.com/waterworks/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://playsproutle.com/waterworks/icon-512.png">
@@ -18,28 +18,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
 <style>
-/* Layout: one narrow column. Header, a counter strip, the square pipe grid, then the result card. */
+/* Layout: one narrow column. Header, a counter strip, the square garden grid, then the result card. */
 :root{
-  --bg:#ECF1F3; --surface:#FBFDFE; --ink:#1F2A33; --muted:#5E6E7A; --line:#D0DBE1;
-  --soil:#E4DCCB; --soil-edge:#CDBFA6; --pipe:#8A939B; --pipe-hi:#B7BEC4;
-  --water:#2B8BD6; --water-hi:#7CC4F5; --leak:#E0603F;
-  --sprout:#5E9A45; --bloom:#F06A9B; --sun:#F2B724;
-  --accent:#2B8BD6; --accent-ink:#FFFFFF; --good:#3F9A57; --good-ink:#FFFFFF;
+  --bg:#F2F6E8; --surface:#FFFFF8; --ink:#2A2A1E; --muted:#6B6E57; --line:#DCE3C8;
+  --grass:#7CC25B; --grass-dk:#5FA644; --soil:#B98258; --soil-dk:#A26E47; --speck:#8E5E3B;
+  --furrow:#7A4A2B; --furrow-dk:#5E3620; --water:#2E9BEA; --water-hi:#A5DDFF; --stone:#C9C3B6;
+  --wilt:#C9B79A; --stem:#4E9A3A; --sun:#FFC93C; --leak:#2E9BEA;
+  --accent:#2E9BEA; --accent-ink:#FFFFFF; --good:#4E9A3A; --good-ink:#FFFFFF; --over:#D9573A;
   --display:"Young Serif", Georgia, serif;
   --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#12181D; --surface:#1B232A; --ink:#E6EEF3; --muted:#93A3AF; --line:#2E3A44;
-  --soil:#2D2A24; --soil-edge:#463F33; --pipe:#6E7880; --pipe-hi:#9AA4AC;
-  --water:#47A6EE; --water-hi:#9AD3FA; --leak:#F07B5C;
-  --sprout:#7FC064; --bloom:#F58AB2; --sun:#F4C84A;
-  --accent:#47A6EE; --accent-ink:#06131D; --good:#5DB874; --good-ink:#08170C; color-scheme:dark } }
+  --bg:#151A12; --surface:#1F261B; --ink:#EEF2E4; --muted:#A3AB91; --line:#334028;
+  --grass:#4C8A36; --grass-dk:#3B722A; --soil:#7A5338; --soil-dk:#6A472F; --speck:#5A3B26;
+  --furrow:#4A2D1A; --furrow-dk:#341F12; --water:#4AAEF2; --water-hi:#B4E3FF; --stone:#8D877C;
+  --wilt:#8F826C; --stem:#6DBA55; --sun:#FFD25A; --leak:#4AAEF2;
+  --accent:#4AAEF2; --accent-ink:#06131D; --good:#6DBA55; --good-ink:#0C1A08; --over:#F07B5C; color-scheme:dark } }
 :root[data-theme="dark"]{
-  --bg:#12181D; --surface:#1B232A; --ink:#E6EEF3; --muted:#93A3AF; --line:#2E3A44;
-  --soil:#2D2A24; --soil-edge:#463F33; --pipe:#6E7880; --pipe-hi:#9AA4AC;
-  --water:#47A6EE; --water-hi:#9AD3FA; --leak:#F07B5C;
-  --sprout:#7FC064; --bloom:#F58AB2; --sun:#F4C84A;
-  --accent:#47A6EE; --accent-ink:#06131D; --good:#5DB874; --good-ink:#08170C; color-scheme:dark }
+  --bg:#151A12; --surface:#1F261B; --ink:#EEF2E4; --muted:#A3AB91; --line:#334028;
+  --grass:#4C8A36; --grass-dk:#3B722A; --soil:#7A5338; --soil-dk:#6A472F; --speck:#5A3B26;
+  --furrow:#4A2D1A; --furrow-dk:#341F12; --water:#4AAEF2; --water-hi:#B4E3FF; --stone:#8D877C;
+  --wilt:#8F826C; --stem:#6DBA55; --sun:#FFD25A; --leak:#4AAEF2;
+  --accent:#4AAEF2; --accent-ink:#06131D; --good:#6DBA55; --good-ink:#0C1A08; --over:#F07B5C; color-scheme:dark }
 
 html,body{min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
@@ -50,6 +50,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:4px 10px}
 .mark{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:.01em}
 .mark span{color:var(--water)}
+.mark i{font-style:normal;color:var(--stem)}
 .hbtns{display:flex;gap:8px}
 .ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
 .ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
@@ -60,28 +61,35 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
 .strip div{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:6px 4px}
 .strip b{display:block;font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
 .strip span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.strip .over b{color:var(--leak)}
+.strip .over b{color:var(--over)}
 
-.grid{display:grid;gap:3px;padding:6px;background:var(--soil-edge);border-radius:14px;touch-action:manipulation;user-select:none}
-.tile{aspect-ratio:1;border:none;padding:0;border-radius:7px;background:var(--soil);display:block;position:relative}
-.tile svg{display:block;width:100%;height:100%}
+.grid{display:grid;gap:3px;padding:8px;background:var(--grass);border-radius:16px;border-bottom:5px solid var(--grass-dk);touch-action:manipulation;user-select:none}
+.tile{aspect-ratio:1;border:none;padding:0;border-radius:9px;background:var(--soil);display:block;position:relative;box-shadow:inset 0 -3px 0 var(--soil-dk)}
+.tile svg{display:block;width:100%;height:100%;overflow:visible}
+.tile .sp{fill:var(--speck)}
 .tile .rot{transform-box:view-box;transform-origin:50px 50px;transition:transform .16s ease}
-.tile .p{stroke:var(--pipe);stroke-width:22;stroke-linecap:butt;fill:none;transition:stroke .2s}
-.tile .ph{stroke:var(--pipe-hi);stroke-width:6;fill:none;transition:stroke .2s}
-.tile .hub{fill:var(--pipe);transition:fill .2s}
-.tile.wet .p{stroke:var(--water)}
-.tile.wet .ph{stroke:var(--water-hi)}
-.tile.wet .hub{fill:var(--water)}
-.tile .fl .pet{fill:var(--soil-edge);transition:fill .3s}
-.tile .fl .ctr{fill:var(--muted);transition:fill .3s}
-.tile .fl .leaf{fill:var(--sprout)}
-.tile.wet .fl .pet{fill:var(--bloom)}
+.tile .p{stroke:var(--furrow);stroke-width:30;stroke-linecap:butt;fill:none}
+.tile .ph{stroke:var(--furrow-dk);stroke-width:16;fill:none;transition:stroke .25s}
+.tile .wv{stroke:transparent;stroke-width:5;fill:none;stroke-dasharray:6 12;stroke-linecap:round}
+.tile .hub{fill:var(--furrow)}
+.tile .hub2{fill:var(--furrow-dk);transition:fill .25s}
+.tile.wet .ph{stroke:var(--water)}
+.tile.wet .hub2{fill:var(--water)}
+.tile.wet .wv{stroke:var(--water-hi);animation:flow 1.1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.tile .fl{transition:transform .35s cubic-bezier(.3,1.6,.5,1);transform-box:view-box;transform-origin:50px 64px;transform:rotate(-14deg) scale(.82)}
+.tile .fl .pet{fill:var(--wilt);transition:fill .35s}
+.tile .fl .ctr{fill:var(--speck);transition:fill .35s}
+.tile .fl .leaf,.tile .fl .stem{fill:var(--stem);stroke:var(--stem)}
+.tile.wet .fl{transform:none}
+.tile.wet .fl .pet{fill:var(--c)}
 .tile.wet .fl .ctr{fill:var(--sun)}
-.tile .lk circle,.tile .lk path{fill:var(--leak)}
+.tile .lk .pd{fill:var(--leak);opacity:.9}
+.tile .lk .pdh{fill:var(--water-hi)}
 .tile:active{filter:brightness(.95)}
 .grid.won .tile{cursor:default}
-.grid.won .tile.wet .p{animation:shimmer 1.2s ease}
-@keyframes shimmer{40%{stroke:var(--water-hi)}}
+.grid.won .tile.wet .fl{animation:bob 1s ease}
+@keyframes bob{40%{transform:scale(1.18)}}
 .cap{text-align:center;font-size:13px;color:var(--muted);min-height:18px}
 .cap b{color:var(--ink)}
 .actions{display:flex;gap:8px}
@@ -105,6 +113,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
 .legend{display:flex;justify-content:center;gap:14px}
 .legend div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
 .legend .tile{width:56px;height:56px}
+.legend .lgbg{display:block;padding:4px;background:var(--grass);border-radius:12px}
 .close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
 .stats b{display:block;font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
@@ -134,10 +143,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
   <div class="strip">
     <div id="cTaps"><b id="taps">0</b><span>Taps</span></div>
     <div><b id="par">0</b><span>Par</span></div>
-    <div><b id="wet">0/0</b><span>Watered</span></div>
+    <div><b id="wet">0/0</b><span>Blooming</span></div>
   </div>
 
-  <section class="grid" id="grid" aria-label="Pipe grid"></section>
+  <section class="grid" id="grid" aria-label="Garden"></section>
   <div class="cap" id="cap"></div>
   <div class="actions" id="acts">
     <button class="abtn" id="btnReset">Start over</button>
@@ -149,14 +158,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;bo
 <div class="scrim" id="howModal" hidden>
   <div class="modal" role="dialog" aria-labelledby="howT">
     <h3 id="howT">How to play</h3>
-    <p>Tap a pipe to turn it a quarter turn. Get water from the tank to every sprout.</p>
+    <p>Tap a patch of soil to turn its channel. Get water from the spring to every flower.</p>
     <div class="legend" id="legend"></div>
     <ul>
-      <li>Water flows through every pipe joined to the tank. Wet pipes turn blue and watered sprouts bloom.</li>
-      <li>An open pipe end that isn't joined to another pipe spills, shown in orange. You win when every sprout blooms and nothing spills.</li>
+      <li>Water runs along every channel joined to the spring. Wilted flowers perk up and bloom when the water reaches them.</li>
+      <li>A channel that ends without meeting another one spills into a puddle. You win when every flower blooms and there are no puddles.</li>
       <li>Par is the number of taps the puzzle needs. Try to finish at or under it.</li>
     </ul>
-    <button class="close" data-close>Turn on the water</button>
+    <button class="close" data-close>Start watering</button>
   </div>
 </div>
 
@@ -180,7 +189,7 @@ const SIZE=6;
 
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 
-// Build a random tree of pipes covering every cell from the tank, then twist each tile.
+// Build a random tree of channels covering every cell from the tank, then twist each tile.
 // Dead-end tiles of the tree are the sprouts. Any arrangement that waters all of them without a spill wins.
 function generate(seed, n){
   for(let attempt=0;;attempt++){
@@ -254,21 +263,33 @@ function startPractice(){
 }
 const $=id=>document.getElementById(id);
 
-// ---- Tile drawing. Pipes sit in a group that turns; the hub, tank, sprout and spill marks don't turn.
-const ARM={[N]:"M50 50V0",[E]:"M50 50H100",[S_]:"M50 50V100",[W]:"M50 50H0"};
+// ---- Tile drawing. Channels sit in a group that turns; the spring, flowers, soil specks and puddles don't turn.
+const ARM={[N]:"M50 50V-2",[E]:"M50 50H102",[S_]:"M50 50V102",[W]:"M50 50H-2"};
 function pipeSVG(m){
   const arms=bits(m).map(b=>ARM[b]).join("");
-  return `<path class="p" d="${arms}"/><path class="ph" d="${arms}" opacity=".55"/><circle class="hub" cx="50" cy="50" r="11"/>`;
+  return `<path class="p" d="${arms}"/><circle class="hub" cx="50" cy="50" r="15"/><path class="ph" d="${arms}"/><circle class="hub2" cx="50" cy="50" r="8"/><path class="wv" d="${arms}"/>`;
 }
-const TANK=`<circle cx="50" cy="50" r="27" fill="var(--water)" stroke="var(--ink)" stroke-width="3"/><path d="M30 52q5-6 10 0t10 0t10 0t10 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="38" r="4" fill="#fff" opacity=".8"/>`;
-const SPROUT=`<g class="fl"><path class="leaf" d="M50 62q-14-2-16-14q12 0 16 14z"/><path class="leaf" d="M50 62q14-2 16-14q-12 0-16 14z"/>${[0,72,144,216,288].map(a=>`<ellipse class="pet" cx="50" cy="39" rx="6" ry="9" transform="rotate(${a} 50 50)"/>`).join("")}<circle class="ctr" cx="50" cy="50" r="7"/></g>`;
+// A spring: a pond ringed with stones
+const TANK=`<g>${[0,40,80,120,160,200,240,280,320].map(a=>{const r=a*Math.PI/180;return `<ellipse cx="${(50+27*Math.cos(r)).toFixed(1)}" cy="${(50+27*Math.sin(r)).toFixed(1)}" rx="8" ry="6.5" fill="var(--stone)" stroke="var(--speck)" stroke-width="1.5"/>`}).join("")}<circle cx="50" cy="50" r="21" fill="var(--water)"/><path d="M36 50q4-5 7 0t7 0t7 0t7 0" fill="none" stroke="var(--water-hi)" stroke-width="3.5" stroke-linecap="round"/><path d="M41 41q5-4 9 0" fill="none" stroke="var(--water-hi)" stroke-width="3" stroke-linecap="round"/></g>`;
+const COLORS=["#F0508C","#9B5DE5","#FF8A2B","#F7C531","#E8393F","#3FB6E8","#FF6FB5","#B15DE0"];
+function flowerSVG(k){
+  const c=COLORS[k%COLORS.length];
+  return `<g class="fl" style="--c:${c}"><path class="stem" d="M50 76V54" stroke-width="5" fill="none"/><path class="leaf" d="M50 70q-15-1-18-13q13-1 18 13z"/><path class="leaf" d="M50 66q15-1 18-13q-13-1-18 13z"/>${[0,60,120,180,240,300].map(a=>`<ellipse class="pet" cx="50" cy="28" rx="7.5" ry="10" transform="rotate(${a} 50 40)"/>`).join("")}<circle class="ctr" cx="50" cy="40" r="7.5"/></g>`;
+}
+// Water spilling out of an open channel end: a puddle soaking into the soil
 function leakSVG(l){
-  const at={[N]:[50,8],[E]:[92,50],[S_]:[50,92],[W]:[8,50]};
-  return bits(l).map(b=>{ const [x,y]=at[b]; return `<circle cx="${x}" cy="${y}" r="8"/><circle cx="${x+(b===E?6:b===W?-6:7)}" cy="${y+(b===N?-5:b===S_?6:7)}" r="4"/>`; }).join("");
+  const at={[N]:[50,6],[E]:[94,50],[S_]:[50,94],[W]:[6,50]};
+  return bits(l).map(b=>{ const [x,y]=at[b], h=b===E||b===W;
+    return `<ellipse class="pd" cx="${x}" cy="${y}" rx="${h?13:21}" ry="${h?21:13}"/><circle class="pd" cx="${x+(h?(b===E?4:-4):18)}" cy="${y+(h?19:(b===S_?4:-4))}" r="7"/><circle class="pd" cx="${x-(h?(b===E?-3:3):16)}" cy="${y-(h?17:(b===S_?-3:3))}" r="5"/><circle class="pdh" cx="${x-4}" cy="${y-5}" r="3.5"/>`; }).join("");
+}
+function specks(i){
+  const R=rng(i*97+5); let out="";
+  for(let k=0;k<6;k++) out+=`<circle class="sp" cx="${(8+R()*84).toFixed(0)}" cy="${(8+R()*84).toFixed(0)}" r="${(1.5+R()*2).toFixed(1)}"/>`;
+  return out;
 }
 function tileHTML(i,m,deg){
-  const top = i===P.src ? TANK : P.sprouts.includes(i) ? SPROUT : "";
-  return `<svg viewBox="0 0 100 100" aria-hidden="true"><g class="rot" style="transform:rotate(${deg}deg)">${pipeSVG(m)}</g>${top}<g class="lk"></g></svg>`;
+  const top = i===P.src ? TANK : P.sprouts.includes(i) ? flowerSVG(P.sprouts.indexOf(i)) : "";
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${specks(i)}<g class="rot" style="transform:rotate(${deg}deg)">${pipeSVG(m)}</g>${top}<g class="lk"></g></svg>`;
 }
 
 function build(){
@@ -288,7 +309,7 @@ function update(){
     tiles[i].classList.toggle("wet", r.wet[i]);
     tiles[i].querySelector(".rot").style.transform=`rotate(${ang[i]*90}deg)`;
     tiles[i].querySelector(".lk").innerHTML = r.wet[i] ? leakSVG(r.leaks[i]) : "";
-    tiles[i].setAttribute("aria-label", (i===P.src?"Tank":P.sprouts.includes(i)?"Sprout":"Pipe")+(r.wet[i]?", wet":"")+". Tap to turn.");
+    tiles[i].setAttribute("aria-label", (i===P.src?"Spring":P.sprouts.includes(i)?"Flower":"Channel")+(r.wet[i]?", wet":"")+". Tap to turn.");
   }
   $("grid").classList.toggle("won", G.status!=="playing");
   $("pNo").textContent = practice ? "Practice" : "No. "+pNo;
@@ -297,7 +318,7 @@ function update(){
   $("cTaps").classList.toggle("over", G.taps>P.par);
   $("wet").textContent=`${r.watered}/${P.sprouts.length}`;
   const spills=r.leaks.filter(Boolean).length;
-  $("cap").innerHTML = G.status!=="playing" ? "" : r.watered===P.sprouts.length && spills ? `Every sprout is watered, but <b>${spills} pipe${spills===1?" is":"s are"} still spilling</b>` : "Tap a pipe to turn it";
+  $("cap").innerHTML = G.status!=="playing" ? "" : r.watered===P.sprouts.length && spills ? `Every flower is blooming, but <b>${spills} puddle${spills===1?" is":"s are"} still spilling</b>` : "Tap soil to turn its channel";
   $("acts").hidden = G.status!=="playing" ? true : false;
   renderResult();
   return r;
@@ -313,7 +334,7 @@ function tap(i){
   if(r.won){
     G.status="won";
     if(!practice) finish();
-    setTimeout(()=>{ toast(G.taps<=P.par?"Perfect plumbing! 💧":"Water's flowing! 💧"); update(); $("result").scrollIntoView({behavior:"smooth",block:"nearest"}); }, 220);
+    setTimeout(()=>{ toast(G.taps<=P.par?"Perfect garden! 🌸":"Everything's blooming! 🌸"); update(); $("result").scrollIntoView({behavior:"smooth",block:"nearest"}); }, 220);
   }
   if(!practice) save();
 }
@@ -336,8 +357,8 @@ function renderResult(){
   if(G.status==="playing"){ r.hidden=true; return; }
   r.hidden=false;
   const d=G.taps-P.par;
-  const head = d<0 ? "Under par!" : d===0 ? "Perfect plumbing" : d<=6 ? "Water's flowing" : "Leak-free at last";
-  const sub = `All ${P.sprouts.length} sprouts watered in <b>${G.taps}</b> taps. Par was ${P.par}.`;
+  const head = d<0 ? "Under par!" : d===0 ? "Perfect garden" : d<=6 ? "In full bloom" : "Watered at last";
+  const sub = `All ${P.sprouts.length} flowers watered in <b>${G.taps}</b> taps. Par was ${P.par}.`;
   if(practice){
     r.innerHTML=`<h2>${head}</h2><p>${sub}</p><button class="practice" id="btnPrac">Another practice puzzle</button><a class="more" href="/">Play more games →</a>`;
     $("btnPrac").onclick=startPractice; return;
@@ -386,7 +407,7 @@ $("btnReset").onclick=()=>{
   if(G.status!=="playing") return;
   // Turn every tile forward to its starting angle so the animation keeps spinning one way. Taps still count.
   for(let i=0;i<G.rot.length;i++){ if(G.rot[i]){ ang[i]+=4-G.rot[i]; G.rot[i]=0; } }
-  update(); if(!practice) save(); toast("Pipes reset. Your taps still count.");
+  update(); if(!practice) save(); toast("Garden reset. Your taps still count.");
 };
 $("btnHelp").onclick=()=>{$("howModal").hidden=false};
 $("btnStats").onclick=openStats;
@@ -397,8 +418,8 @@ document.querySelectorAll(".scrim").forEach(s=>{
 
 startDaily();
 // Legend in the help box, drawn with the real tile art
-$("legend").innerHTML=[["Tank",P.src,E|S_,true,0],["Dry sprout",P.sprouts[0],N,false,0],["Watered",P.sprouts[0],N,true,0],["Spilling",-1,E|W,true,E]].map(([lab,i,m,wet,lk])=>
-  `<div><span class="tile${wet?" wet":""}">${tileHTML(i,m,0).replace('<g class="lk"></g>',`<g class="lk">${leakSVG(lk)}</g>`)}</span>${lab}</div>`).join("");
+$("legend").innerHTML=[["Spring",P.src,E|S_,true,0],["Wilted",P.sprouts[0],N,false,0],["Blooming",P.sprouts[0],N,true,0],["Puddle",-1,E|W,true,E]].map(([lab,i,m,wet,lk])=>
+  `<div><span class="lgbg"><span class="tile${wet?" wet":""}">${tileHTML(i,m,0).replace('<g class="lk"></g>',`<g class="lk">${leakSVG(lk)}</g>`)}</span></span>${lab}</div>`).join("");
 if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
 </script>
 </body>

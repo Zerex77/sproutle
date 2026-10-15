@@ -147,7 +147,7 @@ GAMES = [
     ('trailhead', 'Trailhead', 'Daily word climb · 3 min', 'Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.', 'Play Trailhead', '/trailhead/icon-192.png', True),
     ('keystone', 'Keystone', 'Daily missing-word puzzle · 3 min', 'Find the word that joins both sides of six bridges. Their first letters spell the keystone.', 'Play Keystone', '/keystone/icon-192.png', True),
     ('daisychain', 'Daisy Chain', 'Daily word chain · 3 min', 'Snowball, ballpark, park bench... Every word links to the next. Fill in the six missing links of the chain.', 'Play Daisy Chain', '/daisychain/icon-192.png', True),
-    ('waterworks', 'Waterworks', 'Daily pipe puzzle · 3 min', 'Turn the pipes so water reaches every sprout, with no open ends spilling. Beat par for a perfect run.', 'Play Waterworks', '/waterworks/icon-192.png', True),
+    ('waterworks', 'Waterworks', 'Daily garden puzzle · 3 min', 'Turn the soil to channel water from the spring to every wilted flower, without spilling a drop. Beat par for a perfect garden.', 'Play Waterworks', '/waterworks/icon-192.png', True),
     ('ballpark', 'Ballpark', 'Daily number puzzle · 1 min', 'One question, five guesses. Get close enough to the real number and you\'re in the ballpark.', 'Play Ballpark', '/ballpark/icon-192.png', True),
     ('imposter', 'Imposter', 'Daily odd-one-out · 2 min', 'Five rows of four suspects. Three share a secret. Spot the one that doesn\'t belong.', 'Play Imposter', '/imposter/icon-192.png', True),
     ('gridiron', 'Gridiron Golf', 'Daily NFL trivia · 3 min', 'One stat, one pin. Name five NFL players whose career totals land closest to it. Endless mode too.', 'Play Gridiron Golf', '/gridiron/icon-192.png', True),
