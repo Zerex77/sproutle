@@ -65,6 +65,22 @@ h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,8vw,40px);mar
 .burst svg{position:absolute;inset:0;width:100%;height:100%}
 .burst b{position:relative;font-family:var(--display);font-weight:400;font-size:22px;color:var(--ink);transform:rotate(-8deg)}
 
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9;overflow:visible}
+.puff{transform-box:fill-box;transform-origin:center;animation:puff .55s ease-out forwards}
+.bolt{animation:flash .5s ease-out forwards}
+.occ.zapped{filter:sepia(1) hue-rotate(165deg) saturate(4) brightness(1.15);animation:shake .07s 6!important}
+.goo{position:absolute;inset:2%;z-index:3;animation:popin .25s cubic-bezier(.3,1.6,.5,1)}
+.goo svg{width:100%;height:100%}
+.bub{position:absolute;inset:-2%;border-radius:50%;z-index:3;border:4px solid var(--ink);
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9) 0 9%,transparent 10%),radial-gradient(circle,rgba(255,111,207,.15) 50%,rgba(255,111,207,.6));
+  animation:popin .3s cubic-bezier(.3,1.6,.5,1)}
+.float{transition:transform .8s ease-in,opacity .8s ease-in!important;transform:translateY(-260px) scale(.7)!important;opacity:0}
+#hero.fast{transition-duration:.2s}
+#hero.cast svg{animation:pop .35s}
+.pw{font-size:10px;color:var(--dim);font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+@keyframes puff{from{transform:scale(1);opacity:1}to{transform:scale(2.2);opacity:0}}
+@keyframes flash{0%,55%{opacity:1}100%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
 #hero{position:absolute;left:0;top:0;width:76px;height:84px;z-index:10;pointer-events:none;
   transition:transform .38s cubic-bezier(.5,0,.3,1);filter:drop-shadow(3px 4px 0 rgba(0,0,0,.35))}
 #hero svg{width:100%;height:100%;overflow:visible}
@@ -121,6 +137,7 @@ footer{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:8px}
   <main class="scene" id="scene">
     <div class="moon"></div>
     <div class="city" id="city"></div>
+    <svg id="fx" aria-hidden="true"></svg>
     <div id="hero" class="idle"></div>
   </main>
   <footer>
@@ -154,10 +171,10 @@ footer{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:8px}
 (() => {
 const INK = '#141018', GOAL = 10;
 const HEROES = [
-  {name:'Red Rocket', c:'#ff4d4d'},
-  {name:'Blue Bolt', c:'#3fa9ff'},
-  {name:'Green Gecko', c:'#3ccf6e'},
-  {name:'Pink Pow', c:'#ff6fcf'}
+  {name:'Red Rocket', c:'#ff4d4d', power:'Rocket speed'},
+  {name:'Blue Bolt', c:'#3fa9ff', power:'Lightning'},
+  {name:'Green Gecko', c:'#3ccf6e', power:'Sticky goo'},
+  {name:'Pink Pow', c:'#ff6fcf', power:'Bubble trap'}
 ];
 const SHIRTS = ['#3fa9ff','#3ccf6e','#ff9f43','#ff6fcf','#ffd23f'];
 const HAIR = ['#6b3e1f','#141018','#e8b13c','#b5462a'];
@@ -231,7 +248,7 @@ HEROES.forEach((h, i) => {
   const p = document.createElement('button');
   p.className = 'pick'; p.id = `pick-${i}`;
   p.setAttribute('aria-pressed', i === 0);
-  p.innerHTML = `<svg viewBox="0 0 100 110">${heroSVG(h.c)}</svg>${h.name}`;
+  p.innerHTML = `<svg viewBox="0 0 100 110">${heroSVG(h.c)}</svg>${h.name}<span class="pw">${h.power}</span>`;
   p.onclick = () => { heroIdx = i; picks.querySelectorAll('.pick').forEach((q,j)=>q.setAttribute('aria-pressed', j===i)); sfx.pick(); };
   picks.appendChild(p);
 });
@@ -253,6 +270,10 @@ const sfx = {
   pow(){ tone(220,0,.18,'sawtooth',.09,60); tone(110,.03,.22,'square',.07,50); },
   save(){ [523,659,784,1047].forEach((f,i)=>tone(f,i*.07,.14,'triangle',.08)); },
   pop(){ tone(880,0,.06,'sine',.03); },
+  rocket(){ tone(150,0,.3,'sawtooth',.06,1400); tone(90,0,.3,'square',.03,300); },
+  zap(){ tone(1400,0,.25,'square',.06,90); tone(70,.02,.3,'sawtooth',.07,40); },
+  splat(){ tone(500,0,.12,'sine',.1,70); tone(160,.06,.18,'square',.05,60); },
+  bubble(){ [500,750,1000,1300].forEach((f,i)=>tone(f,i*.06,.08,'sine',.07)); },
   win(){ [523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,i*.12,.2,'square',.06)); }
 };
 
@@ -293,25 +314,106 @@ function spawn(){
   sfx.pop();
 }
 
+// --- effect helpers
+const fx = $('fx'), SVGNS = 'http://www.w3.org/2000/svg';
+function ctr(el){ const s = scene.getBoundingClientRect(), r = el.getBoundingClientRect(); return [r.left - s.left + r.width/2, r.top - s.top + r.height/2]; }
+function draw(tag, attrs, life){
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  fx.appendChild(e); if (life) setTimeout(() => e.remove(), life); return e;
+}
+function word(w, text, fill){ w.insertAdjacentHTML('beforeend', `<div class="burst">${burstSVG(fill)}<b>${text}</b></div>`); }
+function shrink(w){
+  const o = w.querySelector('.occ'); if (!o) return;
+  o.style.animation = 'none'; o.style.transition = 'transform .4s'; o.style.transform = 'scale(0)';
+}
+function cast(){ hero.classList.remove('idle','cast'); void hero.offsetWidth; hero.classList.add('cast'); }
+const GOO = `<svg viewBox="0 0 100 100"><path d="M12 50 Q4 16 38 10 Q60 0 82 16 Q100 32 92 60 Q96 90 62 92 Q30 100 14 82 Q0 70 12 50Z" fill="#3ccf6e" fill-opacity=".6" stroke="${INK}" stroke-width="4"/>
+  <g stroke="#1f8a45" stroke-width="3.5" stroke-linecap="round">${[28,44,60,76].map(v=>`<line x1="${v}" y1="16" x2="${v}" y2="86"/><line x1="14" y1="${v-4}" x2="90" y2="${v-4}"/>`).join('')}</g>
+  <circle cx="30" cy="96" r="5" fill="#3ccf6e" stroke="${INK}" stroke-width="3"/><circle cx="70" cy="98" r="4" fill="#3ccf6e" stroke="${INK}" stroke-width="3"/></svg>`;
+
+// --- each hero catches bad guys a different way; call done() when the bad guy is caught
+const POWERS = [
+  // Red Rocket: super fast zoom with a fire trail
+  (w, done) => {
+    sfx.rocket();
+    const [x0, y0] = ctr(hero), [x1, y1] = ctr(w);
+    hero.classList.add('fast'); heroTo(w);
+    for (let i = 0; i < 9; i++) setTimeout(() => {
+      const t = i / 8;
+      draw('circle', {cx: x0 + (x1-x0)*t, cy: y0 + (y1-y0)*t + 18, r: 9 + Math.random()*6,
+        fill: ['#ffd23f','#ff9f43','#ff4d4d'][i%3], stroke: INK, 'stroke-width': 3, class: 'puff'}, 600);
+    }, i * 22);
+    setTimeout(() => { hero.classList.remove('fast'); sfx.pow(); word(w, 'WHOOSH!', '#ff9f43'); shrink(w); done(); }, 230);
+  },
+  // Blue Bolt: lightning from where he hovers
+  (w, done) => {
+    cast(); sfx.zap();
+    const [x0, y0] = ctr(hero), [x1, y1] = ctr(w);
+    const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1, nx = -dy/len, ny = dx/len;
+    const pts = [[x0, y0]];
+    for (let i = 1; i < 7; i++) { const t = i/7, j = (i%2 ? 1 : -1) * 16; pts.push([x0 + dx*t + nx*j, y0 + dy*t + ny*j]); }
+    pts.push([x1, y1]);
+    const p = pts.map(q => q.join(',')).join(' ');
+    draw('polyline', {points: p, fill: 'none', stroke: INK, 'stroke-width': 14, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', class: 'bolt'}, 520);
+    draw('polyline', {points: p, fill: 'none', stroke: '#ffe94d', 'stroke-width': 7, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', class: 'bolt'}, 520);
+    w.querySelector('.occ')?.classList.add('zapped');
+    word(w, 'ZAP!', '#9fdcff');
+    setTimeout(() => { shrink(w); done(); }, 380);
+  },
+  // Green Gecko: shoots a ball of sticky goo
+  (w, done) => {
+    cast(); sfx.whoosh();
+    const [x0, y0] = ctr(hero), [x1, y1] = ctr(w);
+    const ball = draw('circle', {cx: x0, cy: y0, r: 13, fill: '#3ccf6e', stroke: INK, 'stroke-width': 4});
+    const t0 = performance.now(), D = 260;
+    (function fly(now){
+      const t = Math.min(1, (now - t0) / D);
+      ball.setAttribute('cx', x0 + (x1-x0)*t); ball.setAttribute('cy', y0 + (y1-y0)*t - Math.sin(t*Math.PI)*40);
+      if (t < 1) return requestAnimationFrame(fly);
+      ball.remove(); sfx.splat();
+      const occ = w.querySelector('.occ'); if (occ) occ.style.animation = 'none';
+      w.insertAdjacentHTML('beforeend', `<div class="goo">${GOO}</div>`);
+      word(w, 'SPLAT!', '#b6f5a0');
+      setTimeout(() => { const g = w.querySelector('.goo'); if (g) { g.style.transition = 'transform .4s'; g.style.transform = 'scale(0)'; } shrink(w); done(); }, 450);
+    })(t0);
+  },
+  // Pink Pow: traps them in a bubble that floats away
+  (w, done) => {
+    sfx.whoosh(); heroTo(w);
+    setTimeout(() => {
+      sfx.bubble();
+      const occ = w.querySelector('.occ'); if (occ) occ.style.animation = 'none';
+      w.insertAdjacentHTML('beforeend', '<div class="bub"></div>');
+      word(w, 'BUBBLE!', '#ff9ac0');
+      heroHome();
+      setTimeout(() => { w.querySelector('.bub')?.classList.add('float'); occ?.classList.add('float'); }, 250);
+      setTimeout(done, 650);
+    }, 380);
+  }
+];
+
+function finish(w, type){
+  setTimeout(() => {
+    w.innerHTML = ''; delete w.dataset.type; w.className = 'win'; w.setAttribute('aria-label','Empty window');
+    if (type === 'bad') { jail++; bump('jailT','jailN',jail); } else { saved++; bump('saveT','saveN',saved); }
+    const n = jail + saved;
+    starsEl.children[n-1]?.classList.add('on');
+    heroHome(); busy = false;
+    if (n >= GOAL) setTimeout(win, 500); else if (!wins.some(x => x.dataset.type)) spawn();
+  }, 480);
+}
+
 function tap(w){
   const type = w.dataset.type;
   if (!type || busy) return;
   busy = true; audio();
+  if (type === 'bad') return POWERS[heroIdx](w, () => finish(w, 'bad'));
   sfx.whoosh(); heroTo(w);
   setTimeout(() => {
-    const word = type === 'bad' ? POWS[Math.random()*POWS.length|0] : YAYS[Math.random()*YAYS.length|0];
-    w.insertAdjacentHTML('beforeend', `<div class="burst">${burstSVG(type==='bad' ? '#ffd23f' : '#ff9ac0')}<b>${word}</b></div>`);
-    type === 'bad' ? sfx.pow() : sfx.save();
-    const occ = w.querySelector('.occ'); if (occ) { occ.style.transition = 'transform .4s'; occ.style.transform = 'scale(0)'; }
-    const help = w.querySelector('.help'); if (help) help.remove();
-    setTimeout(() => {
-      w.innerHTML = ''; delete w.dataset.type; w.className = 'win'; w.setAttribute('aria-label','Empty window');
-      if (type === 'bad') { jail++; bump('jailT','jailN',jail); } else { saved++; bump('saveT','saveN',saved); }
-      const n = jail + saved;
-      starsEl.children[n-1]?.classList.add('on');
-      heroHome(); busy = false;
-      if (n >= GOAL) setTimeout(win, 500); else if (!wins.some(x => x.dataset.type)) spawn();
-    }, 520);
+    word(w, YAYS[Math.random()*YAYS.length|0], '#ff9ac0'); sfx.save();
+    w.querySelector('.help')?.remove(); shrink(w);
+    finish(w, 'kid');
   }, 380);
 }
 function bump(box, num, v){ $(num).textContent = v; const b = $(box); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); }
@@ -333,7 +435,7 @@ function start(){
 function win(){
   clearInterval(timer); sfx.win();
   $('winHero').innerHTML = heroSVG(HEROES[heroIdx].c);
-  $('winText').textContent = `${HEROES[heroIdx].name} caught ${jail} bad guys and saved ${saved} people!`;
+  $('winText').textContent = `${HEROES[heroIdx].name} used ${HEROES[heroIdx].power.toLowerCase()} to catch ${jail} bad guys and saved ${saved} people!`;
   $('win').hidden = false;
   const cols = ['#ffd23f','#ff5d8f','#3fa9ff','#3ccf6e','#ff9f43'];
   for (let i = 0; i < 40; i++) {
