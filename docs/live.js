@@ -258,25 +258,40 @@
     setTimeout(()=>o.remove(), 2300);
   }
   // ---------- Sounds
-  // Phones only allow sound after the person has touched the page, so the first tap or key press "unlocks"
-  // two <audio> players. Sounds are synthesized once into small WAV files and played through those players.
-  // (An <audio> player also keeps playing when an iPhone's silent switch is on, which Web Audio doesn't.)
+  // Phones only allow sound after the person has touched the page. On iPhone, only a finished tap
+  // (touchend/click) or key press counts, so those are what "unlock" sound. Each unlock starts a Web Audio
+  // context and primes two <audio> players; a sound plays through whichever of them works. Asking for the
+  // "playback" audio session lets sound play with an iPhone's silent switch on (Safari 17 and later).
+  // Sounds are synthesized once into small WAV files, so nothing has to download.
   const RATE = 32000;
-  let unlocked = false, players = [], turn = 0, liveCtx = null;
-  const urls = {}, waiting = [];
-  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+  let unlocked = false, players = [], turn = 0, liveCtx = null, lastErr = "";
+  const urls = {}, bufs = {}, waiting = [];
+  let silentUrl = "";
+  const GESTURES = ["touchend", "click", "keydown"];
   function unlock(){
-    if(unlocked) return; unlocked = true;
-    try{ if(navigator.audioSession) navigator.audioSession.type = "playback"; }catch(e){}
-    players = [new Audio(), new Audio()];
-    players.forEach(a=>{ a.preload = "auto"; a.setAttribute("playsinline", ""); a.src = SILENT; const pr = a.play(); if(pr) pr.then(()=>a.pause()).catch(()=>{}); });
-    try{ liveCtx = new (window.AudioContext || window.webkitAudioContext)(); liveCtx.resume(); }catch(e){}
-    ["pointerdown", "touchend", "keydown", "click"].forEach(ev=>removeEventListener(ev, unlock, true));
-    waiting.splice(0).forEach(f=>{ try{ f(); }catch(e){} });
-    setTimeout(()=>Object.keys(RECIPES).forEach(n=>render(n).catch(()=>{})), 400);   // warm the cache so the next sound is instant
+    try{ if(navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; }catch(e){}
+    // Web Audio: create or wake the context inside the tap, and play a blip of silence through it
+    try{
+      liveCtx = liveCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if(liveCtx.state !== "running") liveCtx.resume();
+      const b = liveCtx.createBuffer(1, 1, 22050), src = liveCtx.createBufferSource(); src.buffer = b; src.connect(liveCtx.destination); src.start(0);
+    }catch(e){ lastErr = "ctx: " + e.message; }
+    // <audio> players: play a short silent clip inside the tap so they're allowed to play later
+    if(!players.length){
+      silentUrl = URL.createObjectURL(wav(new Float32Array(RATE / 10)));
+      players = [new Audio(), new Audio()];
+      players.forEach(a=>{ a.preload = "auto"; a.setAttribute("playsinline", ""); a.setAttribute("webkit-playsinline", ""); a.src = silentUrl;
+        try{ const pr = a.play(); if(pr) pr.then(()=>{ a.primed = true; }).catch(e=>{ lastErr = "el: " + e.message; }); else a.primed = true; }catch(e){} });
+    }
+    if(!unlocked){
+      unlocked = true;
+      setTimeout(()=>{ waiting.splice(0).forEach(f=>{ try{ f(); }catch(e){} }); }, 30);
+      setTimeout(()=>Object.keys(RECIPES).forEach(n=>render(n).catch(()=>{})), 400);   // warm the cache so the next sound is instant
+    }
   }
-  ["pointerdown", "touchend", "keydown", "click"].forEach(ev=>addEventListener(ev, unlock, true));
-  // Run f once sound is allowed: right away if they've touched the page, otherwise on their next touch
+  // Keep listening: each tap also re-wakes audio that the phone paused while the page was in the background
+  GESTURES.forEach(ev=>addEventListener(ev, unlock, true));
+  // Run f once sound is allowed: right away if they've touched the page, otherwise on their next tap
   function whenAudible(f){ if(unlocked) f(); else waiting.push(f); }
 
   function noise(a, len){ const b = a.createBuffer(1, Math.ceil(a.sampleRate * len), a.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const n = a.createBufferSource(); n.buffer = b; return n; }
@@ -330,15 +345,40 @@
   }
   // Play a named sound, if they've touched the page. Returns quietly otherwise.
   async function sound(name){
-    if(!unlocked || !RECIPES[name]) return;
-    try{
-      const url = await render(name), a = players[turn++ % players.length];
-      a.src = url; a.currentTime = 0; await a.play();
-    }catch(e){
-      // Fallback: play through Web Audio
-      try{ const r = await fetch(urls[name]), ab = await r.arrayBuffer(), b = await liveCtx.decodeAudioData(ab), s = liveCtx.createBufferSource(); s.buffer = b; s.connect(liveCtx.destination); liveCtx.resume(); s.start(); }catch(err){}
+    if(!unlocked || !RECIPES[name]) return false;
+    let url;
+    try{ url = await render(name); }catch(e){ lastErr = "render: " + e.message; return false; }
+    // 1. Web Audio, when the context is awake
+    if(liveCtx){
+      try{
+        if(liveCtx.state !== "running") await Promise.race([liveCtx.resume(), new Promise(r=>setTimeout(r, 250))]);
+        if(liveCtx.state === "running"){
+          const b = bufs[name] || (bufs[name] = await new Promise((res, rej)=>{ fetch(url).then(r=>r.arrayBuffer()).then(ab=>{ const pr = liveCtx.decodeAudioData(ab, res, rej); if(pr && pr.then) pr.then(res, rej); }).catch(rej); }));
+          const src = liveCtx.createBufferSource(); src.buffer = b; src.connect(liveCtx.destination); src.start(0);
+          return "webaudio";
+        }
+      }catch(e){ lastErr = "webaudio: " + e.message; }
     }
+    // 2. An <audio> player that was primed by a tap
+    try{
+      const a = players[turn++ % players.length]; if(!a) return false;
+      a.src = url; a.currentTime = 0; await a.play();
+      return "element";
+    }catch(e){ lastErr = "element: " + e.message; return false; }
   }
+  // Sound check: open any page with ?soundtest to see whether sound works on this phone and why not
+  function soundTest(){
+    css();
+    const box = el("div", "psl psl-banner"); box.style.cssText += ";top:auto;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom))";
+    const info = el("div", "", ""), go = el("button", "", "▶︎");
+    go.style.cssText = "position:static;width:auto;height:44px;padding:0 16px;margin-top:8px;font-weight:800";
+    go.textContent = "Tap to test the scream";
+    const show = r=>{ info.textContent = `Sound unlocked: ${unlocked ? "yes" : "no (tap the page)"} · Web Audio: ${liveCtx ? liveCtx.state : "none"} · audio session: ${navigator.audioSession ? navigator.audioSession.type : "n/a"}` + (r !== undefined ? ` · played via: ${r || "nothing"}` : "") + (lastErr ? ` · last error: ${lastErr}` : ""); };
+    go.onclick = async e=>{ e.stopPropagation(); unlock(); show(await sound("shriek")); };
+    box.append(info, go); document.body.appendChild(box); show();
+    setInterval(()=>{ if(!box.isConnected) return; const t = info.textContent; if(!/played via/.test(t)) show(); }, 1000);
+  }
+
   function rain(emoji){
     css();
     const n = REDUCED ? 14 : 40, H = innerHeight + 120;
@@ -403,6 +443,6 @@
 
   const later = f=>(...args)=>{ if(args[args.length - 1] === true || unlocked) f(...args); else whenAudible(()=>f(...args)); };
   window.PSLive = {device: DEV, game: GAME, test: handle, scare: later(scare), screamer: later(screamer), sound};
-  const start = ()=>{ drainQueue(); setTimeout(checkin, 600); setTimeout(realtime, 1500); };
+  const start = ()=>{ if(/[?&]soundtest\b/.test(location.search)) soundTest(); drainQueue(); setTimeout(checkin, 600); setTimeout(realtime, 1500); };
   if(document.readyState === "complete") start(); else addEventListener("load", start);
 })();
