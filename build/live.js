@@ -24,10 +24,10 @@
   const GAME = (location.pathname.split("/").filter(Boolean)[0] || "home").replace(/\.html$/,"").toLowerCase().slice(0,30);
   const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  async function rpc(name, body){
+  async function rpc(name, body, keepalive){
     const ctl = new AbortController(), t = setTimeout(()=>ctl.abort(), 9000);
     try{
-      const res = await fetch(URL_ + "/rest/v1/rpc/" + name, {method:"POST", signal:ctl.signal,
+      const res = await fetch(URL_ + "/rest/v1/rpc/" + name, {method:"POST", signal:ctl.signal, keepalive:!!keepalive,
         headers:{"apikey":KEY, "Content-Type":"application/json"}, body:JSON.stringify(body)});
       if(!res.ok) throw new Error("rpc " + res.status);
       const txt = await res.text();
@@ -36,9 +36,9 @@
   }
 
   // ---------- Check in: say "I'm here", and collect anything waiting
-  let busy = false, lastCheck = 0, timer = 0, rtOk = false;
+  let busy = false, lastCheck = 0, timer = 0, rtOk = false, gone = false;
   async function checkin(){
-    if(busy) return; busy = true; lastCheck = Date.now();
+    if(busy || gone) return; busy = true; lastCheck = Date.now();
     try{
       const ini = ls.get("slb-initials");
       const rows = await rpc("live_checkin", {p_device:DEV, p_initials: /^[A-Z]{3}$/.test(ini||"") ? ini : null, p_game:GAME});
@@ -51,9 +51,20 @@
     clearTimeout(timer);
     // Realtime pings deliver right away; the regular check-in keeps the admin page's "online" dot fresh
     // and is the backup if realtime can't connect
-    timer = setTimeout(()=>{ if(!document.hidden) checkin(); else schedule(); }, rtOk ? 60000 : 25000);
+    timer = setTimeout(()=>{ if(gone) return; if(!document.hidden) checkin(); else schedule(); }, rtOk ? 60000 : 25000);
   }
-  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && Date.now()-lastCheck > 5000) checkin(); });
+  // Tell the admin page when they close the site or switch to another app, so the activity tracker
+  // shows when they got off. Coming back within 3 minutes (or opening another game) continues the same visit.
+  function bye(){
+    if(gone) return; gone = true; clearTimeout(timer);
+    rpc("live_bye", {p_device:DEV}, true).catch(()=>{});
+  }
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden) return bye();
+    if(gone || Date.now()-lastCheck > 5000){ gone = false; checkin(); }
+  });
+  addEventListener("pagehide", bye);
+  addEventListener("pageshow", e=>{ if(e.persisted && gone){ gone = false; checkin(); } });
 
   function realtime(){
     const go = ()=>{
