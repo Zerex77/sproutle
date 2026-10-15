@@ -1,4 +1,4 @@
-(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"], "v": "202610151139"};
+(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"], "v": "202610151151"};
 var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
   set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
 var q=new URLSearchParams(location.search),f=q.get("friend"),msg=null;

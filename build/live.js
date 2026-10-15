@@ -141,6 +141,7 @@
     const text = String(p.text || "").slice(0, 500), from = String(p.from || "").slice(0, 40);
     if(!text) return;
     const style = p.style || "popup";
+    sound(style === "shout" ? "horn" : "ding");
     if(style === "toast"){
       const t = el("div", "psl psl-toast", (from ? from + ": " : "") + text);
       document.body.appendChild(t);
@@ -216,9 +217,16 @@
   };
   // Little-kids games never get the jump scare
   const KIDS = ["animalmatch", "bugsquish", "superrescue"];
+  const SCARES = ["jumpscare", "screamer"];
+  const FX_SOUND = {confetti:"party", emoji:"plinks", shake:"rumble", flip:"whoosh", spin:"whoosh", mirror:"whoosh", tiny:"whoosh", rainbow:"warble", invert:"warble", blur:"warble", gray:"warble"};
   function effect(name, p){
     const f = EFFECTS[name]; if(!f) return;
-    if((name === "jumpscare" || name === "screamer") && KIDS.includes(GAME)) return;
+    p = p || {};
+    if(SCARES.includes(name)){
+      if(KIDS.includes(GAME)) return;
+      // A silent jump scare isn't much of one: if they haven't touched the page yet, it waits for their next tap
+      if(!p.quiet && !unlocked){ whenAudible(()=>effect(name, p)); return; }
+    } else if(FX_SOUND[name]) sound(FX_SOUND[name]);
     if(fxBusy && name !== "confetti" && name !== "emoji"){ setTimeout(()=>effect(name, p), 1500); return; }
     fxBusy = true; setTimeout(()=>{ fxBusy = false; }, 1200);
     f(p || {});
@@ -229,7 +237,7 @@
     css();
     const o = el("div", "psl psl-scare"), e = el("div", "psl-scare-e", String(emoji || "👹").slice(0, 8)), t = el("div", "psl-scare-t", "RAAAWR!");
     o.append(e, t); document.body.appendChild(o);
-    if(!quiet) roar();
+    if(!quiet) sound("roar");
     try{ navigator.vibrate && navigator.vibrate([400, 60, 300]); }catch(err){}
     setTimeout(()=>o.classList.add("out"), 1500);
     setTimeout(()=>o.remove(), 1900);
@@ -244,53 +252,92 @@
     ghoulUrl = ghoulUrl || "data:image/svg+xml;charset=utf-8," + encodeURIComponent(GHOUL);
     const o = el("div", "psl psl-scream"), img = el("img", "psl-scream-f");
     img.src = ghoulUrl; img.alt = ""; o.appendChild(img); document.body.appendChild(o);
-    if(!quiet) shriek();
+    if(!quiet) sound("shriek");
     try{ navigator.vibrate && navigator.vibrate([600, 80, 500, 80, 300]); }catch(err){}
     setTimeout(()=>o.classList.add("out"), 1900);
     setTimeout(()=>o.remove(), 2300);
   }
-  let actx = null;
-  function audio(){
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if(actx.state === "suspended") actx.resume();
-    return actx;
+  // ---------- Sounds
+  // Phones only allow sound after the person has touched the page, so the first tap or key press "unlocks"
+  // two <audio> players. Sounds are synthesized once into small WAV files and played through those players.
+  // (An <audio> player also keeps playing when an iPhone's silent switch is on, which Web Audio doesn't.)
+  const RATE = 32000;
+  let unlocked = false, players = [], turn = 0, liveCtx = null;
+  const urls = {}, waiting = [];
+  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+  function unlock(){
+    if(unlocked) return; unlocked = true;
+    try{ if(navigator.audioSession) navigator.audioSession.type = "playback"; }catch(e){}
+    players = [new Audio(), new Audio()];
+    players.forEach(a=>{ a.preload = "auto"; a.setAttribute("playsinline", ""); a.src = SILENT; const pr = a.play(); if(pr) pr.then(()=>a.pause()).catch(()=>{}); });
+    try{ liveCtx = new (window.AudioContext || window.webkitAudioContext)(); liveCtx.resume(); }catch(e){}
+    ["pointerdown", "touchend", "keydown", "click"].forEach(ev=>removeEventListener(ev, unlock, true));
+    waiting.splice(0).forEach(f=>{ try{ f(); }catch(e){} });
+    setTimeout(()=>Object.keys(RECIPES).forEach(n=>render(n).catch(()=>{})), 400);   // warm the cache so the next sound is instant
   }
-  function shriek(){
-    try{
-      const a = audio(), t = a.currentTime, len = 1.9;
-      const out = a.createGain(); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.7, t + 0.02); out.gain.setValueAtTime(0.7, t + len - .5); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      const shaper = a.createWaveShaper(), curve = new Float32Array(256);
-      for(let i = 0; i < 256; i++){ const x = i / 128 - 1; curve[i] = Math.tanh(x * 6); }
-      shaper.curve = curve; shaper.connect(out); out.connect(a.destination);
-      // A wavering, rising scream: detuned saws with a fast wobble
-      const lfo = a.createOscillator(), depth = a.createGain(); lfo.frequency.value = 23; depth.gain.value = 60; lfo.connect(depth); lfo.start(t); lfo.stop(t + len);
-      [620, 655, 1240].forEach((f, k)=>{ const o = a.createOscillator(), g = a.createGain(); o.type = "sawtooth";
-        o.frequency.setValueAtTime(f * .8, t); o.frequency.exponentialRampToValueAtTime(f * 1.25, t + .35); o.frequency.exponentialRampToValueAtTime(f * 1.05, t + len);
-        depth.connect(o.frequency); g.gain.value = k === 2 ? .35 : .6; o.connect(g).connect(shaper); o.start(t); o.stop(t + len); });
-      // Hiss on top
-      const buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
-      for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const n = a.createBufferSource(), bp = a.createBiquadFilter(), ng = a.createGain(); n.buffer = buf; bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = .8; ng.gain.value = .5;
-      n.connect(bp).connect(ng).connect(out); n.start(t);
-    }catch(err){}
+  ["pointerdown", "touchend", "keydown", "click"].forEach(ev=>addEventListener(ev, unlock, true));
+  // Run f once sound is allowed: right away if they've touched the page, otherwise on their next touch
+  function whenAudible(f){ if(unlocked) f(); else waiting.push(f); }
+
+  function noise(a, len){ const b = a.createBuffer(1, Math.ceil(a.sampleRate * len), a.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const n = a.createBufferSource(); n.buffer = b; return n; }
+  function crunch(a, k){ const w = a.createWaveShaper(), c = new Float32Array(256); for(let i = 0; i < 256; i++) c[i] = Math.tanh((i / 128 - 1) * k); w.curve = c; return w; }
+  function env(a, out, t, peak, attack, hold, rel){ const g = a.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + attack); g.gain.setValueAtTime(peak, t + attack + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + rel); g.connect(out); return g; }
+  function note(a, out, f, t, len, type, vol, slide){ const o = a.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t); if(slide) o.frequency.exponentialRampToValueAtTime(f * slide, t + len); o.connect(env(a, out, t, vol || .3, .01, len * .3, len * .7)); o.start(t); o.stop(t + len + .05); }
+  // Each recipe builds a sound into an offline context and returns how long it lasts
+  const RECIPES = {
+    shriek: [1.9, (a, out)=>{
+      const g = env(a, out, 0, .9, .02, 1.3, .55), sh = crunch(a, 6); sh.connect(g);
+      const lfo = a.createOscillator(), depth = a.createGain(); lfo.frequency.value = 23; depth.gain.value = 60; lfo.connect(depth); lfo.start(0);
+      [620, 655, 1240].forEach((f, k)=>{ const o = a.createOscillator(), v = a.createGain(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(f * .8, 0); o.frequency.exponentialRampToValueAtTime(f * 1.25, .35); o.frequency.exponentialRampToValueAtTime(f * 1.05, 1.9);
+        depth.connect(o.frequency); v.gain.value = k === 2 ? .35 : .6; o.connect(v).connect(sh); o.start(0); });
+      const n = noise(a, 1.9), bp = a.createBiquadFilter(), ng = a.createGain(); bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = .8; ng.gain.value = .5; n.connect(bp).connect(ng).connect(g); n.start(0); }],
+    roar: [1.4, (a, out)=>{
+      const g = env(a, out, 0, .8, .04, .5, .8), sh = crunch(a, 4); sh.connect(g);
+      [95, 101].forEach(f=>{ const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(f * 1.6, 0); o.frequency.exponentialRampToValueAtTime(f * .45, 1.35); o.connect(sh); o.start(0); });
+      const n = noise(a, 1.4), lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(1800, 0); lp.frequency.exponentialRampToValueAtTime(300, 1.35); n.connect(lp).connect(g); n.start(0); }],
+    ding: [1, (a, out)=>{ note(a, out, 988, 0, .5, "sine", .35); note(a, out, 1319, .12, .8, "sine", .35); }],
+    horn: [1.2, (a, out)=>{ const sh = crunch(a, 3), g = env(a, out, 0, .45, .02, .9, .25); sh.connect(g); [466, 470, 587].forEach(f=>{ const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.connect(sh); o.start(0); }); }],
+    chime: [1.2, (a, out)=>{ [523, 659, 784, 1047, 1319].forEach((f, i)=>note(a, out, f, i * .08, .6, "triangle", .3)); }],
+    wahwah: [1.9, (a, out)=>{ [[392, 0], [370, .4], [349, .8], [330, 1.2]].forEach(([f, t], i)=>{ const o = a.createOscillator(), lp = a.createBiquadFilter(); o.type = "sawtooth"; o.frequency.setValueAtTime(f, t);
+        if(i === 3){ o.frequency.exponentialRampToValueAtTime(f * .9, t + .65); }
+        lp.type = "lowpass"; lp.frequency.setValueAtTime(400, t); lp.frequency.linearRampToValueAtTime(1600, t + .15); lp.frequency.linearRampToValueAtTime(500, t + (i === 3 ? .65 : .35));
+        o.connect(lp).connect(env(a, out, t, .3, .03, i === 3 ? .4 : .2, .2)); o.start(t); o.stop(t + .8); }); }],
+    party: [1, (a, out)=>{ const n = noise(a, .3), hp = a.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200; n.connect(hp).connect(env(a, out, 0, .7, .005, .02, .2)); n.start(0);
+        [0, .12, .24].forEach((t, i)=>note(a, out, 700 + i * 220, .05 + t, .35, "square", .12, 1.5)); }],
+    plinks: [2.2, (a, out)=>{ for(let i = 0; i < 14; i++) note(a, out, 900 + Math.random() * 1400, Math.random() * 1.8, .25, "sine", .2); }],
+    rumble: [1.4, (a, out)=>{ const n = noise(a, 1.4), lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 160; n.connect(lp).connect(env(a, out, 0, 1, .05, .8, .5)); n.start(0); note(a, out, 48, 0, 1.3, "sine", .5); }],
+    whoosh: [1, (a, out)=>{ const n = noise(a, 1), bp = a.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 1.5; bp.frequency.setValueAtTime(300, 0); bp.frequency.exponentialRampToValueAtTime(3000, .45); bp.frequency.exponentialRampToValueAtTime(500, .95);
+        n.connect(bp).connect(env(a, out, 0, .8, .3, .1, .55)); n.start(0); }],
+    warble: [1.3, (a, out)=>{ const o = a.createOscillator(), lfo = a.createOscillator(), d = a.createGain(); o.type = "sine"; o.frequency.value = 660; lfo.frequency.value = 9; d.gain.value = 120; lfo.connect(d).connect(o.frequency);
+        o.frequency.setValueAtTime(440, 0); o.frequency.exponentialRampToValueAtTime(1200, 1.2); o.connect(env(a, out, 0, .25, .05, .8, .4)); o.start(0); lfo.start(0); }],
+  };
+  async function render(name){
+    if(urls[name]) return urls[name];
+    const [len, build] = RECIPES[name];
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const a = new OAC(1, Math.ceil(RATE * len), RATE), out = a.createGain(); out.gain.value = .9; out.connect(a.destination);
+    build(a, out);
+    const buf = await new Promise((res, rej)=>{ const pr = a.startRendering(); if(pr && pr.then) pr.then(res, rej); else a.oncomplete = e=>res(e.renderedBuffer); });
+    return (urls[name] = URL.createObjectURL(wav(buf.getChannelData(0))));
   }
-  function roar(){
+  function wav(d){
+    const b = new ArrayBuffer(44 + d.length * 2), v = new DataView(b), w = (o, s)=>{ for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + d.length * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, RATE, true); v.setUint32(28, RATE * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, d.length * 2, true);
+    for(let i = 0; i < d.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, d[i])) * 32767, true);
+    return new Blob([b], {type:"audio/wav"});
+  }
+  // Play a named sound, if they've touched the page. Returns quietly otherwise.
+  async function sound(name){
+    if(!unlocked || !RECIPES[name]) return;
     try{
-      const a = audio(), t = a.currentTime, len = 1.3;
-      const out = a.createGain(); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.55, t + 0.04); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      out.connect(a.destination);
-      // Growl: two detuned saws sliding down, through a crunchy wave shaper
-      const shaper = a.createWaveShaper(), curve = new Float32Array(256);
-      for(let i = 0; i < 256; i++){ const x = i / 128 - 1; curve[i] = Math.tanh(x * 4); }
-      shaper.curve = curve; shaper.connect(out);
-      [95, 101].forEach(f=>{ const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f * .45, t + len);
-        o.connect(shaper); o.start(t); o.stop(t + len); });
-      // Breath: filtered noise
-      const buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
-      for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const n = a.createBufferSource(), lp = a.createBiquadFilter(); n.buffer = buf; lp.type = "lowpass"; lp.frequency.setValueAtTime(1800, t); lp.frequency.exponentialRampToValueAtTime(300, t + len);
-      n.connect(lp).connect(out); n.start(t);
-    }catch(err){}
+      const url = await render(name), a = players[turn++ % players.length];
+      a.src = url; a.currentTime = 0; await a.play();
+    }catch(e){
+      // Fallback: play through Web Audio
+      try{ const r = await fetch(urls[name]), ab = await r.arrayBuffer(), b = await liveCtx.decodeAudioData(ab), s = liveCtx.createBufferSource(); s.buffer = b; s.connect(liveCtx.destination); liveCtx.resume(); s.start(); }catch(err){}
+    }
   }
   function rain(emoji){
     css();
@@ -331,6 +378,7 @@
     const q = (ls.get(QK) || []).filter(x=>Date.now() - x.t < 3*864e5).slice(-19);
     q.push({game:p.game, id:p.id, note:p.note || "", from:p.from || "", label:p.label || "", t:Date.now()}); ls.set(QK, q);
     const name = NAMES[p.game] || p.game;
+    sound("ding");
     card({big:"🎁", title:"You got a power-up!", body:(p.label ? p.label + "\n" : "") + "It's waiting for you in " + name + ".", note:p.note,
       link:{href:"/" + p.game + "/", text:"Open " + name}});
   }
@@ -341,6 +389,7 @@
     if(r && r.quiet) return;
     const ok = !(r && r.ok === false), msg = r && typeof r === "object" ? r.msg : r;
     card({big: ok ? (pw.emoji || "🎁") : "💨", title: ok ? (pw.label || "Power-up!") : "It fizzled", body: msg || "", note: p.note});
+    sound(!ok ? "wahwah" : pw.good === false ? "wahwah" : "chime");
     if(ok && !REDUCED && pw.good !== false) confetti();
   }
   function drainQueue(){
@@ -352,7 +401,8 @@
     mine.forEach((x, i)=>setTimeout(()=>{ if(window.PSPowers[x.id]) usePower(x); }, 600 + i*200));
   }
 
-  window.PSLive = {device: DEV, game: GAME, test: handle, scare, screamer};
+  const later = f=>(...args)=>{ if(args[args.length - 1] === true || unlocked) f(...args); else whenAudible(()=>f(...args)); };
+  window.PSLive = {device: DEV, game: GAME, test: handle, scare: later(scare), screamer: later(screamer), sound};
   const start = ()=>{ drainQueue(); setTimeout(checkin, 600); setTimeout(realtime, 1500); };
   if(document.readyState === "complete") start(); else addEventListener("load", start);
 })();
