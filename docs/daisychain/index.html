@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#24301F">
+<meta name="description" content="Daisy Chain: a free daily word chain puzzle. Every word links to the next to make a compound word or phrase. Fill in the six missing links.">
+<link rel="canonical" href="https://playsproutle.com/daisychain/">
+<meta property="og:title" content="Daisy Chain">
+<meta property="og:description" content="Eight words, each linked to the next. Snowball, ballpark, park bench... Fill in the missing links. A new chain every day.">
+<meta property="og:url" content="https://playsproutle.com/daisychain/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/daisychain/icon-512.png">
+<link rel="icon" type="image/png" href="/daisychain/icon-192.png">
+<link rel="apple-touch-icon" href="/daisychain/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Daisy Chain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
+<style>
+/* Layout: one narrow column. Eight words stacked as a chain, joined by little links; keyboard pinned at the bottom. */
+:root{
+  --bg:#EEF3E6; --surface:#FDFFF8; --ink:#24301F; --muted:#66745C; --line:#D2DEC4;
+  --stem:#5E9A45; --petal:#FFFFFF; --petal-edge:#D8DCCF; --sun:#F2B724; --sun-ink:#2B1F00;
+  --accent:#3E8A4A; --accent-ink:#FFFFFF;
+  --good:#4E9A3E; --good-ink:#FFFFFF; --help:#E3A92E; --help-ink:#2B1A00;
+  --bad:#C9533C; --bad-ink:#FFFFFF; --key-bg:#DDE6D1; --tile:#F5F8EF;
+  --display:"Young Serif", Georgia, serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#161B13; --surface:#20271C; --ink:#EAF1E1; --muted:#9DAB92; --line:#343F2D;
+  --stem:#7FC064; --petal:#EAF1E1; --petal-edge:#55624B; --sun:#F4C84A; --sun-ink:#231A00;
+  --accent:#7FC882; --accent-ink:#0D1A0E;
+  --good:#6DB65A; --good-ink:#0D1A09; --help:#EDB94E; --help-ink:#241600;
+  --bad:#E3705A; --bad-ink:#1F0904; --key-bg:#343F2D; --tile:#1B2118; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#161B13; --surface:#20271C; --ink:#EAF1E1; --muted:#9DAB92; --line:#343F2D;
+  --stem:#7FC064; --petal:#EAF1E1; --petal-edge:#55624B; --sun:#F4C84A; --sun-ink:#231A00;
+  --accent:#7FC882; --accent-ink:#0D1A0E;
+  --good:#6DB65A; --good-ink:#0D1A09; --help:#EDB94E; --help-ink:#241600;
+  --bad:#E3705A; --bad-ink:#1F0904; --key-bg:#343F2D; --tile:#1B2118; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:4px 10px}
+.mark{font-family:var(--display);font-size:30px;line-height:1;letter-spacing:.01em;display:flex;align-items:center;gap:6px}
+.mark span{color:var(--stem)}
+.mark svg{width:26px;height:26px}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.meta{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;font-variant-numeric:tabular-nums}
+.petals{display:flex;gap:4px;align-items:center}
+.pt{width:10px;height:14px;border-radius:50%;background:var(--petal);border:1.5px solid var(--petal-edge)}
+.pt.gone{background:transparent;border-style:dashed;opacity:.6}
+
+.chain{display:flex;flex-direction:column;align-items:center}
+.row{display:flex;justify-content:center;align-items:center;gap:4px;width:100%;min-height:46px;padding:5px 8px;border-radius:14px;border:2px solid transparent;background:transparent}
+.row.end .t{background:var(--surface);border-color:var(--stem);color:var(--ink)}
+.row.front{background:var(--surface);border-color:var(--line);border-style:dashed}
+.row.sel{background:var(--surface);border-color:var(--accent);border-style:solid;box-shadow:0 4px 14px -8px var(--accent)}
+.row.locked{opacity:.55;cursor:default}
+.row.done{cursor:default}
+.t{width:clamp(26px,8vw,34px);height:36px;border-radius:7px;background:var(--tile);border:1.5px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:18px;text-transform:uppercase}
+.t.rv{color:var(--accent)}
+.t.ty{border-color:var(--ink)}
+.row.solved .t{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+.row.solved.helped .t{background:var(--help);border-color:var(--help);color:var(--help-ink)}
+.row.solved.given .t{background:var(--bad);border-color:var(--bad);color:var(--bad-ink)}
+.row.shake{animation:shake .35s ease}
+.row.pop .t{animation:flip .4s ease both}
+.row.pop .t:nth-child(2){animation-delay:.05s}.row.pop .t:nth-child(3){animation-delay:.1s}.row.pop .t:nth-child(4){animation-delay:.15s}.row.pop .t:nth-child(5){animation-delay:.2s}.row.pop .t:nth-child(6){animation-delay:.25s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes flip{50%{transform:rotateX(90deg)}}
+.link{height:18px;display:flex;align-items:center;justify-content:center;gap:8px}
+.link svg{width:10px;height:20px;fill:none;stroke:var(--line);stroke-width:2.4}
+.link.on svg{stroke:var(--stem)}
+.link .cw{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+.link .cw:first-child{text-align:right;flex:1}.link .cw:last-child{text-align:left;flex:1}
+
+.cap{text-align:center;font-size:13px;color:var(--muted);min-height:18px}
+.cap b{color:var(--ink)}
+.actions{display:flex;gap:8px}
+.abtn{flex:1;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.abtn:disabled{opacity:.5;cursor:default}
+
+.kb{display:flex;flex-direction:column;gap:6px;user-select:none}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:42px;height:50px;border:none;border-radius:7px;background:var(--key-bg);font-weight:700;font-size:16px;padding:0;touch-action:manipulation}
+.k.wide{max-width:66px;flex:1.5;font-size:12px;letter-spacing:.04em}
+.k:active{filter:brightness(.9)}
+
+.result{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px}
+.result h2{margin:0;font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1}
+.result p{margin:0;color:var(--muted);line-height:1.45}
+.share{height:50px;border:none;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:700;font-size:16px}
+.next{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.next b{color:var(--ink);font-size:16px}
+.more{font-size:14px;font-weight:700;color:var(--accent);text-align:center}
+.fallback{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+
+.scrim{position:fixed;inset:0;background:rgba(14,20,10,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:400;font-size:28px}
+.modal p,.modal li{line-height:1.45;margin:0}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.ex{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;letter-spacing:.06em;background:var(--bg);border-radius:10px;padding:10px}
+.ex .s{color:var(--good)}
+.ex small{font-weight:600;letter-spacing:0;color:var(--muted);font-size:12px}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dlab{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dist{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:center;font-weight:700;font-size:13px}
+.bar i{display:block;background:var(--key-bg);color:var(--ink);font-style:normal;text-align:right;padding:2px 8px;border-radius:4px;min-width:26px}
+.bar i.hi{background:var(--good);color:var(--good-ink)}
+.toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:20;white-space:nowrap}
+#play{position:sticky;bottom:0;z-index:5;background:var(--bg);margin-inline:-16px;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 16px -12px rgba(0,0,0,.25)}
+@media (max-height:820px){
+  .wrap{gap:8px;padding-block:6px 0}
+  header{padding-block:2px 6px}.mark{font-size:26px}.ibtn{width:34px;height:34px}
+  .row{min-height:40px;padding:3px 8px}.t{height:32px;font-size:16px}.link{height:12px}.link svg{height:15px}
+  .abtn{height:36px}.k{height:44px}.kb{gap:5px}
+}
+@media (max-height:680px){
+  .row{min-height:36px}.t{height:28px;font-size:15px}.link{height:9px}.link svg{height:11px}.k{height:40px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="/site.js?v=202610150825" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><g fill="var(--petal)" stroke="var(--petal-edge)" stroke-width="1.2"><ellipse cx="16" cy="7" rx="4" ry="6"/><ellipse cx="16" cy="25" rx="4" ry="6"/><ellipse cx="7" cy="16" rx="6" ry="4"/><ellipse cx="25" cy="16" rx="6" ry="4"/><ellipse cx="9.6" cy="9.6" rx="4" ry="6" transform="rotate(-45 9.6 9.6)"/><ellipse cx="22.4" cy="22.4" rx="4" ry="6" transform="rotate(-45 22.4 22.4)"/><ellipse cx="22.4" cy="9.6" rx="4" ry="6" transform="rotate(45 22.4 9.6)"/><ellipse cx="9.6" cy="22.4" rx="4" ry="6" transform="rotate(45 9.6 22.4)"/></g><circle cx="16" cy="16" r="5" fill="var(--sun)"/></svg>Daisy<span>Chain</span></div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="meta"><span id="pNo">No. 1</span><span class="petals" id="petals" aria-label="Petals left"></span></div>
+
+  <section class="chain" id="chain" aria-label="Word chain"></section>
+  <div class="cap" id="cap"></div>
+
+  <section id="play">
+    <div class="actions" style="margin-bottom:8px">
+      <button class="abtn" id="btnHint">Reveal a letter</button>
+      <button class="abtn" id="btnFlip">Work from bottom</button>
+    </div>
+    <div class="kb" id="kb"></div>
+  </section>
+
+  <section class="result" id="result" hidden></section>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How to play</h3>
+    <p>Every word in the chain links to the next one to make a compound word or common phrase.</p>
+    <div class="ex"><span>SNOW</span><span class="s">BALL</span><span class="s">PARK</span><span>BENCH</span><small>snowball · ballpark · park bench</small></div>
+    <ul>
+      <li>The first and last words are given. Fill in the six links between them.</li>
+      <li>You can only guess a word next to one you already have, so work down from the top or up from the bottom. Tap a dashed word to switch ends.</li>
+      <li>Each hidden word starts with its first letter showing. A wrong guess reveals the next letter and costs a petal.</li>
+      <li>Fewest petals lost wins. A perfect chain loses none.</li>
+    </ul>
+    <button class="close" data-close>Start linking</button>
+  </div>
+</div>
+
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <div class="dlab">Petals lost per chain</div>
+    <div class="dist" id="dist"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="/lb.js"></script>
+<script>
+// Each chain: eight words, and every neighbouring pair makes a compound word or common phrase.
+// The first and last words are shown; the six in between are the puzzle.
+const CHAINS = [
+  ["SNOW","BALL","PARK","BENCH","PRESS","RELEASE","DATE","NIGHT"],
+  ["FIRE","WORK","OUT","SIDE","WALK","OVER","TIME","ZONE"],
+  ["SUN","FLOWER","POT","HOLE","PUNCH","LINE","DANCE","FLOOR"],
+  ["HOT","DOG","HOUSE","PARTY","ANIMAL","CRACKER","JACK","POT"],
+  ["BOOK","SHELF","LIFE","GUARD","RAIL","ROAD","TRIP","WIRE"],
+  ["TEA","CUP","CAKE","WALK","OUT","LAW","SCHOOL","BUS"],
+  ["HEAD","BAND","WAGON","WHEEL","CHAIR","LIFT","OFF","SHORE"],
+  ["RAIN","BOW","TIE","CLIP","BOARD","GAME","NIGHT","CLUB"],
+  ["STAR","FISH","TANK","TOP","SECRET","SERVICE","DOG","TAG"],
+  ["COFFEE","BREAK","DOWN","TOWN","HALL","PASS","WORD","PLAY"],
+  ["BLUE","PRINT","OUT","DOOR","BELL","BOY","BAND","CAMP"],
+  ["FOOT","BALL","ROOM","SERVICE","STATION","WAGON","WHEEL","HOUSE"],
+  ["SEA","HORSE","SHOE","BOX","CAR","POOL","TABLE","SALT"],
+  ["GOLD","MINE","FIELD","GOAL","POST","CARD","TRICK","SHOT"],
+  ["SKY","LINE","UP","SET","BACK","YARD","STICK","SHIFT"],
+  ["MILK","SHAKE","DOWN","HILL","TOP","HAT","TRICK","QUESTION"],
+  ["BIRTH","DAY","DREAM","TEAM","WORK","SHOP","TALK","SHOW"],
+  ["GREEN","HOUSE","PLANT","FOOD","TRUCK","STOP","SIGN","LANGUAGE"],
+  ["HONEY","MOON","LIGHT","HOUSE","BOAT","RACE","CAR","WASH"],
+  ["CANDY","BAR","CODE","NAME","TAG","TEAM","SPIRIT","WEEK"],
+  ["NEWS","PAPER","BACK","BONE","DRY","CLEAN","SWEEP","STAKES"],
+  ["ICE","CREAM","CHEESE","CAKE","POP","CORN","DOG","PARK"],
+  ["SWEET","HEART","BEAT","BOX","OFFICE","SPACE","SHIP","WRECK"],
+  ["HAND","BOOK","END","GAME","SHOW","TIME","OUT","FIELD"],
+  ["PEANUT","BUTTER","CUP","BOARD","ROOM","KEY","CHAIN","SAW"],
+  ["JUNK","MAIL","BOX","SPRING","BREAK","FAST","TRACK","STAR"],
+  ["CRY","BABY","SHOWER","HEAD","COACH","CLASS","ROOM","MATE"],
+  ["BUS","STOP","WATCH","DOG","FOOD","CHAIN","MAIL","ORDER"],
+  ["CAR","SEAT","BELT","LOOP","HOLE","PUNCH","BOWL","GAME"],
+  ["PIN","POINT","BLANK","CHECK","BOOK","CLUB","HOUSE","WARMING"],
+];
+const N = 8, PETALS = 8;
+
+// ---- Daily puzzle number (local date, puzzle #1 = Oct 13, 2026, shared with the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH = Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo = Math.max(1, dayIndex(new Date()) - EPOCH + 1);
+const W = CHAINS[(pNo-1) % CHAINS.length];
+
+// ---- Storage (optional; game works without it)
+const SKEY = "daisychain-v1";
+function load(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(store)); }catch(e){} }
+const store = load();
+store.stats = store.stats || {played:0,cur:0,max:0,perfect:0,dist:[0,0,0,0,0,0,0],lastDone:0};
+// rev[i] = letters showing (starts at 1), solved[i] = true once linked, given[i] = revealed in full
+let S = (store.day && store.day.n===pNo) ? store.day
+  : {n:pNo, rev:W.map((w,i)=>i===0||i===N-1?w.length:1), solved:W.map((_,i)=>i===0||i===N-1), given:Array(N).fill(false), lost:0, tried:W.map(()=>[]), status:"playing"};
+store.day = S;
+
+let sel = 1, buf = "", fx = null;
+const $ = id=>document.getElementById(id);
+
+// The two words you're allowed to work on: just below the solved top run, just above the solved bottom run
+function fronts(){
+  let t=0; while(t<N-1 && S.solved[t+1]) t++;
+  let b=N-1; while(b>0 && S.solved[b-1]) b--;
+  const top=t+1, bot=b-1;
+  if(top>=N-1 || top>bot) return [];
+  return top===bot ? [top] : [top,bot];
+}
+function fixSel(){ const f=fronts(); if(!f.includes(sel)) sel = f.length ? (f.includes(sel+1)?sel+1:f.includes(sel-1)?sel-1:f[0]) : -1; }
+const capacity = i => W[i].length - S.rev[i];
+
+function linkSVG(){ return `<svg viewBox="0 0 12 24" aria-hidden="true"><rect x="2" y="1" width="8" height="11" rx="4"/><rect x="2" y="12" width="8" height="11" rx="4"/><path d="M6 7v10"/></svg>`; }
+
+function render(){
+  $("pNo").textContent="No. "+pNo;
+  $("petals").innerHTML=Array.from({length:PETALS},(_,i)=>`<span class="pt${i<S.lost?" gone":""}"></span>`).join("");
+  const done=S.status!=="playing", f=done?[]:fronts();
+  const c=$("chain"); c.innerHTML="";
+  W.forEach((w,i)=>{
+    if(i>0){
+      const l=document.createElement("div"); l.className="link";
+      const on=S.solved[i-1]&&S.solved[i];
+      if(on) l.classList.add("on");
+      l.innerHTML = linkSVG();
+      c.appendChild(l);
+    }
+    const row=document.createElement("button"); row.className="row"; row.dataset.i=i;
+    const end = i===0||i===N-1;
+    if(end) row.classList.add("end","done");
+    else if(S.solved[i]){ row.classList.add("solved","done"); if(S.given[i]) row.classList.add("given"); else if(S.rev[i]>1) row.classList.add("helped"); }
+    else if(f.includes(i)) row.classList.add(i===sel?"sel":"front");
+    else row.classList.add("locked");
+    if(fx && fx.i===i) row.classList.add(fx.type);
+    let tiles="";
+    for(let j=0;j<w.length;j++){
+      let ch="", cls="t";
+      if(end || S.solved[i] || done) ch=w[j];
+      else if(j<S.rev[i]){ ch=w[j]; cls+=" rv"; }
+      else if(sel===i && buf[j-S.rev[i]]){ ch=buf[j-S.rev[i]]; cls+=" ty"; }
+      tiles+=`<span class="${cls}">${ch}</span>`;
+    }
+    row.innerHTML=tiles;
+    row.setAttribute("aria-label", (end||S.solved[i]) ? w : `${w.length} letters, starts with ${w.slice(0,S.rev[i])}`);
+    row.addEventListener("click",()=>select(i));
+    c.appendChild(row);
+  });
+  // Caption: which compound you're working on
+  let cap="";
+  if(!done && sel>0){
+    const above=S.solved[sel-1], below=S.solved[sel+1];
+    const hint = above&&below ? `${W[sel-1]} + ? and ? + ${W[sel+1]}` : above ? `${W[sel-1]} + ?` : `? + ${W[sel+1]}`;
+    cap = `Find the word that links: <b>${hint}</b>`;
+  }
+  $("cap").innerHTML=cap;
+  $("play").hidden=done;
+  const fl=$("btnFlip");
+  fl.disabled = f.length<2;
+  fl.textContent = f.length<2 ? "Last link" : (sel===f[0] ? "Work from bottom" : "Work from top");
+  renderResult();
+  fx=null;
+  if(!done) requestAnimationFrame(keepSelVisible);
+}
+function keepSelVisible(){
+  const el=document.querySelector(`.row[data-i="${sel}"]`); if(!el) return;
+  const r=el.getBoundingClientRect(), kbTop=$("play").getBoundingClientRect().top;
+  if(r.bottom > kbTop-6) window.scrollBy({top:r.bottom-kbTop+12,behavior:"smooth"});
+  else if(r.top < 6) window.scrollBy({top:r.top-12,behavior:"smooth"});
+}
+
+function select(i){
+  if(S.status!=="playing") return;
+  if(!fronts().includes(i)){ if(!S.solved[i]) toast("Link the words next to it first"); return; }
+  if(sel!==i){ sel=i; buf=""; }
+  render();
+}
+
+function type(c){
+  if(S.status!=="playing" || sel<0) return;
+  window.SLB && SLB.start("daisychain", pNo);
+  if(buf.length<capacity(sel)){ buf+=c; render(); }
+}
+function back(){ if(buf){ buf=buf.slice(0,-1); render(); } }
+
+// Reveal one more letter of the selected word, costing a petal. Revealing the last letter hands the word over.
+function reveal(i){
+  S.rev[i]++; S.lost++;
+  if(S.rev[i]>=W[i].length){ S.solved[i]=true; S.given[i]=true; fx={type:"pop",i}; afterSolve(i, true); }
+}
+function afterSolve(i, given){
+  buf="";
+  if(S.solved.every(Boolean)){ finish(); return; }
+  if(!given) toast(["Linked!","Nice.","Snap!","That fits.","Chained."][Math.floor(Math.random()*5)]);
+  // Keep going the same direction if possible
+  const f=fronts(); sel = f.includes(i+1)?i+1 : f.includes(i-1)?i-1 : f[0];
+}
+
+function submit(){
+  if(S.status!=="playing" || sel<0) return;
+  if(buf.length<capacity(sel)){ toast("Not enough letters"); fx={type:"shake",i:sel}; render(); return; }
+  const A=W[sel], g=A.slice(0,S.rev[sel])+buf;
+  if(g===A){ S.solved[sel]=true; fx={type:"pop",i:sel}; afterSolve(sel,false); }
+  else if(S.tried[sel].includes(g)){ toast("Already tried that"); buf=""; fx={type:"shake",i:sel}; }
+  else {
+    S.tried[sel].push(g); buf="";
+    const i=sel; reveal(i);
+    if(S.given[i]) toast(`It was ${A}`);
+    else { fx={type:"shake",i}; toast("Doesn't link · new letter shown"); }
+  }
+  save(); render();
+}
+
+function hint(){
+  if(S.status!=="playing" || sel<0) return;
+  window.SLB && SLB.start("daisychain", pNo);
+  const i=sel; buf=""; reveal(i);
+  if(S.given[i]) toast(`It was ${W[i]}`);
+  save(); render();
+}
+
+function finish(){
+  S.status="done";
+  window.SLB && SLB.stop("daisychain", pNo);
+  const st=store.stats; st.played++;
+  st.dist[Math.min(S.lost,6)]++;
+  if(!S.lost) st.perfect++;
+  st.cur = (st.lastDone===pNo-1) ? st.cur+1 : 1; st.lastDone=pNo; st.max=Math.max(st.max,st.cur);
+}
+
+function shareText(){
+  const grid=W.slice(1,-1).map((_,k)=>{ const i=k+1; return S.given[i]?"🟥":S.rev[i]>1?"🟨":"🟩"; }).join("");
+  const p = S.lost ? `${S.lost} petal${S.lost===1?"":"s"} lost` : "Perfect chain 🌼";
+  return `Daisy Chain No. ${pNo}\n${W[0]} ${grid} ${W[N-1]}\n${p}\nplaysproutle.com/daisychain`;
+}
+
+function renderResult(){
+  const r=$("result");
+  if(S.status==="playing"){ r.hidden=true; return; }
+  r.hidden=false;
+  const given=S.given.filter(Boolean).length;
+  const head = !S.lost ? "Perfect chain" : S.lost<=2 ? "Lovely chain" : given ? "Chain complete" : "Linked up";
+  const pairs = W.slice(0,-1).map((w,i)=>`${w.toLowerCase()} ${W[i+1].toLowerCase()}`).join(" · ");
+  const sub = (S.lost ? `All eight words linked with ${S.lost} petal${S.lost===1?"":"s"} lost${given?`, and ${given} word${given===1?"":"s"} handed over`:""}.` : "Every link on the first try, no petals lost.")
+    + `<br><br>${pairs}`;
+  r.innerHTML = `<h2>${head}</h2><p>${sub}</p>
+    <button class="share" id="btnShare">Share result</button>
+    <div class="next"><span>Next chain in</span><b id="cd">--:--:--</b></div>
+    <div id="slb"></div>
+    <a class="more" href="/">Play more games →</a>`;
+  if(window.SLB) SLB.mount($("slb"), {game:"daisychain", day:pNo, score:S.lost, eligible:true, fmt:n=>n===0?"Perfect":n+(n===1?" petal":" petals"), note:"Petals lost. Lowest wins; ties go to the fastest.", accent:"var(--accent)", accentInk:"var(--accent-ink)"});
+  $("btnShare").onclick = ()=>{
+    const txt=shareText();
+    const ok=()=>toast("Copied. Paste it anywhere.");
+    const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+  };
+  tick();
+}
+
+function tick(){
+  const el=$("cd"); if(!el) return;
+  const now=new Date(), mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  let s=Math.max(0,Math.floor((mid-now)/1000));
+  const h=String(Math.floor(s/3600)).padStart(2,"0"), m=String(Math.floor(s%3600/60)).padStart(2,"0"), x=String(s%60).padStart(2,"0");
+  el.textContent=`${h}:${m}:${x}`;
+}
+setInterval(tick,1000);
+
+let toastT;
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(toastT);
+  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t);
+  toastT=setTimeout(()=>t.remove(),1800);
+}
+
+function openStats(){
+  const st=store.stats;
+  $("statsGrid").innerHTML=[[st.played,"Played"],[st.perfect,"Perfect"],[st.cur,"Streak"],[st.max,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const mx=Math.max(1,...st.dist);
+  $("dist").innerHTML=st.dist.map((v,i)=>`<div class="bar">${i===6?"6+":i}<i class="${S.status==="done"&&Math.min(S.lost,6)===i?"hi":""}" style="width:${Math.max(8,v/mx*100)}%">${v}</i></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+// ---- Keyboard
+const ROWS=["QWERTYUIOP","ASDFGHJKL","+ZXCVBNM-"];
+$("kb").innerHTML=ROWS.map(r=>`<div class="kr">${[...r].map(c=> c==="+"?`<button class="k wide" data-k="Enter">ENTER</button>` : c==="-"?`<button class="k wide" data-k="Backspace" aria-label="Delete">⌫</button>` : `<button class="k" data-k="${c}">${c}</button>`).join("")}</div>`).join("");
+$("kb").addEventListener("click",e=>{
+  const k=e.target.closest("[data-k]"); if(!k) return;
+  const v=k.dataset.k; if(v==="Enter") submit(); else if(v==="Backspace") back(); else type(v);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); return; }
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(document.querySelector(".scrim:not([hidden])")) return;
+  if(e.key==="Enter"){ e.preventDefault(); submit(); }
+  else if(e.key==="Backspace") back();
+  else if(/^[a-zA-Z]$/.test(e.key)) type(e.key.toUpperCase());
+  else if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+    e.preventDefault(); const f=fronts(); if(f.length===2) select(e.key==="ArrowDown"?f[1]:f[0]);
+  }
+});
+
+$("btnFlip").onclick=()=>{ const f=fronts(); if(f.length===2) select(sel===f[0]?f[1]:f[0]); };
+$("btnHint").onclick=hint;
+$("btnHelp").onclick=()=>{$("howModal").hidden=false};
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; });
+});
+
+fixSel();
+if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+render();
+</script>
+</body>
+</html>
