@@ -84,7 +84,7 @@ label.small{display:block;font-size:13px;font-weight:700;color:var(--muted);marg
 
 .snack{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:50;max-width:90vw;text-align:center;transition:opacity .3s}
 </style>
-<script src="/site.js?v=202610151120" defer></script>
+<script src="/site.js?v=202610151125" defer></script>
 </head>
 <body>
 <main>
@@ -135,7 +135,7 @@ label.small{display:block;font-size:13px;font-weight:700;color:var(--muted);marg
       <div class="grid" id="fxGrid"></div>
       <label class="small" for="emoji">Emoji for the emoji rain</label>
       <input type="text" id="emoji" maxlength="8" value="💩">
-      <p class="hint">Effects play right away and undo themselves after a few seconds. The jump scare roars if their sound is on, and it never plays in the little-kids games.</p>
+      <p class="hint">Effects play right away and undo themselves after a few seconds. The jump scare screams and the roar roars if their sound is on. Neither ever plays in the little-kids games.</p>
     </div>
 
     <div data-p="pw" hidden>
@@ -168,10 +168,10 @@ const POWERS={
   greenhouse:[["greenhouse.fertilizer","🧪","Fertilizer"],["greenhouse.weedkiller","🧴","Weed killer"],["greenhouse.shovel","⛏️","Shovel"],["greenhouse.weeds","🌾","Weed invasion",1]],
   waterworks:[["waterworks.fix","🔧","Plumber"],["waterworks.refund","🪙","Tap refund"],["waterworks.quake","🫨","Earthquake",1]],
   keystone:[["keystone.build","🏗️","Free bridge"],["keystone.repair","🧱","Crack repair"],["keystone.zap","⚡","Lightning",1]],
-  "critter-collector":[["critter.rush","🏃","Zoo rush"],["critter.coins","💰","Coin shower"],["critter.gems","💎","25 gems"],["critter.energy","🍎","Snack refill"],["critter.golden","✨","Golden critter"],["critter.scare","🦖","Jump scare",1],["critter.shuffle","🌪️","Zoo shuffle",1],["critter.snacks","🦝","Snack thief",1]],
+  "critter-collector":[["critter.rush","🏃","Zoo rush"],["critter.coins","💰","Coin shower"],["critter.gems","💎","25 gems"],["critter.energy","🍎","Snack refill"],["critter.golden","✨","Golden critter"],["critter.scare","👹","Jump scare",1],["critter.roar","🦖","Roar",1],["critter.shuffle","🌪️","Zoo shuffle",1],["critter.snacks","🦝","Snack thief",1]],
   daisychain:[["daisychain.letter","🔤","Free letter"],["daisychain.link","🔗","Free link"],["daisychain.petal","🌼","Petal back"],["daisychain.wilt","🥀","Wilted petal",1]],
 };
-const EFFECTS=[["confetti","🎉","Confetti"],["emoji","🌧️","Emoji rain"],["shake","🫨","Shake"],["flip","🙃","Upside down"],["spin","🌀","Spin"],["mirror","🪞","Mirror"],["tiny","🐜","Tiny"],["rainbow","🌈","Rainbow"],["invert","🔄","Invert"],["blur","🌫️","Blur"],["gray","⚫","Grayscale"],["jumpscare","👹","Jump scare"]];
+const EFFECTS=[["confetti","🎉","Confetti"],["emoji","🌧️","Emoji rain"],["shake","🫨","Shake"],["flip","🙃","Upside down"],["spin","🌀","Spin"],["mirror","🪞","Mirror"],["tiny","🐜","Tiny"],["rainbow","🌈","Rainbow"],["invert","🔄","Invert"],["blur","🌫️","Blur"],["gray","⚫","Grayscale"],["screamer","👹","Jump scare"],["jumpscare","🦖","Roar"]];
 
 let key=ls.get("pslive-admin-key"), players=[], sel=new Set(), filter="online", tab="msg", style="popup", pollT=0;
 const ME=ls.get("slb-device");

@@ -263,7 +263,7 @@ a.iconbtn{text-decoration:none;font-size:15px;line-height:1}
   .sheet,.modal{animation:none}
 }
 </style>
-<script src="/site.js?v=202610151120" defer></script>
+<script src="/site.js?v=202610151125" defer></script>
 </head>
 <body>
 
@@ -1351,8 +1351,13 @@ window.PSPowers = {
   "critter.gems":{emoji:"💎", label:"Gem gift", run:()=>crPower(()=>{ S.pearls+=25; sfx.coin(); return "+25 gems!"; })},
   "critter.energy":{emoji:"🍎", label:"Snack refill", run:()=>crPower(()=>{ S.energy=Math.max(S.energy,eMax()); S.lastEnergy=now(); return "Your snacks are full."; })},
   "critter.golden":{emoji:"✨", label:"Golden critter", run:()=>crPower(()=>{ if (goldLive) return {ok:false, msg:"A golden critter is already out there. Catch it!"}; setTimeout(spawnGold, 1800); return "A golden critter is about to run by. Tap it quick!"; })},
-  // The jump scare uses a scary critter from their current zoo when there is one (a T. rex, a croc, a wolf...), otherwise a random monster
-  "critter.scare":{emoji:"🦖", label:"Jump scare", good:false, run:()=>crPower(()=>{
+  // A classic internet jump scare: a screaming ghoul fills the screen (drawn and played by /live.js)
+  "critter.scare":{emoji:"👹", label:"Jump scare", good:false, run:()=>crPower(()=>{
+    if (window.PSLive && PSLive.screamer) PSLive.screamer(!S.sound);
+    buzz("heavy");
+    return {ok:true, quiet:true}; })},
+  // The gentler one: a scary critter from their zoo lunges with a roar
+  "critter.roar":{emoji:"🦖", label:"Roar", good:false, run:()=>crPower(()=>{
     const SCARY=["🦖","🐊","🐺","🐻","🐅","🦁","🐍","🕷️","🦂","🦈","🐉","🦍","🐲","👾"];
     const mine=CREATURES.filter(c=>c && SCARY.includes(c.e)).map(c=>c.e);
     const pool=mine.length?mine:SCARY, big=pool[Math.floor(Math.random()*pool.length)];

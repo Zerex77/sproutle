@@ -105,6 +105,12 @@
 .psl-scare.out{transition:opacity .35s;opacity:0}
 .psl-scare-e{font-size:min(80vw,80vh);line-height:1;animation:psl-lunge 1.5s cubic-bezier(.2,1.6,.4,1) forwards;filter:drop-shadow(0 0 40px rgba(255,0,0,.6))}
 .psl-scare-t{position:absolute;bottom:12vh;left:0;right:0;text-align:center;font:900 clamp(44px,14vw,110px)/1 system-ui,sans-serif;color:#ff2a2a;-webkit-text-stroke:2px #000;animation:psl-jitter .08s infinite}
+.psl-scream{position:fixed;inset:0;z-index:2147483647;background:#000;overflow:hidden;animation:psl-strobe .09s steps(1) 6}
+.psl-scream.out{transition:opacity .35s;opacity:0}
+.psl-scream-f{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;animation:psl-violent .06s infinite,psl-push 1.9s ease-in forwards}
+@keyframes psl-strobe{0%{filter:invert(1) contrast(2)}50%{filter:none;background:#600}}
+@keyframes psl-violent{0%{translate:0 0}25%{translate:-12px 8px}50%{translate:10px -10px}75%{translate:-8px -6px}100%{translate:9px 7px}}
+@keyframes psl-push{0%{transform:scale(1)}100%{transform:scale(1.15)}}
 @keyframes psl-lunge{0%{transform:scale(.15) rotate(-10deg)}18%{transform:scale(1.25) rotate(4deg)}24%{transform:scale(1.1) rotate(-3deg)}30%{transform:scale(1.2) rotate(2deg)}100%{transform:scale(1.15) rotate(0)}}
 @keyframes psl-jitter{50%{transform:translate(3px,-2px)}}
 @keyframes psl-flash{50%{background:#fff}}
@@ -191,6 +197,7 @@
     blur(){ onRoot("blur(5px)", 5000); },
     gray(){ onRoot("grayscale(1)", 10000); },
     jumpscare(p){ scare(p.emoji, p.quiet); },
+  screamer(p){ screamer(p.quiet); },
   rainbow(){
       const h = document.documentElement;
       try{ h.animate([{filter:"hue-rotate(0deg) saturate(1.6)"},{filter:"hue-rotate(360deg) saturate(1.6)"}], {duration:2000, iterations:5}); }catch(e){}
@@ -200,7 +207,7 @@
   const KIDS = ["animalmatch", "bugsquish", "superrescue"];
   function effect(name, p){
     const f = EFFECTS[name]; if(!f) return;
-    if(name === "jumpscare" && KIDS.includes(GAME)) return;
+    if((name === "jumpscare" || name === "screamer") && KIDS.includes(GAME)) return;
     if(fxBusy && name !== "confetti" && name !== "emoji"){ setTimeout(()=>effect(name, p), 1500); return; }
     fxBusy = true; setTimeout(()=>{ fxBusy = false; }, 1200);
     f(p || {});
@@ -216,12 +223,49 @@
     setTimeout(()=>o.classList.add("out"), 1500);
     setTimeout(()=>o.remove(), 1900);
   }
+  // Screamer: a classic internet jump scare. A ghoul's face fills the screen instantly, shaking and
+  // strobing, with a shriek. The face is an original drawing (SVG), so there's nothing to download first.
+  const GHOUL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" preserveAspectRatio="xMidYMid slice"> <defs> <radialGradient id="sk" cx="50%" cy="40%" r="62%"> <stop offset="0" stop-color="#e3ddd0"/><stop offset=".45" stop-color="#b9b2a2"/><stop offset=".78" stop-color="#5d574c"/><stop offset="1" stop-color="#14120f"/> </radialGradient> <radialGradient id="sock" cx="50%" cy="50%" r="55%"> <stop offset="0" stop-color="#000"/><stop offset=".6" stop-color="#050303"/><stop offset=".85" stop-color="#2a1612" stop-opacity=".85"/><stop offset="1" stop-color="#4a2a22" stop-opacity="0"/> </radialGradient> <radialGradient id="mo" cx="50%" cy="40%" r="60%"> <stop offset="0" stop-color="#000"/><stop offset=".7" stop-color="#0a0202"/><stop offset="1" stop-color="#3b0606"/> </radialGradient> <radialGradient id="vig" cx="50%" cy="45%" r="70%"> <stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".95"/> </radialGradient> <filter id="warp" x="-20%" y="-20%" width="140%" height="140%"> <feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="3" seed="7" result="n"/> <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/> </filter> <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter> <filter id="tear"><feGaussianBlur stdDeviation="1.2"/></filter> <filter id="soft2"><feGaussianBlur stdDeviation="2.2"/></filter> <filter id="grain" x="0" y="0" width="100%" height="100%"> <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/> <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0"/> <feComposite in2="SourceGraphic" operator="in"/> </filter> <filter id="blotch" x="0" y="0" width="100%" height="100%"> <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="4" seed="11"/> <feColorMatrix values="0 0 0 0 .25  0 0 0 0 .2  0 0 0 0 .14  0 0 0 1.4 -.55"/> <feComposite in2="SourceGraphic" operator="in"/> </filter> <clipPath id="headclip"><path id="hp" d="M200 18 C 300 20 352 110 348 215 C 345 300 318 360 286 420 C 262 466 232 506 200 508 C 166 506 138 466 114 420 C 82 360 52 300 52 210 C 50 110 102 18 200 18 Z"/></clipPath> </defs> <rect width="400" height="520" fill="#000"/> <g filter="url(#warp)"> <use href="#hp" fill="url(#sk)"/> <g clip-path="url(#headclip)"> <rect width="400" height="520" fill="#fff" filter="url(#blotch)"/>  <ellipse cx="118" cy="300" rx="40" ry="90" fill="#2b241c" opacity=".55" filter="url(#soft)"/> <ellipse cx="284" cy="300" rx="40" ry="90" fill="#2b241c" opacity=".55" filter="url(#soft)"/>  <ellipse cx="200" cy="150" rx="150" ry="40" fill="#3a3228" opacity=".45" filter="url(#soft)"/>  <ellipse cx="135" cy="190" rx="58" ry="66" fill="url(#sock)" filter="url(#soft2)" transform="rotate(-12 135 190)"/> <ellipse cx="268" cy="182" rx="54" ry="72" fill="url(#sock)" filter="url(#soft2)" transform="rotate(14 268 182)"/>  <circle cx="140" cy="196" r="6" fill="#f4efe2"/><circle cx="140" cy="196" r="2.4" fill="#000"/> <circle cx="262" cy="186" r="5" fill="#f4efe2"/><circle cx="262" cy="186" r="2" fill="#000"/>  <g filter="url(#tear)"><path d="M128 248 C 126 290 132 320 126 368 C 124 380 136 382 136 368 C 138 330 134 290 138 250 Z" fill="#5a0404" opacity=".9"/> <path d="M276 250 C 280 280 274 300 280 336 C 282 346 292 344 290 334 C 286 300 290 278 286 248 Z" fill="#5a0404" opacity=".85"/></g>  <path d="M190 252 C 184 270 182 288 192 292 C 196 284 198 270 196 252 Z" fill="#000" filter="url(#soft2)"/> <path d="M212 252 C 218 270 220 288 210 292 C 206 284 204 270 206 252 Z" fill="#000" filter="url(#soft2)"/>  <ellipse cx="200" cy="398" rx="62" ry="98" fill="#1a0b08" opacity=".7" filter="url(#soft)"/> <path d="M200 318 C 248 318 262 380 252 430 C 244 470 224 492 200 492 C 176 492 156 470 148 430 C 138 380 152 318 200 318 Z" fill="url(#mo)"/>  <path d="M152 350 C 180 330 220 330 248 350 L244 362 C 220 344 180 344 156 362 Z" fill="#4a0d0a"/> <path d="M154 352 L166 372 L174 340 L184 368 L192 332 L200 364 L208 330 L216 366 L226 338 L234 370 L246 350 L240 336 C 220 322 180 322 160 336 Z" fill="#cfc4a6"/> <path d="M160 452 L170 430 L180 462 L190 438 L200 470 L210 440 L220 464 L230 432 L240 452 C 232 478 214 490 200 490 C 186 490 168 478 160 452 Z" fill="#b9ad8c"/>  <g fill="none" stroke="#3a0d0a" stroke-width="1.6" opacity=".75"> <path d="M80 120 L100 150 L94 176 L112 210"/><path d="M320 110 L300 140 L310 168 L292 196 L300 214"/> <path d="M190 40 L196 80 L186 110 L200 136"/><path d="M90 330 L110 352 L104 380"/><path d="M318 320 L298 350 L306 384"/> </g> <rect width="400" height="520" fill="#fff" filter="url(#grain)" opacity=".5"/> </g> </g> <rect width="400" height="520" fill="url(#vig)"/> </svg>`;
+  let ghoulUrl = "";
+  function screamer(quiet){
+    if(KIDS.includes(GAME)) return;
+    css();
+    ghoulUrl = ghoulUrl || "data:image/svg+xml;charset=utf-8," + encodeURIComponent(GHOUL);
+    const o = el("div", "psl psl-scream"), img = el("img", "psl-scream-f");
+    img.src = ghoulUrl; img.alt = ""; o.appendChild(img); document.body.appendChild(o);
+    if(!quiet) shriek();
+    try{ navigator.vibrate && navigator.vibrate([600, 80, 500, 80, 300]); }catch(err){}
+    setTimeout(()=>o.classList.add("out"), 1900);
+    setTimeout(()=>o.remove(), 2300);
+  }
   let actx = null;
+  function audio(){
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function shriek(){
+    try{
+      const a = audio(), t = a.currentTime, len = 1.9;
+      const out = a.createGain(); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.7, t + 0.02); out.gain.setValueAtTime(0.7, t + len - .5); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      const shaper = a.createWaveShaper(), curve = new Float32Array(256);
+      for(let i = 0; i < 256; i++){ const x = i / 128 - 1; curve[i] = Math.tanh(x * 6); }
+      shaper.curve = curve; shaper.connect(out); out.connect(a.destination);
+      // A wavering, rising scream: detuned saws with a fast wobble
+      const lfo = a.createOscillator(), depth = a.createGain(); lfo.frequency.value = 23; depth.gain.value = 60; lfo.connect(depth); lfo.start(t); lfo.stop(t + len);
+      [620, 655, 1240].forEach((f, k)=>{ const o = a.createOscillator(), g = a.createGain(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(f * .8, t); o.frequency.exponentialRampToValueAtTime(f * 1.25, t + .35); o.frequency.exponentialRampToValueAtTime(f * 1.05, t + len);
+        depth.connect(o.frequency); g.gain.value = k === 2 ? .35 : .6; o.connect(g).connect(shaper); o.start(t); o.stop(t + len); });
+      // Hiss on top
+      const buf = a.createBuffer(1, Math.floor(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
+      for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const n = a.createBufferSource(), bp = a.createBiquadFilter(), ng = a.createGain(); n.buffer = buf; bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = .8; ng.gain.value = .5;
+      n.connect(bp).connect(ng).connect(out); n.start(t);
+    }catch(err){}
+  }
   function roar(){
     try{
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      if(actx.state === "suspended") actx.resume();
-      const a = actx, t = a.currentTime, len = 1.3;
+      const a = audio(), t = a.currentTime, len = 1.3;
       const out = a.createGain(); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.55, t + 0.04); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
       out.connect(a.destination);
       // Growl: two detuned saws sliding down, through a crunchy wave shaper
@@ -297,7 +341,7 @@
     mine.forEach((x, i)=>setTimeout(()=>{ if(window.PSPowers[x.id]) usePower(x); }, 600 + i*200));
   }
 
-  window.PSLive = {device: DEV, game: GAME, test: handle, scare};
+  window.PSLive = {device: DEV, game: GAME, test: handle, scare, screamer};
   const start = ()=>{ drainQueue(); setTimeout(checkin, 600); setTimeout(realtime, 1500); };
   if(document.readyState === "complete") start(); else addEventListener("load", start);
 })();
