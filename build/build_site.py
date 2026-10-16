@@ -145,6 +145,7 @@ notfound = page('Page not found | Sproutle', 'This page does not exist.', '/404'
 GAMES = [
     # slug, name, tag, blurb, button, icon, daily?
     ('sproutle', 'Sproutle', 'Daily word puzzle · 2 min', "Grow today's seed into a long word one letter at a time, without rearranging.", 'Play Sproutle', '/icon-192.png', True),
+    ('stilllife', 'Still Life', 'Daily physics puzzle · 2 min', "Freeze time with your camera. Every snap turns a moving leaf solid. Build a path and drop the dew into the pot with as few snaps as you can.", 'Play Still Life', '/stilllife/icon-192.png', True),
     ('ranked', 'Ranked', 'Daily ordering puzzle · 3 min', 'Six items, one rule. Put planets, skyscrapers, inventions and more in order in four tries.', 'Play Ranked', '/ranked/icon-192.png', True),
     ('trailhead', 'Trailhead', 'Daily word climb · 3 min', 'Climb a spring mountain one word at a time, solving a hidden five-letter word at every stop.', 'Play Trailhead', '/trailhead/icon-192.png', True),
     ('keystone', 'Keystone', 'Daily missing-word puzzle · 3 min', 'Find the word that joins both sides of six bridges. Their first letters spell the keystone.', 'Play Keystone', '/keystone/icon-192.png', True),
@@ -361,7 +362,7 @@ self.addEventListener("fetch",e=>{{
 robots = f'User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n'
 today = datetime.date.today().isoformat()
 sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/ranked/', '/trailhead/', '/keystone/', '/daisychain/', '/waterworks/', '/greenhouse/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/shortorder/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/bugsquish/', '/superrescue/', '/about', '/privacy'])
+           + ''.join(f'  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod></url>\n' for p in ['/', '/sproutle/', '/stilllife/', '/ranked/', '/trailhead/', '/keystone/', '/daisychain/', '/waterworks/', '/greenhouse/', '/ballpark/', '/imposter/', '/gridiron/', '/almamater/', '/shortorder/', '/zachbox/', '/groupchat/', '/blendin/', '/badtranslation/', '/whosaidthat/', '/critter-collector/', '/animalmatch/', '/bugsquish/', '/superrescue/', '/about', '/privacy'])
            + '</urlset>\n')
 headers = '''/*
   X-Content-Type-Options: nosniff
@@ -392,6 +393,8 @@ shutil.copytree(os.path.join(D, 'keystone'), os.path.join(OUT, 'keystone'), dirs
 # Ballpark, Imposter and Alma Mater are separate daily games, copied as-is from build/<slug>/
 for g in ('daisychain', 'waterworks', 'greenhouse', 'ballpark', 'imposter', 'almamater', 'shortorder', 'groupchat', 'zachbox', 'blendin', 'badtranslation', 'whosaidthat', 'animalmatch', 'bugsquish', 'superrescue'):
     shutil.copytree(os.path.join(D, g), os.path.join(OUT, g), dirs_exist_ok=True)
+# Still Life: the page, its physics (sim.js) and the generated levels (levels.js). gen.js only runs at build time.
+shutil.copytree(os.path.join(D, 'stilllife'), os.path.join(OUT, 'stilllife'), dirs_exist_ok=True, ignore=shutil.ignore_patterns('gen.js'))
 # Gridiron Golf: fill the page template with every category and player (players.json is refreshed weekly by gridiron/update_stats.py)
 G = os.path.join(D, 'gridiron')
 gcats = json.load(open(os.path.join(G, 'categories.json')))['categories']

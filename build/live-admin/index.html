@@ -188,12 +188,13 @@ const ls={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 // Keep in step with the power-ups each game registers (search the game code for "Power-ups sent from the live admin page")
-const GAMES={sproutle:"Sproutle",greenhouse:"Greenhouse",waterworks:"Waterworks",keystone:"Keystone",daisychain:"Daisy Chain",ranked:"Ranked",trailhead:"Trailhead",ballpark:"Ballpark",imposter:"Imposter",gridiron:"Gridiron Golf",almamater:"Alma Mater",shortorder:"Short Order","critter-collector":"Critter Collector",zachbox:"Zach Box",groupchat:"Group Chat Disaster",blendin:"Blend In",badtranslation:"Bad Translation",whosaidthat:"Who Said That",animalmatch:"Animal Match",bugsquish:"Bug Squish",superrescue:"Super Rescue",home:"Homepage",about:"About",privacy:"Privacy"};
+const GAMES={stilllife:"Still Life",sproutle:"Sproutle",greenhouse:"Greenhouse",waterworks:"Waterworks",keystone:"Keystone",daisychain:"Daisy Chain",ranked:"Ranked",trailhead:"Trailhead",ballpark:"Ballpark",imposter:"Imposter",gridiron:"Gridiron Golf",almamater:"Alma Mater",shortorder:"Short Order","critter-collector":"Critter Collector",zachbox:"Zach Box",groupchat:"Group Chat Disaster",blendin:"Blend In",badtranslation:"Bad Translation",whosaidthat:"Who Said That",animalmatch:"Animal Match",bugsquish:"Bug Squish",superrescue:"Super Rescue",home:"Homepage",about:"About",privacy:"Privacy"};
 const POWERS={
   sproutle:[["sproutle.letter","💡","Free letter"],["sproutle.grow","🌿","Growth spurt"],["sproutle.heal","🍃","Leaf regrowth"],["sproutle.bug","🐛","Caterpillar",1]],
   greenhouse:[["greenhouse.fertilizer","🧪","Fertilizer"],["greenhouse.weedkiller","🧴","Weed killer"],["greenhouse.shovel","⛏️","Shovel"],["greenhouse.weeds","🌾","Weed invasion",1]],
   waterworks:[["waterworks.fix","🔧","Plumber"],["waterworks.refund","🪙","Tap refund"],["waterworks.quake","🫨","Earthquake",1]],
   keystone:[["keystone.build","🏗️","Free bridge"],["keystone.repair","🧱","Crack repair"],["keystone.zap","⚡","Lightning",1]],
+  stilllife:[["stilllife.film","🎞️","Extra film"],["stilllife.slowmo","🐢","Slow motion"],["stilllife.wind","🌬️","Gust of wind",1]],
   "critter-collector":[["critter.rush","🏃","Zoo rush"],["critter.coins","💰","Coin shower"],["critter.gems","💎","25 gems"],["critter.energy","🍎","Snack refill"],["critter.golden","✨","Golden critter"],["critter.scare","👹","Jump scare",1],["critter.roar","🦖","Roar",1],["critter.shuffle","🌪️","Zoo shuffle",1],["critter.snacks","🦝","Snack thief",1]],
   daisychain:[["daisychain.letter","🔤","Free letter"],["daisychain.link","🔗","Free link"],["daisychain.petal","🌼","Petal back"],["daisychain.wilt","🥀","Wilted petal",1]],
 };
