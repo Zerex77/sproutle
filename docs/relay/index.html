@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1D2740">
+<meta name="description" content="Relay: a daily word puzzle no one can finish alone. Change one letter, then pass it on to someone new. Together, turn today's word into the goal.">
+<link rel="canonical" href="https://playsproutle.com/relay/">
+<meta property="og:title" content="Relay · your move">
+<meta property="og:description" content="A word puzzle no one can finish alone. Change one letter, then pass it on.">
+<meta property="og:url" content="https://playsproutle.com/relay/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://playsproutle.com/relay/icon-512.png">
+<link rel="icon" type="image/png" href="/relay/icon-192.png">
+<link rel="apple-touch-icon" href="/relay/apple-touch-icon.png">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Relay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700;9..40,800&display=swap">
+<style>
+/* One column: header, today's puzzle, then either the chain you opened (with your move) or the home view
+   (start a chain, your chains, today's wall). */
+:root{
+  --bg:#F3F1EC; --surface:#FFFFFF; --ink:#1D2740; --muted:#5F6780; --line:#DEDCE4;
+  --accent:#FF5A36; --accent-ink:#FFFFFF; --link:#2F5BEA; --good:#1F9D6B; --tile:#FFFFFF; --tile-line:#C9CBD6; --goal:#EAF0FF;
+  --display:"Space Grotesk", system-ui, sans-serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#11151F; --surface:#1A2030; --ink:#EEF1F8; --muted:#A0A8BE; --line:#2C3449;
+  --accent:#FF6F4F; --accent-ink:#1A0C06; --link:#7D9BFF; --good:#4FD39A; --tile:#232B3F; --tile-line:#3A4460; --goal:#1D2A4A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#11151F; --surface:#1A2030; --ink:#EEF1F8; --muted:#A0A8BE; --line:#2C3449;
+  --accent:#FF6F4F; --accent-ink:#1A0C06; --link:#7D9BFF; --good:#4FD39A; --tile:#232B3F; --tile-line:#3A4460; --goal:#1D2A4A; color-scheme:dark }
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:8px 28px;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--line);padding-block:2px 8px}
+.mark{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.02em;display:flex;align-items:center;gap:6px}
+.mark svg{width:26px;height:26px;stroke:var(--accent);fill:none;stroke-width:2.6;stroke-linecap:round}
+.hbtns{display:flex;gap:8px}
+.ibtn{color:var(--ink);text-decoration:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+h2{margin:0;font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+p{margin:0;line-height:1.45}
+.muted{color:var(--muted)}
+.pz{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.arrow{font-family:var(--display);font-size:24px;color:var(--muted)}
+
+/* Letter tiles */
+.word{display:inline-flex;gap:4px}
+.t{width:34px;height:40px;border-radius:7px;background:var(--tile);border:2px solid var(--tile-line);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:21px;text-transform:uppercase;line-height:1}
+.word.goal .t{background:var(--goal);border-style:dashed;border-color:var(--link);color:var(--link)}
+.t.ch{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.t.ok{border-color:var(--good)}
+.word.sm .t{width:24px;height:28px;font-size:15px;border-radius:5px;border-width:1.5px}
+.word.big .t{width:58px;height:66px;font-size:36px;border-radius:12px;border-width:2.5px}
+.word.big .t.sel{border-color:var(--link);box-shadow:0 0 0 3px color-mix(in srgb,var(--link) 30%,transparent);transform:translateY(-3px)}
+.word.big .t{transition:transform .12s, border-color .12s}
+.word.big button.t{cursor:pointer;padding:0;color:var(--ink)}
+.word.big button.t.ch{color:var(--accent-ink)}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.pop{animation:pop .35s}
+@keyframes pop{50%{transform:scale(1.08)}}
+
+/* The chain */
+.chain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:stretch}
+.chain li{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:6px 10px;border-radius:12px;position:relative}
+.chain li + li::before{content:"";position:absolute;left:62px;top:-9px;width:2.5px;height:12px;background:repeating-linear-gradient(var(--muted) 0 3px,transparent 3px 5px);opacity:.6}
+.chain .who{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--muted);text-align:right;line-height:1.2}
+.chain .who b{display:block;font-family:var(--display);font-size:15px;color:var(--ink);letter-spacing:.08em}
+.chain li.me{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.chain li.goalrow{opacity:.9}
+.chain li.more{justify-content:center;grid-template-columns:1fr;text-align:left;font-size:13px;font-weight:700;color:var(--muted);padding:2px 10px}
+
+.status{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.dist{display:inline-flex;align-items:baseline;gap:4px;background:var(--goal);color:var(--link);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px}
+
+/* Your move */
+.move{display:flex;flex-direction:column;align-items:center;gap:12px}
+.fb{min-height:22px;font-weight:700;font-size:14px;text-align:center}
+.fb.bad{color:var(--accent)}
+.fb.good{color:var(--good)}
+.ini{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:700;font-size:14px}
+.ini input{width:5.4em;height:42px;border-radius:10px;border:2px solid var(--tile-line);background:var(--tile);color:var(--ink);font:700 20px var(--display);letter-spacing:.3em;text-align:center;text-transform:uppercase;padding-left:.3em}
+.kb{display:flex;flex-direction:column;gap:6px;width:100%}
+.kb div{display:flex;gap:5px;justify-content:center}
+.kb button{flex:1;max-width:38px;height:50px;border-radius:8px;border:none;background:color-mix(in srgb,var(--ink) 10%,var(--surface));font-weight:800;font-size:16px;text-transform:uppercase;padding:0}
+.kb button.wide{max-width:64px;flex:1.6;font-size:13px}
+.btn{height:54px;border-radius:14px;border:none;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:17px;width:100%}
+.btn:disabled{opacity:.4}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);height:48px;font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:12.5px;font-weight:700;color:var(--muted);line-height:1.3}
+.steps div{background:var(--bg);border-radius:12px;padding:10px 6px}
+.steps span{display:block;font-size:24px;margin-bottom:2px}
+
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.list .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--muted)}
+.list .row b{color:var(--ink)}
+.list .names{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;color:var(--ink);line-height:1.5;word-break:break-word}
+.list .names i{font-style:normal;color:var(--muted);font-weight:500}
+.list a{color:var(--link);font-weight:700;font-size:13px}
+.list .won{color:var(--good)}
+.rank{font-family:var(--display);font-weight:700;color:var(--accent)}
+.more{display:block;font-size:14px;font-weight:700;color:var(--link);text-align:center}
+#moveArea{display:flex;flex-direction:column;gap:10px}
+.pz{gap:8px;flex-wrap:nowrap}
+.pz .t{width:30px;height:36px;font-size:19px}
+.fallback{width:100%;min-height:80px;font:13px/1.4 ui-monospace,monospace;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+
+.scrim{position:fixed;inset:0;background:rgba(8,12,24,.6);display:grid;place-items:center;padding:16px;z-index:10}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px;max-width:400px;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto}
+.modal h3{margin:0;font-family:var(--display);font-weight:700;font-size:28px}
+.modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.modal li{line-height:1.45}
+.close{align-self:flex-end;height:44px;padding:0 22px;border-radius:10px;border:none;background:var(--ink);color:var(--bg);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-size:26px}
+.stats span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:40;max-width:92vw;text-align:center}
+@media (max-width:370px){ .word.big .t{width:50px;height:58px;font-size:30px} .t{width:30px;height:36px;font-size:18px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="/site.js?v=202610160052" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Relay</div>
+    <div class="hbtns">
+      <a class="ibtn" href="/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></a>
+      <button class="ibtn" id="btnHelp" aria-label="How to play">?</button>
+      <button class="ibtn" id="btnStats" aria-label="Statistics"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<div class="scrim" id="howModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="howT">
+    <h3 id="howT">How Relay works</h3>
+    <p>Every day there's a word to turn into another word, one letter at a time. The catch: <b>no one can do it alone.</b></p>
+    <div class="steps"><div><span>✏️</span>Change one letter</div><div><span>📲</span>Send it to someone new</div><div><span>🏁</span>Reach the goal together</div></div>
+    <ul>
+      <li>Each move changes <b>exactly one letter</b> and has to make a real word. No reusing a word that's already in the chain.</li>
+      <li>You get <b>one move per chain</b>. Then the only way forward is to send the link to someone who hasn't played it yet.</li>
+      <li>The chain shows everyone who moved. The <b>best possible</b> count tells you how many more links it would take with perfect moves.</li>
+      <li>Send the link to as many people as you like. Each one can take it a different way.</li>
+      <li>Finished chains go on <b>today's wall</b>, shortest first. Come back to see how far your chains got.</li>
+    </ul>
+    <button class="close" data-close>Got it</button>
+  </div>
+</div>
+<div class="scrim" id="statsModal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="stT">
+    <h3 id="stT">Your stats</h3>
+    <div class="stats" id="statsGrid"></div>
+    <button class="close" data-close>Close</button>
+  </div>
+</div>
+
+<script src="words.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const VALID=new Set(window.RELAY_WORDS.split(" ")), PAIRS=window.RELAY_PAIRS;
+const API="https://eiftinbzwcuxalnnmjra.supabase.co/rest/v1/rpc/", KEY="sb_publishable_w64F-Z-J_Gx0rwIPMl-V3w_e5BJmUE0";
+const BAD=["ASS","CUM","COK","CNT","DIC","DIK","DIX","FAG","FCK","FUC","FUK","FUQ","FKU","HOE","JIZ","KKK","KYS","NAZ","NIG","NGR","PIS","SEX","SHT","SUK","TIT","VAG","WTF","XXX","ANL"];
+const ABC="abcdefghijklmnopqrstuvwxyz";
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// ---- Today's puzzle (local date, No. 1 = Oct 13, 2026, shared with the other daily games)
+function dayIndex(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5); }
+const EPOCH=Math.floor(Date.UTC(2026,9,13)/864e5);
+const pNo=Math.max(1, dayIndex(new Date())-EPOCH+1);
+const pairFor=n=>PAIRS[(n-1)%PAIRS.length];
+const TODAY=pairFor(pNo);
+
+// ---- Storage
+const ls={ get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} } };
+const SKEY="relay-v1";
+const store=Object.assign({seenHelp:false, chains:[], stats:{links:0,started:0,finished:0,anchors:0}}, ls.get(SKEY)||{});
+const save=()=>ls.set(SKEY,store);
+// Same random device ID the leaderboards use; only a short fingerprint of it ever goes in a link
+function device(){
+  let d=ls.get("slb-device");
+  if(!d || !/^[a-z0-9]{16,40}$/.test(d)){ const r=crypto.getRandomValues(new Uint8Array(16)); d=Array.from(r,b=>(b%36).toString(36)).join("")+Date.now().toString(36); ls.set("slb-device",d); }
+  return d;
+}
+function fnv(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(36).padStart(7,"0").slice(-6); }
+const ME=fnv("relay:"+device());
+const myInitials=()=>{ const v=ls.get("slb-initials"); return /^[A-Z]{3}$/.test(v||"")?v:""; };
+
+// ---- Word ladder distances (how many links, at best, from a word to the goal)
+const distCache={};
+function distTo(goal){
+  if(distCache[goal]) return distCache[goal];
+  const d=new Map([[goal,0]]), q=[goal];
+  for(let i=0;i<q.length;i++){ const w=q[i]; for(let p=0;p<4;p++) for(const c of ABC){ if(c===w[p]) continue; const n=w.slice(0,p)+c+w.slice(p+1); if(VALID.has(n)&&!d.has(n)){ d.set(n,d.get(w)+1); q.push(n); } } }
+  return distCache[goal]=d;
+}
+const diffAt=(a,b)=>{ let k=-1,n=0; for(let i=0;i<4;i++) if(a[i]!==b[i]){ n++; k=i; } return n===1?k:-1; };
+
+// ---- Chain links: playsproutle.com/relay/?c=...  {d: day started, k: chain id, g: goal, w: words, p: [[initials, fingerprint], ...]}
+function b64e(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function b64d(s){ try{ return JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,"+").replace(/_/g,"/"))))); }catch(e){ return null; } }
+function validChain(c){
+  if(!c||typeof c!=="object"||!Array.isArray(c.w)||!Array.isArray(c.p)) return false;
+  if(typeof c.d!=="number"||!/^[a-z0-9]{6,12}$/.test(c.k||"")||!/^[a-z]{4}$/.test(c.g||"")) return false;
+  if(c.w.length<1||c.w.length>60||c.p.length!==c.w.length-1) return false;
+  const seen=new Set();
+  for(let i=0;i<c.w.length;i++){
+    const w=c.w[i]; if(!/^[a-z]{4}$/.test(w)||seen.has(w)) return false; seen.add(w);
+    if(i>0){ if(diffAt(c.w[i-1],w)<0||!VALID.has(w)) return false; const m=c.p[i-1]; if(!Array.isArray(m)||!/^[A-Z]{3}$/.test(m[0])||!/^[a-z0-9]{6}$/.test(m[1])) return false; }
+  }
+  return true;
+}
+const linkOf=c=>"https://playsproutle.com/relay/?c="+b64e(c);
+const done=c=>c.w[c.w.length-1]===c.g;
+const inChain=c=>c.p.some(m=>m[1]===ME);
+
+// ---- Server (optional: the wall and "how far did my chains get")
+async function rpc(name, body){
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),9000);
+  try{ const r=await fetch(API+name,{method:"POST",signal:ctl.signal,headers:{"apikey":KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error("rpc "+r.status); const t2=await r.text(); return t2?JSON.parse(t2):null; } finally{ clearTimeout(t); }
+}
+function post(c){ rpc("relay_post",{p_day:c.d,p_root:c.k,p_goal:c.g,p_words:c.w,p_movers:c.p.map(m=>m[0]),p_hashes:c.p.map(m=>m[1])}).catch(()=>{}); }
+
+// ---- Remember chains you've touched
+function remember(c){
+  const i=store.chains.findIndex(x=>x.k===c.k);
+  const rec={k:c.k,d:c.d,g:c.g,w:c.w.slice(),p:c.p.map(m=>m.slice()),at:Date.now()};
+  if(i>=0){ if(store.chains[i].w.length<=c.w.length) store.chains[i]=rec; } else store.chains.unshift(rec);
+  store.chains=store.chains.slice(0,40); save();
+}
+
+// ---- Rendering helpers
+function tilesHTML(word, o={}){
+  const cls="word"+(o.size?" "+o.size:"")+(o.goal?" goal":"");
+  return `<span class="${cls}" aria-label="${esc(word.toUpperCase())}">`+[...word].map((ch,i)=>`<span class="t${i===o.hi?" ch":""}">${esc(ch)}</span>`).join("")+`</span>`;
+}
+function chainHTML(c, o={}){
+  const goalD=distTo(c.g);
+  const rows=[];
+  const n=c.w.length, cut=o.compact && n>7;
+  c.w.forEach((w,i)=>{
+    if(cut && i>1 && i<n-4){ if(i===2) rows.push(`<li class="more">⋮ ${n-6} more link${n-6===1?"":"s"}</li>`); return; }
+    const m=i?c.p[i-1]:null, hi=i?diffAt(c.w[i-1],w):-1;
+    const who= i===0 ? `<span class="who">START</span>` : `<span class="who"><b>${esc(m[0])}</b>${m[1]===ME?"YOU":"LINK "+i}</span>`;
+    rows.push(`<li class="${m&&m[1]===ME?"me":""}">${tilesHTML(w,{hi})}${who}</li>`);
+  });
+  if(!done(c) && o.goal!==false) rows.push(`<li class="goalrow">${tilesHTML(c.g,{goal:true})}<span class="who">GOAL</span></li>`);
+  return `<ol class="chain">${rows.join("")}</ol>`;
+}
+const linksWord=n=>`${n} link${n===1?"":"s"}`;
+
+// ---- Views
+let chain=null;      // the chain on screen
+let draft=null;      // {pos, letter}
+function home(){
+  chain=null;
+  const goalD=distTo(TODAY[1]), best=goalD.get(TODAY[0]);
+  const startedToday=store.chains.filter(c=>c.d===pNo && c.p.length && c.p[0][1]===ME).length;
+  $("main").innerHTML=`
+  <section class="card">
+    <div class="kicker">Relay No. ${pNo} · today's puzzle</div>
+    <div class="pz">${tilesHTML(TODAY[0])}<span class="arrow">→</span>${tilesHTML(TODAY[1],{goal:true})}</div>
+    <p class="muted" style="text-align:center">Turn <b>${TODAY[0].toUpperCase()}</b> into <b>${TODAY[1].toUpperCase()}</b>, one letter at a time. Best possible: <b>${linksWord(best)}</b>, so you'll need ${best} people.</p>
+    <div class="steps"><div><span>✏️</span>Change one letter</div><div><span>📲</span>Send it to someone new</div><div><span>🏁</span>Reach the goal together</div></div>
+    <button class="btn" id="bStart">${startedToday?"Start another chain":"Start a chain"}</button>
+  </section>
+  <section class="card" id="mineSec" ${store.chains.length?"":"hidden"}>
+    <h2>Your chains</h2><ul class="list" id="mine"></ul>
+  </section>
+  <section class="card" id="wallSec" hidden>
+    <h2>Today's wall</h2><p class="muted" id="wallSub"></p><ol class="list" id="wall"></ol>
+  </section>
+  <a class="more" href="/">Play more games →</a>`;
+  $("bStart").onclick=()=>{ openChain({d:pNo,k:rid(),g:TODAY[1],w:[TODAY[0]],p:[]}, true); };
+  drawMine(); loadServer();
+}
+function rid(){ const r=crypto.getRandomValues(new Uint8Array(8)); return Array.from(r,b=>(b%36).toString(36)).join(""); }
+
+function drawMine(server){
+  const el=$("mine"); if(!el) return;
+  const byRoot=new Map((server||[]).map(r=>[r.root,r]));
+  el.innerHTML=store.chains.slice(0,12).map(c=>{
+    const s=byRoot.get(c.k);
+    const words=s&&s.words.length>c.w.length?s.words:c.w, isDone=s?s.done||done(c):done(c), left=distTo(c.g).get(words[words.length-1]);
+    const me=c.p.findIndex(m=>m[1]===ME)+1;
+    const grew=s&&s.words.length>c.w.length;
+    const state= isDone ? `<span class="won">✅ Finished in ${linksWord(words.length-1)}</span>`
+      : grew ? `<b>${linksWord(words.length-1)} so far</b> · ${left} to go`
+      : me && me===c.w.length-1 ? `Waiting on the next link · ${left} to go` : `${linksWord(c.w.length-1)} · ${left} to go`;
+    return `<li><div class="row"><span>No. ${c.d}: ${c.w[0].toUpperCase()} → ${c.g.toUpperCase()}</span><span>${state}</span></div>
+      <div class="names">${words.map(w=>w.toUpperCase()).join(" <i>→</i> ")}</div>
+      <div class="row"><span>${me?`You were link ${me}`:"You opened this one"}</span><a href="${esc(linkOf(c))}" data-open="${esc(c.k)}">${isDone?"See it":"Open & pass it on"}</a></div></li>`;
+  }).join("");
+  el.querySelectorAll("[data-open]").forEach(a=>a.onclick=e=>{ e.preventDefault(); const c=store.chains.find(x=>x.k===a.dataset.open); if(c) openChain(JSON.parse(JSON.stringify(c))); });
+}
+async function loadServer(){
+  try{
+    const [wall, today, mine]=await Promise.all([rpc("relay_wall",{p_day:pNo}), rpc("relay_today",{p_day:pNo}), rpc("relay_mine",{p_hash:ME})]);
+    if(!$("wallSec")) return;
+    const t=today||{};
+    $("wallSub").innerHTML=`${t.chains||0} chain${t.chains===1?"":"s"} started today · ${t.links||0} link${t.links===1?"":"s"} made · ${t.done||0} finished`;
+    $("wall").innerHTML=(wall||[]).length ? wall.map((r,i)=>`<li><div class="row"><span><span class="rank">#${i+1}</span> · ${linksWord(r.words.length-1)}</span><span>${new Date(r.created_at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</span></div>
+        <div class="names">${r.movers.map(esc).join(" <i>→</i> ")}</div><div class="names">${r.words.map(w=>esc(w.toUpperCase())).join(" <i>→</i> ")}</div></li>`).join("")
+      : `<li class="muted" style="border:none;padding:0">No chain has made it yet. Yours could be the first.</li>`;
+    $("wallSec").hidden=false;
+    if(Array.isArray(mine)){
+      const grew=mine.filter(r=>{ const c=store.chains.find(x=>x.k===r.root); return c && r.words.length>c.w.length; });
+      drawMine(mine);
+      if(grew.length) toast(`🔗 ${grew.length===1?"One of your chains":"Your chains"} grew while you were away!`);
+    }
+  }catch(e){ /* no database yet: the game still works through links */ }
+}
+
+function openChain(c, fresh){
+  chain=c; draft=null;
+  if(!fresh){ remember(c); try{ history.replaceState(null,"","/relay/?c="+b64e(c)); }catch(e){} }
+  drawChain();
+  window.scrollTo({top:0});
+}
+function drawChain(note){
+  const c=chain, goalD=distTo(c.g), cur=c.w[c.w.length-1], left=goalD.get(cur);
+  const isDone=done(c), mine=inChain(c), canMove=!isDone && !mine;
+  const headline = isDone ? `Finished in ${linksWord(c.w.length-1)}! 🏁`
+    : c.p.length===0 ? "You're starting a chain"
+    : mine ? "Pass it on!" : "It's your move";
+  const sub = isDone ? `${c.p.map(m=>esc(m[0])).join(" → ")} turned ${c.w[0].toUpperCase()} into ${c.g.toUpperCase()} together.${c.p.some(m=>m[1]===ME)?" You were part of it!":""}`
+    : mine ? `You already made your move in this chain. Only someone new can take the next step. Send it to someone who hasn't played this one.`
+    : c.p.length===0 ? `Change one letter of <b>${cur.toUpperCase()}</b>. Then you'll send it to someone to make the next move.`
+    : `${linksWord(c.p.length)} so far. Change one letter of <b>${cur.toUpperCase()}</b>, then pass it on to someone new.`;
+  $("main").innerHTML=`
+  <section class="card">
+    <div class="kicker">Relay No. ${c.d}${c.d===pNo?" · today":""} · ${c.w[0].toUpperCase()} → ${c.g.toUpperCase()}</div>
+    <h2>${headline}</h2><p class="muted">${sub}</p>
+    ${chainHTML(c,{compact:canMove})}
+    ${isDone?"":`<div class="status"><span class="dist">🏁 ${left}</span> more link${left===1?"":"s"} at best</div>`}
+    <div id="moveArea"></div>
+  </section>
+  <button class="btn ghost" id="bHome">${c.d===pNo?"See today's wall & your chains":"Back to today's puzzle"}</button>`;
+  $("bHome").onclick=()=>{ try{ history.replaceState(null,"","/relay/"); }catch(e){} home(); };
+  if(canMove) drawMove(); else if(!isDone) drawPass(note); else drawDone();
+}
+
+function drawMove(){
+  const c=chain, cur=c.w[c.w.length-1];
+  const ini=myInitials();
+  $("moveArea").innerHTML=`<div class="move">
+    <div class="kicker">Your move: tap a letter, then pick a new one</div>
+    <div class="word big" id="edit">${[...cur].map((ch,i)=>`<button class="t" data-i="${i}" aria-label="Letter ${i+1}, ${ch}">${ch}</button>`).join("")}</div>
+    <div class="fb" id="fb"></div>
+    <div class="kb" id="kb"></div>
+    <div class="ini" ${ini?"hidden":""}><label for="iniIn">Your initials</label><input id="iniIn" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(ini)}"></div>
+    <button class="btn" id="bLock" disabled>Lock it in</button>
+  </div>`;
+  const rows=["qwertyuiop","asdfghjkl","zxcvbnm"];
+  $("kb").innerHTML=rows.map(r=>`<div>${[...r].map(k=>`<button data-k="${k}">${k}</button>`).join("")}</div>`).join("");
+  $("edit").querySelectorAll("button").forEach(b=>b.onclick=()=>{ draft={pos:+b.dataset.i, letter:null}; paint(); });
+  $("kb").querySelectorAll("button").forEach(b=>b.onclick=()=>key(b.dataset.k));
+  $("bLock").onclick=lock;
+  const ii=$("iniIn");
+  ii.addEventListener("input",()=>{ ii.value=ii.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,3); paint(); });
+  ii.addEventListener("keydown",e=>e.stopPropagation());
+  paint();
+}
+function preview(){ const cur=chain.w[chain.w.length-1]; if(!draft||draft.letter==null) return cur; return cur.slice(0,draft.pos)+draft.letter+cur.slice(draft.pos+1); }
+function paint(msg, kind){
+  const cur=chain.w[chain.w.length-1], w=preview();
+  $("edit").querySelectorAll("button").forEach((b,i)=>{ b.textContent=w[i]; b.classList.toggle("sel",!!draft&&draft.pos===i); b.classList.toggle("ch",w[i]!==cur[i]); });
+  const fb=$("fb");
+  if(msg){ fb.textContent=msg; fb.className="fb "+(kind||""); }
+  else if(!draft) { fb.textContent="Which letter will you change?"; fb.className="fb muted"; }
+  else if(draft.letter==null){ fb.textContent=`Now pick a new letter for the ${["1st","2nd","3rd","4th"][draft.pos]} spot.`; fb.className="fb muted"; }
+  else if(w===cur){ fb.textContent="That's the same letter. Pick a different one."; fb.className="fb muted"; }
+  else { const ok=VALID.has(w); fb.textContent= ok ? `${w.toUpperCase()}: lock it in?` : `${w.toUpperCase()} isn't in our word list.`; fb.className="fb "+(ok?"good":"bad"); }
+  const ini=($("iniIn")||{}).value||myInitials();
+  $("bLock").disabled=!(draft&&draft.letter!=null&&w!==cur&&/^[A-Z]{3}$/.test(ini));
+}
+function key(k){
+  if(!chain||done(chain)||inChain(chain)) return;
+  if(!draft){ paint("Tap one of the four letters first.","bad"); $("edit").classList.remove("shake"); void $("edit").offsetWidth; $("edit").classList.add("shake"); return; }
+  draft.letter=k; paint();
+}
+function lock(){
+  const c=chain, cur=c.w[c.w.length-1], w=preview();
+  const ini=(($("iniIn")||{}).value||myInitials()).toUpperCase();
+  const shake=()=>{ $("edit").classList.remove("shake"); void $("edit").offsetWidth; $("edit").classList.add("shake"); };
+  if(!/^[A-Z]{3}$/.test(ini)){ paint("Add your three initials so the chain knows who you are.","bad"); return; }
+  if(BAD.includes(ini)){ paint("Let's pick different initials.","bad"); return; }
+  if(diffAt(cur,w)<0){ paint("Change exactly one letter.","bad"); shake(); return; }
+  if(!VALID.has(w)){ paint(`${w.toUpperCase()} isn't in our word list. Try another.`,"bad"); shake(); return; }
+  if(c.w.includes(w)){ paint(`${w.toUpperCase()} is already in this chain. No going in circles!`,"bad"); shake(); return; }
+  const D=distTo(c.g), before=D.get(cur), after=D.get(w);
+  if(after==null){ paint(`${w.toUpperCase()} can't ever reach ${c.g.toUpperCase()}. Try another.`,"bad"); shake(); return; }
+  ls.set("slb-initials",ini);
+  c.w.push(w); c.p.push([ini,ME]);
+  const st=store.stats; st.links++; if(c.p.length===1) st.started++;
+  const fin=done(c); if(fin){ st.finished++; st.anchors++; }
+  save(); remember(c); post(c);
+  try{ history.replaceState(null,"","/relay/?c="+b64e(c)); }catch(e){}
+  const note = fin ? null : after<before ? `Nice! ${w.toUpperCase()} is one step closer.` : after===before ? `Sideways move: still ${linksWord(after)} away.` : `Bold: that's further away (${linksWord(after)} now). The next person has work to do!`;
+  buzz(15);
+  drawChain(note);
+  if(fin){ confetti(); }
+}
+function drawPass(note){
+  const c=chain, left=distTo(c.g).get(c.w[c.w.length-1]);
+  $("moveArea").innerHTML=`${note?`<p class="fb good" style="text-align:left">${esc(note)}</p>`:""}
+    <button class="btn" id="bShare">📲 Pass it on</button>
+    <p class="muted" style="font-size:14px">Send it to someone who isn't in the chain yet. Send it to a few people if you like: each of them can take it their own way.</p>
+    <button class="btn ghost" id="bCopy">Copy link</button>`;
+  const txt=`🔗 Relay No. ${c.d}: ${c.w[0].toUpperCase()} → ${c.g.toUpperCase()}\n${c.w.map(w=>w.toUpperCase()).join(" → ")}\nI changed one letter. Your turn: change one more, then pass it on to someone new. ${linksWord(left)} to go!\n${linkOf(c)}`;
+  $("bShare").onclick=()=>share(txt);
+  $("bCopy").onclick=()=>copy(linkOf(c),"Link copied.");
+}
+function drawDone(){
+  const c=chain;
+  const txt=`🔗 Relay No. ${c.d} 🏁 ${c.w[0].toUpperCase()} → ${c.g.toUpperCase()} in ${linksWord(c.w.length-1)}\n${c.p.map(m=>m[0]).join(" → ")}\n${c.w.map(w=>w.toUpperCase()).join(" → ")}\nStart your own chain: https://playsproutle.com/relay/`;
+  $("moveArea").innerHTML=`<button class="btn" id="bShare">Share the finished chain</button><button class="btn dark" id="bNew">Start a chain of your own</button>`;
+  $("bShare").onclick=()=>share(txt);
+  $("bNew").onclick=()=>openChain({d:pNo,k:rid(),g:TODAY[1],w:[TODAY[0]],p:[]}, true);
+}
+
+// ---- Sharing, toasts, confetti
+function share(txt){
+  if(navigator.share && matchMedia("(pointer:coarse)").matches){ navigator.share({text:txt}).catch(()=>{}); return; }
+  copy(txt,"Copied. Paste it in a text to someone new.");
+}
+function copy(txt,msg){
+  const fallback=()=>{ let ta=$("fb2"); if(!ta){ ta=document.createElement("textarea"); ta.id="fb2"; ta.className="fallback"; ta.readOnly=true; $("moveArea").appendChild(ta); } ta.value=txt; ta.select(); toast("Select and copy the text below."); };
+  try{ navigator.clipboard.writeText(txt).then(()=>toast(msg),fallback); }catch(e){ fallback(); }
+}
+let toastT;
+function toast(m){ document.querySelectorAll(".toast").forEach(t=>t.remove()); clearTimeout(toastT); const t=document.createElement("div"); t.className="toast"; t.textContent=m; document.body.appendChild(t); toastT=setTimeout(()=>t.remove(),2400); }
+const buzz=ms=>{ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} };
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=document.createElement("canvas"); c.className="confetti"; const d=devicePixelRatio||1; c.width=innerWidth*d; c.height=innerHeight*d; c.style.width="100%"; c.style.height="100%";
+  document.body.appendChild(c); const x=c.getContext("2d"); x.scale(d,d);
+  const cols=["#FF5A36","#2F5BEA","#1F9D6B","#FFC53D","#B455F5"];
+  const ps=Array.from({length:150},()=>({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*14-3,r:Math.random()*6,c:cols[Math.random()*5|0],w:6+Math.random()*5}));
+  const t0=performance.now();
+  (function f(t){ x.clearRect(0,0,innerWidth,innerHeight); for(const p of ps){ p.vy+=.33; p.x+=p.vx; p.y+=p.vy; p.r+=.2; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.w/2,-3,p.w,6); x.restore(); }
+    if(t-t0<3500) requestAnimationFrame(f); else c.remove(); })(t0);
+}
+function openStats(){
+  const s=store.stats;
+  $("statsGrid").innerHTML=[[s.links,"Links made"],[s.started,"Chains started"],[s.finished,"Chains finished"],[s.anchors,"Final links"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+  $("statsModal").hidden=false;
+}
+
+// ---- Keyboard
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ document.querySelectorAll(".scrim").forEach(s=>s.hidden=true); return; }
+  if(document.querySelector(".scrim:not([hidden])")||!chain||!$("edit")) return;
+  if(/^[a-z]$/i.test(e.key) && !e.metaKey && !e.ctrlKey){ key(e.key.toLowerCase()); }
+  else if(e.key==="ArrowLeft"||e.key==="ArrowRight"){ const p=draft?draft.pos:-1; draft={pos:(p+(e.key==="ArrowLeft"?3:1)+(p<0?1:0))%4,letter:null}; paint(); }
+  else if(e.key==="Enter" && !$("bLock").disabled) lock();
+});
+
+// ---- Start
+$("btnHelp").onclick=()=>{ $("howModal").hidden=false; };
+$("btnStats").onclick=openStats;
+document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s||e.target.hasAttribute("data-close")) s.hidden=true; }));
+(function(){
+  const q=new URLSearchParams(location.search), raw=q.get("c");
+  if(raw){
+    const c=b64d(raw);
+    if(validChain(c)){ openChain(c); if(!store.seenHelp && !inChain(c)){ $("howModal").hidden=false; store.seenHelp=true; save(); } return; }
+    toast("That link looks broken. Here's today's puzzle.");
+    try{ history.replaceState(null,"","/relay/"); }catch(e){}
+  }
+  home();
+  if(!store.seenHelp){ $("howModal").hidden=false; store.seenHelp=true; save(); }
+})();
+
+// ---- Power-ups sent from the live admin page (/live-admin/)
+window.PSPowers={
+  "relay.hint":{emoji:"🔍", label:"A nudge", run(){
+    if(!chain||done(chain)||inChain(chain)) return {ok:false, msg:"There's no move for you to make right now, so the hint floated away."};
+    const cur=chain.w[chain.w.length-1], D=distTo(chain.g), b=D.get(cur);
+    for(let p=0;p<4;p++) for(const ch of ABC){ const n=cur.slice(0,p)+ch+cur.slice(p+1); if(n!==cur&&VALID.has(n)&&!chain.w.includes(n)&&D.get(n)===b-1) return `Try changing the ${["1st","2nd","3rd","4th"][p]} letter.`; }
+    return {ok:false, msg:"Even the hint is stumped from here!"}; }},
+};
+</script>
+</body>
+</html>

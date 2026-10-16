@@ -411,7 +411,7 @@
 
   // ---------- Power-ups. Each one belongs to a game; if the player is somewhere else it waits for them.
   const QK = "pslive-q";
-  const NAMES = {sproutle:"Sproutle", greenhouse:"Greenhouse", waterworks:"Waterworks", keystone:"Keystone", daisychain:"Daisy Chain", "critter-collector":"Critter Collector", stilllife:"Still Life"};
+  const NAMES = {sproutle:"Sproutle", greenhouse:"Greenhouse", waterworks:"Waterworks", keystone:"Keystone", daisychain:"Daisy Chain", "critter-collector":"Critter Collector", relay:"Relay"};
   function power(p){
     if(!p.game || !p.id) return;
     if(p.game === GAME && window.PSPowers && window.PSPowers[p.id]) return usePower(p);
