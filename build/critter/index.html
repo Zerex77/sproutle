@@ -392,7 +392,10 @@ const UPGRADES = [
   {k:"value", name:"Ticket Price", icon:"🎟️", max:60, perTank:true, cost:l=>40*Math.pow(2.15,l)*tankMult(S.tank),
     desc:l=>`+25% income per level. Now +${l*25}%`},
   {k:"net", name:"Breeding Program", icon:"🥚", max:8, perTank:true, cost:l=>80*Math.pow(5.5,l)*tankMult(S.tank),
-    desc:l=>`Adoptions can bring up to a ${CREATURES[Math.min(l+1,MAX_TIER)].n}. Each level adds a 30% chance of one step higher.`},
+    desc:l=>{ const o=breedOdds(l), pct=v=>v>=.995?"100%":v<.005?"<1%":Math.round(v*100)+"%";
+      const now=o.map((v,k)=>`${CREATURES[k+1].e} ${pct(v)}`).join(" · ");
+      return l<8 ? `Adoptions now: ${now}. Next level: ${Math.round(stepChance(l+1)*100)}% chance of each step up, as high as a ${CREATURES[Math.min(l+2,MAX_TIER)].n}.`
+                 : `Adoptions now: ${now}. Maxed out!`; }},
   {k:"auto", name:"Auto Adopt", icon:"⏱️", max:12, cost:l=>150*Math.pow(3.1,l),
     desc:l=>l? `Free adoption every ${autoInterval(l).toFixed(1)}s` : "Adopts animals for free on a timer, even when you're out of energy"},
   {k:"tapper", name:"Auto Feeder", icon:"🥕", max:10, cost:l=>400*Math.pow(3.4,l),
@@ -626,7 +629,11 @@ function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("on"
 
 /* ---------- Actions ---------- */
 function emptyCells(){ const out=[]; for (let i=0;i<S.board.length;i++) if(!locked(i)&&!S.board[i]) out.push(i); return out; }
-function rollTier(){ let t=1; for (let i=0;i<S.up.net;i++){ if (Math.random()<0.3) t++; else break; } return Math.min(t, MAX_TIER-1); }
+// Breeding Program: each level allows one step higher, and the chance of each step grows with the level
+// (34% at level 1 up to 62% at level 8; it used to be a flat 30%)
+const stepChance = l => l>0 ? 0.30+0.04*l : 0;
+function rollTier(){ const p=stepChance(S.up.net); let t=1; for (let i=0;i<S.up.net;i++){ if (Math.random()<p) t++; else break; } return Math.min(t, MAX_TIER-1); }
+function breedOdds(l){ const p=stepChance(l), out=[]; let reach=1; for (let k=0;k<=l;k++){ const stay = k<l ? 1-p : 1; out.push(reach*stay); reach*=p; } return out; }
 
 function cast(auto){
   const empty=emptyCells();
