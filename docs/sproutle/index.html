@@ -350,7 +350,7 @@ header h1{font-size:1.7rem}
 @media (max-width:400px){header{gap:6px;padding-inline:0}header h1{font-size:1.32rem}.mark{gap:4px}.mark svg{width:24px;height:24px}.hbtns{gap:4px}.icon{padding:7px 9px;font-size:.72rem}.icon.round,.icon.plusb{width:30px;padding:6px 0}.icon.gamesb{font-size:.9rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<script src="/site.js?v=202610160052" defer></script>
+<script src="/site.js?v=202610160058" defer></script>
 </head>
 <body>
 
@@ -746,7 +746,7 @@ function showResults(){
   const sb=$("shareBtn");if(sb)sb.onclick=()=>{const txt=shareText();
     const fb=()=>{let box=$("modal").querySelector(".sharebox");if(!box){box=document.createElement("div");box.className="sharebox";$("modal").appendChild(box);}
       box.textContent=txt;const rg=document.createRange();rg.selectNodeContents(box);const sl=getSelection();sl.removeAllRanges();sl.addRange(rg);toast("Selected. Copy it to share.");};
-    try{navigator.clipboard.writeText(txt).then(()=>toast("Copied to clipboard",1800,"good"),fb);}catch(e){fb();}};
+    (window.psShareThen||function(t,c){c();})(txt,()=>{try{navigator.clipboard.writeText(txt).then(()=>toast("Copied to clipboard",1800,"good"),fb);}catch(e){fb();}})};
 }
 
 document.addEventListener("keydown",e=>{

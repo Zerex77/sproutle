@@ -189,7 +189,7 @@ textarea.share{width:100%;font-family:ui-monospace,monospace;font-size:.85rem;bo
 @media (max-height:700px){.order{min-height:100px}.face{width:78px;height:78px}.order{grid-template-columns:82px 1fr}.burger{min-height:7.8em}.bell{width:66px;height:66px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
-<script src="/site.js?v=202610160052" defer></script>
+<script src="/site.js?v=202610160058" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -460,7 +460,7 @@ function showEnd(res,mode){
 $('shareBtn').onclick=()=>{const res=store.get(KEY);if(!res||res.n!==dayNum)return;
   const txt='Short Order #'+dayNum+' 🍳 $'+res.score+'\n'+res.results.map(r=>EMO[r]).join('')+'\nplaysproutle.com/shortorder';
   const fb=()=>{const ta=$('shareText');ta.value=txt;ta.hidden=false;ta.select();$('copied').textContent='Copy the text above'};
-  try{navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied!'},fb)}catch(e){fb()}};
+  (window.psShareThen||function(t,c){c();})(txt,()=>{try{navigator.clipboard.writeText(txt).then(()=>{$('copied').textContent='Copied!'},fb)}catch(e){fb()}})};
 const LB={game:'shortorder',day:dayNum,fmt:x=>'$'+(9999-x),note:'Most tips wins. Ties go to the fastest.',accent:'var(--red)',accentInk:'#fff'};
 $('lbBtn').onclick=()=>{if(!window.SLB)return;const d=store.get(KEY),mine=d&&d.n===dayNum;
   SLB.open(Object.assign({},LB,{score:mine?9999-d.score:0,eligible:!!mine,title:"Today's top 10",panelBg:'#FFF8DC',panelInk:'#2B1D16'}))};

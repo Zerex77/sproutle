@@ -87,7 +87,7 @@ h1 span{color:var(--gold)}
 .ibtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #slb{border-top:1px solid var(--line);padding-top:12px}
 </style>
-<script src="/site.js?v=202610160052" defer></script>
+<script src="/site.js?v=202610160058" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -253,8 +253,8 @@ function render(){
     r.hidden=false;r.className="result";
     const grid=guesses.map(g=>g===ans?"🟩":"🟥").join("");
     const shareText=`Alma Mater ${mode==="daily"?"No. "+pNo:"Endless"} ${won?guesses.length:"X"}/${MAX}\n${grid}\nplaysproutle.com/almamater`;
-    r.innerHTML=`<h2>${q.year} ${NAMES[ans]}</h2>${mode==="daily"?`<pre class="share" id="share">${shareText}</pre><button class="next" id="copy">Copy result</button><div id="slb"></div>`:`<button class="next" id="again">Next lineup</button>`}`;
-    const c=$("copy");if(c)c.onclick=()=>{navigator.clipboard.writeText(shareText).then(()=>c.textContent="Copied").catch(()=>{const s=getSelection(),rg=document.createRange();rg.selectNodeContents($("share"));s.removeAllRanges();s.addRange(rg);c.textContent="Selected, copy it"})};
+    r.innerHTML=`<h2>${q.year} ${NAMES[ans]}</h2>${mode==="daily"?`<pre class="share" id="share">${shareText}</pre><button class="next" id="copy">Share result</button><div id="slb"></div>`:`<button class="next" id="again">Next lineup</button>`}`;
+    const c=$("copy");if(c)c.onclick=()=>{(window.psShareThen||function(t,c){c();})(shareText,()=>{navigator.clipboard.writeText(shareText).then(()=>c.textContent="Copied").catch(()=>{const s=getSelection(),rg=document.createRange();rg.selectNodeContents($("share"));s.removeAllRanges();s.addRange(rg);c.textContent="Selected, copy it"})});};
     if(mode==="daily"&&window.SLB)SLB.mount($("slb"),{game:"almamater",day:pNo,score:guesses.length,eligible:won,fmt:n=>n+"/"+MAX,note:"Fewest guesses wins. Ties go to the fastest.",accent:"var(--teal)",accentInk:"#fff",detail:{team:ans,year:q.year,guesses},renderDetail:d=>d.guesses.map(g=>(g===d.team?"🟩 ":"🟥 ")+NAMES[g]).join("<br>")});
     const a=$("again");if(a)a.onclick=()=>{start();window.scrollTo({top:0,behavior:"smooth"})};
   }else r.hidden=true;

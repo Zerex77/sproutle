@@ -359,7 +359,7 @@ function showResults(){
   const sb=$("shareBtn");if(sb)sb.onclick=()=>{const txt=shareText();
     const fb=()=>{let box=$("modal").querySelector(".sharebox");if(!box){box=document.createElement("div");box.className="sharebox";$("modal").appendChild(box);}
       box.textContent=txt;const rg=document.createRange();rg.selectNodeContents(box);const sl=getSelection();sl.removeAllRanges();sl.addRange(rg);toast("Selected. Copy it to share.");};
-    try{navigator.clipboard.writeText(txt).then(()=>toast("Copied to clipboard",1800,"good"),fb);}catch(e){fb();}};
+    (window.psShareThen||function(t,c){c();})(txt,()=>{try{navigator.clipboard.writeText(txt).then(()=>toast("Copied to clipboard",1800,"good"),fb);}catch(e){fb();}})};
 }
 
 document.addEventListener("keydown",e=>{

@@ -357,7 +357,7 @@ function renderResult(){
   $("btnShare").onclick=()=>{
     const txt=shareText(), ok=()=>toast("Copied. Paste it anywhere.");
     const fallback=()=>{ if(!$("fb")){ const ta=document.createElement("textarea"); ta.id="fb"; ta.className="fallback"; ta.readOnly=true; ta.value=txt; r.appendChild(ta);} $("fb").select(); toast("Select and copy the text below."); };
-    try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }
+    (window.psShareThen||function(t,c){c();})(txt,()=>{try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(e){ fallback(); }})
   };
   tick();
 }

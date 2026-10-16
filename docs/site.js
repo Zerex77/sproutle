@@ -1,4 +1,4 @@
-(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"], "v": "202610160052"};
+(function(){var C={"ads": "", "goat": "sproutle", "friend": "sproutfam", "noAds": ["/animalmatch/", "/bugsquish/", "/superrescue/"], "v": "202610160058"};
 var K="ps-adfree",ls={get:function(){try{return localStorage.getItem(K)}catch(e){return null}},
   set:function(v){try{v?localStorage.setItem(K,"1"):localStorage.removeItem(K)}catch(e){}}};
 var q=new URLSearchParams(location.search),f=q.get("friend"),msg=null;
@@ -9,6 +9,13 @@ if(f!==null){
   try{history.replaceState(null,"",u)}catch(e){}
 }
 var adFree=ls.get()==="1";
+// Share buttons: open the phone's share sheet (Messages, WhatsApp, etc.). If there isn't one, or it fails, copy instead.
+window.psShareThen=function(text,copy){
+  if(navigator.share){
+    try{ navigator.share({text:text}).catch(function(e){ if(!e||e.name!=="AbortError") copy(); }); return; }catch(e){}
+  }
+  copy();
+};
 window.psSite={adFree:adFree};
 function toast(t){var d=document.createElement("div");d.textContent=t;
   d.style.cssText="position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2147483647;background:#1f7a3a;color:#fff;font:600 15px/1.3 system-ui,sans-serif;padding:10px 18px;border-radius:999px;width:max-content;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center";

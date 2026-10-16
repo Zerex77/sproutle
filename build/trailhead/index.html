@@ -374,7 +374,7 @@ function shareText(){
 function copy(){
   const txt=shareText(), pre=$('shareTxt');
   const fallback=()=>{pre.textContent=txt;pre.hidden=false;toast('Select the text to copy')};
-  try{navigator.clipboard.writeText(txt).then(()=>toast('Results copied'),fallback)}catch(e){fallback()}
+  (window.psShareThen||function(t,c){c();})(txt,()=>{try{navigator.clipboard.writeText(txt).then(()=>toast('Results copied'),fallback)}catch(e){fallback()}})
 }
 
 // ---------- word screen ----------

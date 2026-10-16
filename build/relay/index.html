@@ -436,8 +436,7 @@ function drawDone(){
 
 // ---- Sharing, toasts, confetti
 function share(txt){
-  if(navigator.share && matchMedia("(pointer:coarse)").matches){ navigator.share({text:txt}).catch(()=>{}); return; }
-  copy(txt,"Copied. Paste it in a text to someone new.");
+  (window.psShareThen||function(t,c){c();})(txt,()=>copy(txt,"Copied. Paste it in a text to someone new."));
 }
 function copy(txt,msg){
   const fallback=()=>{ let ta=$("fb2"); if(!ta){ ta=document.createElement("textarea"); ta.id="fb2"; ta.className="fallback"; ta.readOnly=true; $("moveArea").appendChild(ta); } ta.value=txt; ta.select(); toast("Select and copy the text below."); };
